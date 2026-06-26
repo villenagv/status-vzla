@@ -8,6 +8,7 @@ import Footer from '@/components/svzla/Footer';
 import TablaPersonas from '@/components/institucional/TablaPersonas';
 import FormularioManual from '@/components/institucional/FormularioManual';
 import PromptCopiable from '@/components/institucional/PromptCopiable';
+import ProcesadorProgresivo from '@/components/institucional/ProcesadorProgresivo';
 
 const TIPOS = [
   { val: 'refugio', es: 'Refugio', en: 'Shelter' },
@@ -133,19 +134,20 @@ export default function RegistroInstitucional() {
     <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
       <TopBar />
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 text-center">
-        <CheckCircle size={52} className="text-green-600 mb-4" />
+        <div className="text-5xl mb-4">🙏</div>
+        <CheckCircle size={40} className="text-green-600 mb-3" />
         <h2 className="text-xl font-bold text-[#1A1F2E] mb-2">
-          {es ? '¡Listado guardado!' : 'List saved!'}
+          {es ? '¡Gracias por tu ayuda!' : 'Thank you for your help!'}
         </h2>
-        <p className="text-sm text-gray-500 max-w-xs mb-2">
+        <p className="text-sm text-gray-600 max-w-xs mb-2 leading-relaxed">
           {es
-            ? `Se registraron ${personas.length} personas bajo "${inst.institucion_nombre}". Los datos quedan en estado borrador hasta ser verificados.`
-            : `${personas.length} people registered under "${inst.institucion_nombre}". Data is in draft status until verified.`}
+            ? `El listado de "${inst.institucion_nombre}" fue registrado. Esta información ayuda a las familias a encontrar a sus seres queridos.`
+            : `The list for "${inst.institucion_nombre}" has been registered. This information helps families find their loved ones.`}
         </p>
         <p className="text-xs text-gray-400 max-w-xs mb-6">
           {es
-            ? 'Los teléfonos y datos privados NO se publicarán. Solo el nombre y condición son visibles públicamente.'
-            : 'Phones and private data will NOT be published. Only name and condition are publicly visible.'}
+            ? '🔒 Los teléfonos y datos privados NO se publicarán. Solo nombre y condición son visibles públicamente.'
+            : '🔒 Phones and private data will NOT be published. Only name and condition are publicly visible.'}
         </p>
         <div className="flex flex-col gap-2 w-full max-w-xs">
           <button onClick={() => { setPaso(PASO_PERSONAS); setGuardadoOk(false); }} className="bg-[#D48C2E] text-white font-bold py-3 rounded-xl text-sm">
@@ -346,7 +348,18 @@ export default function RegistroInstitucional() {
               )}
             </div>
 
-            {/* OPCIÓN B: Prompt para ChatGPT */}
+            {/* OPCIÓN B: Bajo consumo — procesamiento progresivo */}
+            <ProcesadorProgresivo
+              es={es}
+              instId={instId}
+              instNombre={inst.institucion_nombre}
+              onPersonasGuardadas={(n) => {
+                // Notifica cuántas se guardaron sin bloquear el flujo
+                if (n > 0) setPaso(PASO_CONFIRMACION);
+              }}
+            />
+
+            {/* OPCIÓN C: Prompt para ChatGPT */}
             <PromptCopiable es={es} />
 
             {/* OPCIÓN C: Manual */}
