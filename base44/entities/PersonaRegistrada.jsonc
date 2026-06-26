@@ -1,0 +1,68 @@
+{
+  "name": "PersonaRegistrada",
+  "type": "object",
+  "properties": {
+    "institucion_id": {
+      "type": "string"
+    },
+    "institucion_nombre": {
+      "type": "string"
+    },
+    "nombre_completo": {
+      "type": "string"
+    },
+    "fecha_nacimiento": {
+      "type": "string"
+    },
+    "edad_aprox": {
+      "type": "string"
+    },
+    "sexo": {
+      "type": "string"
+    },
+    "telefono_contacto": {
+      "type": "string"
+    },
+    "documento_identidad": {
+      "type": "string"
+    },
+    "condicion": {
+      "type": "string",
+      "enum": [
+        "a_salvo",
+        "herido_leve",
+        "herido_grave",
+        "fallecido_reportado",
+        "no_identificado",
+        "no_sabe"
+      ],
+      "default": "a_salvo"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "observaciones": {
+      "type": "string"
+    },
+    "nivel_verificacion": {
+      "type": "string",
+      "enum": [
+        "borrador",
+        "institucional",
+        "verificado"
+      ],
+      "default": "borrador"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "institucional"
+    }
+  },
+  "required": [
+    "nombre_completo",
+    "institucion_id"
+  ]
+}

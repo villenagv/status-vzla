@@ -1,0 +1,44 @@
+{
+  "name": "RegistroInstitucional",
+  "type": "object",
+  "properties": {
+    "institucion_nombre": {
+      "type": "string"
+    },
+    "institucion_tipo": {
+      "type": "string",
+      "enum": [
+        "refugio",
+        "hospital",
+        "centro_acopio",
+        "comedor",
+        "otro"
+      ]
+    },
+    "institucion_ciudad": {
+      "type": "string"
+    },
+    "institucion_estado": {
+      "type": "string"
+    },
+    "codigo_admin": {
+      "type": "string"
+    },
+    "responsable_nombre": {
+      "type": "string"
+    },
+    "responsable_telefono": {
+      "type": "string"
+    },
+    "responsable_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "institucion_nombre",
+    "institucion_tipo",
+    "institucion_ciudad",
+    "institucion_estado",
+    "responsable_telefono"
+  ]
+}
