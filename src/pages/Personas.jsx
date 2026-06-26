@@ -202,7 +202,7 @@ export default function Personas() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <p className="font-black text-sm text-[#1A1F2E] leading-tight">{p.nombre_completo}</p>
+                      <Link to={`/persona?id=${p.id}`} className="font-black text-sm text-[#1A1F2E] leading-tight hover:underline no-underline">{p.nombre_completo}</Link>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${st.bg}`}>
                         {es ? st.es : st.en}
                       </span>
@@ -250,7 +250,7 @@ export default function Personas() {
                     className="flex items-center justify-center gap-1 text-xs font-semibold text-[#D48C2E] bg-[#FFF8EE] border border-[#E6C195] py-2 rounded-xl">
                     ✋ {es ? 'La encontré' : 'I found them'}
                   </Link>
-                  <Link to={`/reportar-encontrado`}
+                  <Link to={`/pista?persona=${p.id}`}
                     className="flex items-center justify-center gap-1 text-xs font-semibold text-[#1A4A8A] bg-blue-50 border border-blue-200 py-2 rounded-xl">
                     <Eye size={11} /> {es ? 'Tengo info' : 'Have info'}
                   </Link>

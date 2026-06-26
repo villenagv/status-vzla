@@ -1,0 +1,32 @@
+{
+  "name": "SuscriptoresSeguimiento",
+  "type": "object",
+  "properties": {
+    "reporte_id": {
+      "type": "string"
+    },
+    "tipo_reporte": {
+      "type": "string",
+      "enum": [
+        "persona",
+        "dano",
+        "refugio"
+      ]
+    },
+    "telefono_whatsapp": {
+      "type": "string"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "nombre_suscriptor": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "reporte_id",
+    "tipo_reporte",
+    "telefono_whatsapp"
+  ]
+}

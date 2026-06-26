@@ -1,0 +1,52 @@
+{
+  "name": "PistasPersonas",
+  "type": "object",
+  "properties": {
+    "persona_id": {
+      "type": "string"
+    },
+    "tipo_pista": {
+      "type": "string",
+      "enum": [
+        "vi_directamente",
+        "me_contaron",
+        "vi_en_foto",
+        "informacion_ubicacion",
+        "otra"
+      ]
+    },
+    "ubicacion_pista": {
+      "type": "string"
+    },
+    "refugio_vinculado_id": {
+      "type": "string"
+    },
+    "fecha_pista": {
+      "type": "string"
+    },
+    "estado_persona_pista": {
+      "type": "string",
+      "enum": [
+        "a_salvo",
+        "lesiones_leves",
+        "lesiones_graves",
+        "no_se"
+      ],
+      "default": "no_se"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "contacto_informante": {
+      "type": "string"
+    },
+    "nombre_informante": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "persona_id",
+    "tipo_pista",
+    "ubicacion_pista"
+  ]
+}

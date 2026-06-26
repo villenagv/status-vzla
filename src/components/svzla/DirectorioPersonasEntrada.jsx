@@ -95,7 +95,7 @@ export default function DirectorioPersonasEntrada() {
         {visibles.map(p => {
           const st = ESTADO_BADGE[p.estado_caso] || { es: p.estado_caso, en: p.estado_caso, cls: 'bg-gray-100 text-gray-600' };
           return (
-            <div key={p.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
+            <Link key={p.id} to={`/persona?id=${p.id}`} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50 no-underline">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 truncate">{p.nombre_completo}</p>
                 <p className="text-xs text-gray-400 truncate">
@@ -106,7 +106,7 @@ export default function DirectorioPersonasEntrada() {
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${st.cls}`}>
                 {es ? st.es : st.en}
               </span>
-            </div>
+            </Link>
           );
         })}
       </div>
