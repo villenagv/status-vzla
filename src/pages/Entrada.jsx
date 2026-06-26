@@ -134,6 +134,12 @@ export default function Entrada() {
           </div>
         </div>
 
+        {/* Directorio de edificios completo */}
+        <div className="mt-10">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">🏗️ {es ? 'Directorio de edificios reportados' : 'Reported buildings directory'}</p>
+          <DirectorioEdificiosEntrada />
+        </div>
+
         <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-gray-300"><span className="font-semibold text-gray-400">Status Venezuela</span> · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}</p>
           <div className="flex gap-3">
