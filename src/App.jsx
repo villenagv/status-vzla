@@ -36,6 +36,7 @@ import PersonaDetalle from './pages/PersonaDetalle';
 import Pista from './pages/Pista';
 import Seguimiento from './pages/Seguimiento';
 import Suscripciones from './pages/Suscripciones';
+import SolicitarInfoEdificio from './pages/SolicitarInfoEdificio';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -64,6 +65,7 @@ const PublicApp = () => (
     <Route path="/pista" element={<Pista />} />
     <Route path="/seguimiento" element={<Seguimiento />} />
     <Route path="/suscripciones" element={<Suscripciones />} />
+    <Route path="/solicitar-info-edificio" element={<SolicitarInfoEdificio />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
     <Route path="*" element={<PageNotFound />} />

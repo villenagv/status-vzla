@@ -1,0 +1,48 @@
+{
+  "name": "SolicitudesInfoEdificio",
+  "type": "object",
+  "properties": {
+    "nombre_lugar": {
+      "type": "string"
+    },
+    "direccion": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "telefono_contacto": {
+      "type": "string"
+    },
+    "email_contacto": {
+      "type": "string"
+    },
+    "estado_solicitud": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "en_proceso",
+        "completada",
+        "cerrada"
+      ],
+      "default": "pendiente"
+    },
+    "reporte_encontrado_id": {
+      "type": "string"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "web_publica"
+    }
+  },
+  "required": [
+    "nombre_lugar",
+    "ciudad"
+  ]
+}

@@ -71,8 +71,9 @@ const MAX_FOTOS = 5;
 export default function Edificios() {
   const { lang } = useLang();
   const es = lang === 'es';
-  const initialTab = new URLSearchParams(window.location.search).get('tab') || 'directorio';
-  const [tab, setTab] = useState(initialTab); // 'directorio' | 'consultar' | 'reportar'
+  const params = new URLSearchParams(window.location.search);
+  const initialTab = params.get('tab') || params.get('modo') === 'request' ? 'solicitar' : 'directorio';
+  const [tab, setTab] = useState(initialTab); // 'directorio' | 'consultar' | 'reportar' | 'solicitar'
 
   // ── DIRECTORIO ──
   const [todos, setTodos] = useState([]);
@@ -269,6 +270,7 @@ export default function Edificios() {
             { key: 'directorio', label: { es: '📋 Directorio',       en: '📋 Directory' } },
             { key: 'consultar',  label: { es: '🔍 Buscar edificio',   en: '🔍 Search building' } },
             { key: 'reportar',   label: { es: '🚨 Reportar daño',     en: '🚨 Report damage' } },
+            { key: 'solicitar',  label: { es: '📋 Solicitar info',    en: '📋 Request info' } },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors cursor-pointer ${tab === t.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
@@ -588,6 +590,17 @@ export default function Edificios() {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── SOLICITAR ── */}
+        {tab === 'solicitar' && (
+          <div className="text-center py-8">
+            <p className="text-sm text-gray-500 mb-4">{es ? '¿No encuentras un edificio en el directorio? Solicita que lo incluyamos con toda la información disponible.' : "Can't find a building in the directory? Request it and we'll add all available information."}</p>
+            <Link to="/solicitar-info-edificio"
+              className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold px-8 py-4 rounded-xl text-sm no-underline transition-colors">
+              📋 {es ? 'Solicitar información de un edificio' : 'Request building information'}
+            </Link>
           </div>
         )}
 

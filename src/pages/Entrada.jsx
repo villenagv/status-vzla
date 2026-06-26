@@ -5,6 +5,7 @@ import { Phone } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ContadoresEntrada from '@/components/svzla/ContadoresEntrada';
 import DirectorioPersonasEntrada from '@/components/svzla/DirectorioPersonasEntrada';
+import DirectorioEdificiosEntrada from '@/components/svzla/DirectorioEdificiosEntrada';
 
 const MODOS = [
   { to: '/zona-afectada', icon: '🆘', bg: '#C0392B', label: { es: 'EMERGENCIA', en: 'EMERGENCY' }, titulo: { es: 'Estoy en zona afectada', en: 'I am in the affected area' }, sub: { es: 'Reporta daños · Pide ayuda · Informa refugio', en: 'Report damage · Ask for help · Shelter' } },
@@ -28,6 +29,8 @@ export default function Entrada() {
 
   useEffect(() => { base44.auth.me().then(u => setUser(u)).catch(() => setUser(null)); }, []);
 
+  const [modoDir, setModoDir] = useState('personas');
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="border-b border-gray-100 bg-white sticky top-0 z-40">
@@ -36,7 +39,7 @@ export default function Entrada() {
             <span className="text-xl font-bold text-gray-900 tracking-tight">
               Status<span className="text-amber-600">Vzla</span>
             </span>
-            <span className="hidden sm:inline ml-2 text-xs text-gray-400 font-medium tracking-widest uppercase">CRIS</span>
+            <span className="hidden sm:inline ml-2 text-xs text-gray-400 font-medium tracking-widest uppercase">StatusVenezuela.com</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
@@ -105,13 +108,22 @@ export default function Entrada() {
           </div>
 
           <div className="lg:col-span-1">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{es ? 'Directorio de personas' : 'People directory'}</p>
-            <DirectorioPersonasEntrada />
+            <div className="flex gap-2 mb-3">
+              <button onClick={() => setModoDir('personas')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${modoDir === 'personas' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>
+                👤 {es ? 'Personas' : 'People'}
+              </button>
+              <button onClick={() => setModoDir('edificios')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${modoDir === 'edificios' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>
+                🏗️ {es ? 'Edificios' : 'Buildings'}
+              </button>
+            </div>
+            {modoDir === 'personas' ? <DirectorioPersonasEntrada /> : <DirectorioEdificiosEntrada />}
           </div>
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-gray-300"><span className="font-semibold text-gray-400">StatusVzla</span> · CRIS · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}</p>
+          <p className="text-xs text-gray-300"><span className="font-semibold text-gray-400">Status Venezuela</span> · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}</p>
           <div className="flex gap-3">
             <Link to="/login" className="text-xs text-gray-400 hover:text-gray-600 underline">{es ? 'Entrar' : 'Login'}</Link>
             <Link to="/register" className="text-xs text-gray-400 hover:text-gray-600 underline">{es ? 'Registrarme' : 'Sign up'}</Link>
