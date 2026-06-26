@@ -1,0 +1,138 @@
+{
+  "name": "ReportesDano",
+  "type": "object",
+  "properties": {
+    "tipo_estructura": {
+      "type": "string",
+      "enum": [
+        "edificio_residencial",
+        "hospital",
+        "escuela",
+        "iglesia",
+        "comercio",
+        "calle_via",
+        "puente",
+        "servicio_publico",
+        "refugio",
+        "otro"
+      ]
+    },
+    "nombre_lugar": {
+      "type": "string"
+    },
+    "nivel_dano": {
+      "type": "string",
+      "enum": [
+        "leve",
+        "moderado",
+        "grave",
+        "critico",
+        "no_evaluado"
+      ],
+      "default": "no_evaluado"
+    },
+    "estado_acceso": {
+      "type": "string",
+      "enum": [
+        "no_entrar",
+        "solo_rescatistas",
+        "entrada_limitada",
+        "entrada_autorizada",
+        "clausurado",
+        "no_verificado"
+      ],
+      "default": "no_verificado"
+    },
+    "personas_atrapadas": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no",
+        "no_sabe",
+        "voces",
+        "posible"
+      ]
+    },
+    "riesgo_gas": {
+      "type": "boolean",
+      "default": false
+    },
+    "riesgo_electrico": {
+      "type": "boolean",
+      "default": false
+    },
+    "riesgo_incendio": {
+      "type": "boolean",
+      "default": false
+    },
+    "riesgo_colapso": {
+      "type": "boolean",
+      "default": false
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "direccion": {
+      "type": "string"
+    },
+    "referencia": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "foto_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prioridad": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "alta",
+        "critica"
+      ],
+      "default": "normal"
+    },
+    "estado_verificacion": {
+      "type": "string",
+      "enum": [
+        "recibido",
+        "verificado",
+        "duplicado",
+        "falso",
+        "resuelto"
+      ],
+      "default": "recibido"
+    },
+    "nivel_verificacion": {
+      "type": "string",
+      "enum": [
+        "sin_verificar",
+        "comunidad",
+        "institucional"
+      ],
+      "default": "sin_verificar"
+    },
+    "reportante_nombre": {
+      "type": "string"
+    },
+    "reportante_telefono": {
+      "type": "string"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "web_publica"
+    }
+  },
+  "required": [
+    "tipo_estructura",
+    "ciudad",
+    "estado_region"
+  ]
+}

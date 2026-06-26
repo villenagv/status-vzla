@@ -1,0 +1,66 @@
+{
+  "name": "Verificaciones",
+  "type": "object",
+  "properties": {
+    "registro_id": {
+      "type": "string"
+    },
+    "tipo_registro": {
+      "type": "string",
+      "enum": [
+        "persona_buscada",
+        "persona_encontrada",
+        "reporte_dano",
+        "punto_ayuda",
+        "zona",
+        "institucion"
+      ]
+    },
+    "verificador_nombre": {
+      "type": "string"
+    },
+    "verificador_rol": {
+      "type": "string",
+      "enum": [
+        "ciudadano",
+        "voluntario",
+        "institucion",
+        "coordinador",
+        "admin"
+      ]
+    },
+    "resultado": {
+      "type": "string",
+      "enum": [
+        "confirmado",
+        "pendiente",
+        "dudoso",
+        "falso",
+        "duplicado",
+        "requiere_mas_info"
+      ]
+    },
+    "observacion": {
+      "type": "string"
+    },
+    "nivel_confianza": {
+      "type": "string",
+      "enum": [
+        "bajo",
+        "medio",
+        "alto",
+        "confirmado"
+      ],
+      "default": "bajo"
+    },
+    "es_sensible": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "registro_id",
+    "tipo_registro",
+    "resultado"
+  ]
+}

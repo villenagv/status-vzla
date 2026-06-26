@@ -1,0 +1,54 @@
+{
+  "name": "OfertasAyuda",
+  "type": "object",
+  "properties": {
+    "tipo_ayuda": {
+      "type": "string",
+      "enum": [
+        "transporte",
+        "alojamiento",
+        "alimentos",
+        "medicinas",
+        "medico_voluntario",
+        "dinero_giro",
+        "herramientas",
+        "comunicacion",
+        "voluntario_campo",
+        "otro"
+      ]
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "disponibilidad": {
+      "type": "string"
+    },
+    "ciudad_origen": {
+      "type": "string"
+    },
+    "puede_llegar_a": {
+      "type": "string"
+    },
+    "contacto_protegido": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "en_uso",
+        "completada",
+        "cancelada"
+      ],
+      "default": "disponible"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "web_publica"
+    }
+  },
+  "required": [
+    "tipo_ayuda",
+    "contacto_protegido"
+  ]
+}

@@ -62,11 +62,11 @@ const ACCIONES = [
   },
   {
     emoji: '🏥',
-    to: '/consultar',
-    es_titulo: 'Refugios, hospitales y puntos de ayuda',
-    en_titulo: 'Shelters, hospitals and help points',
-    es_desc: 'Consultar disponibilidad y ubicación.',
-    en_desc: 'Check availability and location.',
+    to: '/centros-apoyo',
+    es_titulo: 'Centros de apoyo activos',
+    en_titulo: 'Active help centers',
+    es_desc: '36 centros: hospitales, refugios, acopios y ONGs.',
+    en_desc: '36 centers: hospitals, shelters, supply & NGOs.',
     variant: 'green',
   },
   {

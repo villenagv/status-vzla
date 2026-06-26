@@ -1,0 +1,79 @@
+{
+  "name": "Necesidades",
+  "type": "object",
+  "properties": {
+    "centro_id": {
+      "type": "string"
+    },
+    "centro_nombre": {
+      "type": "string"
+    },
+    "zona_id": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "agua",
+        "alimentos",
+        "medicinas",
+        "ropa",
+        "transporte",
+        "medicos",
+        "combustible",
+        "seguridad",
+        "voluntarios",
+        "herramientas",
+        "comunicacion",
+        "otro"
+      ]
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "cantidad_aprox": {
+      "type": "string"
+    },
+    "urgencia": {
+      "type": "string",
+      "enum": [
+        "baja",
+        "media",
+        "alta",
+        "critica"
+      ],
+      "default": "media"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "activa",
+        "en_proceso",
+        "cubierta",
+        "cancelada"
+      ],
+      "default": "activa"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "contacto_nombre": {
+      "type": "string"
+    },
+    "contacto_telefono": {
+      "type": "string"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "institucional"
+    }
+  },
+  "required": [
+    "categoria",
+    "ciudad",
+    "estado_region"
+  ]
+}

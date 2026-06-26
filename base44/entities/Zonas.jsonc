@@ -1,0 +1,51 @@
+{
+  "name": "Zonas",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string"
+    },
+    "municipio": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "nivel_riesgo": {
+      "type": "string",
+      "enum": [
+        "sin_datos",
+        "bajo",
+        "medio",
+        "alto",
+        "critico"
+      ],
+      "default": "sin_datos"
+    },
+    "resumen_operativo": {
+      "type": "string"
+    },
+    "alertas_activas": {
+      "type": "number",
+      "default": 0
+    },
+    "refugios_activos": {
+      "type": "number",
+      "default": 0
+    },
+    "hospitales_operativos": {
+      "type": "number",
+      "default": 0
+    },
+    "ultima_actualizacion": {
+      "type": "string"
+    },
+    "fuente": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nombre",
+    "estado_region"
+  ]
+}
