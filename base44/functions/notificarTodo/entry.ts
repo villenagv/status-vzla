@@ -92,14 +92,14 @@ Deno.serve(async (req) => {
         entidad_ids: { $contains: entidad_id },
       });
       subsGrupo = grupos.flatMap(g => g.suscriptores || []);
-    } catch {
+    } catch (_) {
       // fallback: cargar todos los grupos y barrer en el cliente
       try {
         const grupos = await base44.asServiceRole.entities.GruposNotificacion.list('-created_date', 100);
         subsGrupo = grupos
           .filter(g => (g.entidad_ids || []).includes(entidad_id))
           .flatMap(g => g.suscriptores || []);
-      } catch {}
+      } catch (_) { /**/ }
     }
 
     const todosLosEmails = new Set([
