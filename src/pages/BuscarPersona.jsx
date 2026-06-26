@@ -216,8 +216,8 @@ export default function BuscarPersona() {
         </h1>
         <p className="text-sm text-gray-500 mb-3 leading-relaxed">
           {es
-            ? 'Registra a la persona que buscas. Responde solo lo que sepas — todos los datos son opcionales excepto nombre, ubicación y tu teléfono. Tus datos de contacto no se publicarán.'
-            : "Register the person you're looking for. Answer only what you know — all fields are optional except name, location and your phone. Your contact details won't be published."}
+            ? 'Registra a la persona que buscas. Responde solo lo que sepas — solo tu nombre y teléfono son obligatorios. Tus datos de contacto no se publicarán.'
+            : "Register the person you're looking for. Answer only what you know — only your name and phone are required. Your contact details won't be published."}
         </p>
         <button onClick={() => setModoRapido(v => !v)} type="button" className={`text-xs font-semibold px-3 py-1.5 rounded-lg border mb-4 cursor-pointer ${modoRapido ? 'bg-[#D48C2E] text-white border-[#D48C2E]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#D48C2E]'}`}>
           ⚡ {modoRapido ? (es ? 'Versión completa' : 'Full version') : (es ? 'Modo rápido' : 'Quick mode')}
@@ -386,12 +386,12 @@ export default function BuscarPersona() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <FieldLabel label={es ? 'Ciudad' : 'City'} required />
-                  <input required placeholder="Caracas" value={form.ciudad} onChange={e => set('ciudad', e.target.value)} className={inputCls} />
+                  <FieldLabel label={es ? 'Ciudad' : 'City'} />
+                  <input placeholder="Caracas" value={form.ciudad} onChange={e => set('ciudad', e.target.value)} className={inputCls} />
                 </div>
                 <div>
-                  <FieldLabel label={es ? 'Estado' : 'State'} required />
-                  <input required placeholder="Miranda" value={form.estado_region} onChange={e => set('estado_region', e.target.value)} className={inputCls} />
+                  <FieldLabel label={es ? 'Estado' : 'State'} />
+                  <input placeholder="Miranda" value={form.estado_region} onChange={e => set('estado_region', e.target.value)} className={inputCls} />
                 </div>
               </div>
 
@@ -462,7 +462,7 @@ export default function BuscarPersona() {
 
             <button
               type="submit"
-              disabled={enviando || !form.nombre_completo || !form.ultima_ubicacion_conocida || !form.ciudad || !form.estado_region || !form.contacto_telefono}
+              disabled={enviando || !form.nombre_completo || !form.contacto_telefono}
               className="w-full bg-[#1A1F2E] hover:bg-[#2d3549] disabled:opacity-40 text-white font-black py-5 rounded-2xl text-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               {enviando ? <Loader2 size={20} className="animate-spin" /> : '🔎'}
