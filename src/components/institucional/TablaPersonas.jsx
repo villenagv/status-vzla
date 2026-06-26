@@ -97,7 +97,7 @@ export default function TablaPersonas({ personas, es, onChange, onDelete }) {
             <th className="px-2 py-2">{es ? 'Teléfono' : 'Phone'}</th>
             <th className="px-2 py-2">{es ? 'Condición' : 'Condition'}</th>
             <th className="px-2 py-2">{es ? 'Traslado' : 'Transfer'}</th>
-            <th className="px-2 py-2">{es ? 'Notas' : 'Notes'}</th>
+            <th className="px-2 py-2">{es ? 'Observaciones' : 'Notes'}</th>
             <th className="px-2 py-2">{es ? 'Acciones' : 'Actions'}</th>
           </tr>
         </thead>
