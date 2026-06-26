@@ -109,6 +109,15 @@ export default function Entrada() {
         <p className="text-center text-[11px] text-gray-400 mt-6 leading-relaxed">
           {t.no_reg}
         </p>
+        <div className="flex items-center justify-center gap-3 mt-3">
+          <Link to="/login" className="text-[11px] text-gray-400 hover:text-[#1A1F2E] underline underline-offset-2">
+            {t.lang_toggle === 'English' ? 'Iniciar sesión / Registrarse' : 'Log in / Register'}
+          </Link>
+          <span className="text-gray-300">·</span>
+          <Link to="/portal-institucional" className="text-[11px] text-gray-400 hover:text-green-700 underline underline-offset-2">
+            {t.lang_toggle === 'English' ? 'Portal Institucional' : 'Institutional Portal'}
+          </Link>
+        </div>
       </main>
     </div>
   );

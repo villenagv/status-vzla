@@ -1,0 +1,34 @@
+{
+  "name": "NotificacionesUsuario",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "string"
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "mensaje": {
+      "type": "string"
+    },
+    "leida": {
+      "type": "boolean",
+      "default": false
+    },
+    "link_ref": {
+      "type": "string"
+    },
+    "ref_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "tipo",
+    "titulo",
+    "mensaje"
+  ]
+}

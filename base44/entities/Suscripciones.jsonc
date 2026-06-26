@@ -1,0 +1,28 @@
+{
+  "name": "Suscripciones",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "persona_id": {
+      "type": "string"
+    },
+    "email_notificacion": {
+      "type": "string"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true
+    },
+    "es_creador": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_id",
+    "persona_id",
+    "email_notificacion"
+  ]
+}

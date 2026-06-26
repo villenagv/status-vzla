@@ -15,6 +15,8 @@ import Reportar from './pages/Reportar';
 import Consultar from './pages/Consultar';
 import Institucional from './pages/Institucional';
 import BuscarPersona from './pages/BuscarPersona';
+import MiPerfil from './pages/MiPerfil';
+import PortalInstitucional from './pages/PortalInstitucional';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -24,6 +26,8 @@ const PublicApp = () => (
     <Route path="/consultar" element={<Consultar />} />
     <Route path="/institucional" element={<Institucional />} />
     <Route path="/buscar-persona" element={<BuscarPersona />} />
+    <Route path="/mi-perfil" element={<MiPerfil />} />
+    <Route path="/portal-institucional" element={<PortalInstitucional />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
