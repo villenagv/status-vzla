@@ -6,6 +6,7 @@ import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+import BotonNotificarme from '@/components/svzla/BotonNotificarme';
 
 const PAGE_SIZE = 15;
 
@@ -232,6 +233,7 @@ export default function Personas() {
 
                 {/* Acciones */}
                 <div className="grid grid-cols-2 gap-2 mt-3">
+                  <BotonNotificarme personaId={p.id} nombre={p.nombre_completo} />
                   {p.contacto_telefono && (
                     <a href={`https://wa.me/${p.contacto_telefono.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"
                       className="flex items-center justify-center gap-1.5 bg-green-600 text-white text-xs font-bold py-2.5 rounded-xl">

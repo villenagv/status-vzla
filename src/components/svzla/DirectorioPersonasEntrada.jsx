@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
+import BotonNotificarme from '@/components/svzla/BotonNotificarme';
 
 const ESTADO_BADGE = {
   buscando:              { es: 'Buscando',          en: 'Searching',        cls: 'bg-yellow-100 text-yellow-800' },
@@ -95,18 +96,23 @@ export default function DirectorioPersonasEntrada() {
         {visibles.map(p => {
           const st = ESTADO_BADGE[p.estado_caso] || { es: p.estado_caso, en: p.estado_caso, cls: 'bg-gray-100 text-gray-600' };
           return (
-            <Link key={p.id} to={`/persona?id=${p.id}`} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50 no-underline">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{p.nombre_completo}</p>
-                <p className="text-xs text-gray-400 truncate">
-                  📍 {p.ultima_ubicacion_conocida} · {p.ciudad}{p.estado_region ? `, ${p.estado_region}` : ''}
-                  {p.edad_aprox ? ` · ${p.edad_aprox} ${es ? 'años' : 'yrs'}` : ''}
-                </p>
-              </div>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${st.cls}`}>
-                {es ? st.es : st.en}
-              </span>
-            </Link>
+            <div key={p.id} className="px-4 py-2.5 flex items-center gap-2">
+              <Link to={`/persona?id=${p.id}`} className="flex-1 min-w-0 hover:bg-gray-50 rounded-lg py-1 no-underline">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{p.nombre_completo}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      📍 {p.ultima_ubicacion_conocida} · {p.ciudad}{p.estado_region ? `, ${p.estado_region}` : ''}
+                      {p.edad_aprox ? ` · ${p.edad_aprox} ${es ? 'años' : 'yrs'}` : ''}
+                    </p>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${st.cls}`}>
+                    {es ? st.es : st.en}
+                  </span>
+                </div>
+              </Link>
+              <BotonNotificarme personaId={p.id} nombre={p.nombre_completo} className="flex-shrink-0" />
+            </div>
           );
         })}
       </div>
