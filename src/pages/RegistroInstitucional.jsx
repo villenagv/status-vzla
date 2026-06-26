@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Upload, Loader2, CheckCircle, AlertCircle, FileText, Camera } from 'lucide-react';
+import { ChevronLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -47,11 +47,6 @@ export default function RegistroInstitucional() {
   const [guardando, setGuardando] = useState(false);
   const [guardadoOk, setGuardadoOk] = useState(false);
 
-  // Carga de archivo
-  const [archivo, setArchivo] = useState(null);
-  const [indexando, setIndexando] = useState(false);
-  const [indexError, setIndexError] = useState('');
-
   const setI = (k, v) => setInst(f => ({ ...f, [k]: v }));
 
   // PASO 1: Registrar institución
@@ -76,32 +71,6 @@ export default function RegistroInstitucional() {
       setInstError(es ? 'Error al registrar. Intenta de nuevo.' : 'Registration error. Try again.');
     }
     setGuardandoInst(false);
-  };
-
-  // PASO 2A: Indexar archivo con IA
-  const indexarArchivo = async () => {
-    if (!archivo) return;
-    setIndexando(true);
-    setIndexError('');
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: archivo });
-      const res = await base44.functions.invoke('indexarListaInstitucional', {
-        file_url,
-        institucion_id: instId,
-        institucion_nombre: inst.institucion_nombre,
-      });
-      if (res.data?.status === 'success' && res.data.personas?.length > 0) {
-        setPersonas(prev => [...prev, ...res.data.personas]);
-        setArchivo(null);
-      } else {
-        setIndexError(es
-          ? 'El sistema no pudo leer el archivo. Usa el formulario manual o el prompt de IA.'
-          : 'The system could not read the file. Use manual entry or the AI prompt.');
-      }
-    } catch {
-      setIndexError(es ? 'Error al procesar el archivo.' : 'Error processing the file.');
-    }
-    setIndexando(false);
   };
 
   // Editar/eliminar persona en tabla borrador
@@ -326,8 +295,8 @@ export default function RegistroInstitucional() {
               </div>
             </div>
 
-            {/* OPCIÓN A: Solo guardar archivo sin procesar */}
-            <SubidorArchivo es={es} />
+            {/* OPCIÓN A: Subir archivo y crear fichas */}
+            <SubidorArchivo es={es} instId={instId} instNombre={inst.institucion_nombre} />
 
             {/* OPCIÓN B: Procesamiento progresivo con centro de apoyo */}
             <ProcesadorProgresivo
