@@ -67,6 +67,7 @@ export default function ReportarEncontrado() {
     reportado_por_nombre: '',
     reportado_por_telefono: '',
     reportado_por_email: '',
+    reportado_por_red_social: '',
   });
 
   const [fechaVisto, setFechaVisto] = useState('');
@@ -464,6 +465,11 @@ export default function ReportarEncontrado() {
             <div>
               <FieldLabel label={es ? 'Tu email' : 'Your email'} />
               <input type="email" placeholder="correo@..." value={form.reportado_por_email} onChange={e => set('reportado_por_email', e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <FieldLabel label={es ? 'Red social o WhatsApp' : 'Social media or WhatsApp'}
+                hint={es ? 'Instagram, Telegram, WhatsApp... para que puedan contactarte' : 'Instagram, Telegram, WhatsApp... so they can reach you'} />
+              <input placeholder={es ? 'Ej: @usuario, +58 414...' : 'E.g: @username, +58 414...'} value={form.reportado_por_red_social} onChange={e => set('reportado_por_red_social', e.target.value)} className={inputCls} />
             </div>
           </div>
 
