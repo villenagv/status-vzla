@@ -103,6 +103,25 @@ export default function Personas() {
             : 'Citizen directory for search and location. If you recognize someone, share their card.'}
         </p>
 
+        {/* Acciones principales — primero que todo */}
+        <div className="grid grid-cols-1 gap-2 mb-5">
+          <Link to="/buscar-persona"
+            className="flex items-center justify-center gap-2 bg-[#B83A52] text-white font-black py-4 rounded-2xl text-base no-underline">
+            <Plus size={18} />
+            {es ? 'Registrar persona desaparecida' : 'Register missing person'}
+          </Link>
+          <div className="grid grid-cols-2 gap-2">
+            <Link to="/reportar-encontrado"
+              className="flex items-center justify-center gap-2 bg-[#D48C2E] text-white font-bold py-3.5 rounded-2xl text-sm no-underline text-center">
+              🙋 {es ? 'Reportar encontrada' : 'Report found person'}
+            </Link>
+            <Link to="/directorio-encontrados"
+              className="flex items-center justify-center gap-2 bg-white border-2 border-[#1A1F2E] text-[#1A1F2E] font-bold py-3.5 rounded-2xl text-sm no-underline text-center">
+              📋 {es ? 'Dir. encontrados' : 'Found directory'}
+            </Link>
+          </div>
+        </div>
+
         {/* Anti-extorsión */}
         <div className="flex gap-2 bg-[#2A1A20] border border-[#6B2D3E] rounded-xl px-3 py-2.5 mb-4">
           <span className="text-sm flex-shrink-0">⚠️</span>
@@ -280,20 +299,12 @@ export default function Personas() {
           </button>
         )}
 
-        {/* CTAs */}
-        <div className="mt-6 grid grid-cols-1 gap-3">
+        {/* CTA inferior repetido para fácil acceso tras recorrer la lista */}
+        <div className="mt-6">
           <Link to="/buscar-persona"
-            className="flex items-center justify-center gap-2 bg-[#B83A52] text-white font-black py-4 rounded-2xl text-base">
+            className="flex items-center justify-center gap-2 bg-[#B83A52] text-white font-black py-4 rounded-2xl text-base no-underline">
             <Plus size={18} />
             {es ? 'Registrar persona desaparecida' : 'Register missing person'}
-          </Link>
-          <Link to="/reportar-encontrado"
-            className="flex items-center justify-center gap-2 bg-[#D48C2E] text-white font-black py-4 rounded-2xl text-base">
-            🙋 {es ? 'Reportar persona encontrada' : 'Report found person'}
-          </Link>
-          <Link to="/directorio-encontrados"
-            className="flex items-center justify-center gap-2 bg-white border-2 border-[#1A1F2E] text-[#1A1F2E] font-bold py-3.5 rounded-2xl text-sm">
-            📋 {es ? 'Ver directorio de encontrados' : 'View found people directory'}
           </Link>
         </div>
       </div>
