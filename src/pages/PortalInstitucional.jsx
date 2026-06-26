@@ -1,17 +1,167 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, LogOut, Loader2, Plus, Edit3, RefreshCw } from 'lucide-react';
+import { ChevronLeft, LogOut, Loader2, Edit3, Save, X, Plus, RefreshCw, Trash2, Phone, Globe, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 
 const ESTADO_OP_OPTS = [
-  { val: 'abierto', es: '✅ Abierto', en: '✅ Open' },
-  { val: 'saturado', es: '⚠️ Saturado', en: '⚠️ Saturated' },
-  { val: 'cerrado', es: '🔒 Cerrado', en: '🔒 Closed' },
-  { val: 'necesita_suministros', es: '📦 Necesita suministros', en: '📦 Needs supplies' },
-  { val: 'necesita_voluntarios', es: '🙋 Necesita voluntarios', en: '🙋 Needs volunteers' },
+  { val: 'abierto', es: '✅ Abierto', en: '✅ Open', badge: 'bg-green-100 text-green-800' },
+  { val: 'saturado', es: '⚠️ Saturado', en: '⚠️ Saturated', badge: 'bg-orange-100 text-orange-700' },
+  { val: 'cerrado', es: '🔒 Cerrado', en: '🔒 Closed', badge: 'bg-gray-200 text-gray-700' },
+  { val: 'necesita_suministros', es: '📦 Necesita suministros', en: '📦 Needs supplies', badge: 'bg-blue-100 text-blue-700' },
+  { val: 'necesita_voluntarios', es: '🙋 Necesita voluntarios', en: '🙋 Needs volunteers', badge: 'bg-purple-100 text-purple-700' },
 ];
+
+const SERVICIOS_OPTS = [
+  { val: 'agua', es: 'Agua potable', en: 'Drinking water' },
+  { val: 'comida', es: 'Comida', en: 'Food' },
+  { val: 'camas', es: 'Camas/dormitorio', en: 'Beds/dormitory' },
+  { val: 'medico', es: 'Atención médica', en: 'Medical care' },
+  { val: 'electricidad', es: 'Electricidad', en: 'Electricity' },
+  { val: 'baños', es: 'Baños', en: 'Bathrooms' },
+  { val: 'comunicacion', es: 'Comunicación/WiFi', en: 'Communication/WiFi' },
+  { val: 'transporte', es: 'Transporte', en: 'Transportation' },
+];
+
+const NECESIDADES_OPTS = [
+  { val: 'agua', es: 'Agua', en: 'Water' },
+  { val: 'alimentos', es: 'Alimentos', en: 'Food' },
+  { val: 'medicamentos', es: 'Medicamentos', en: 'Medications' },
+  { val: 'ropa', es: 'Ropa/frazadas', en: 'Clothing/blankets' },
+  { val: 'voluntarios', es: 'Voluntarios', en: 'Volunteers' },
+  { val: 'generador', es: 'Generador/combustible', en: 'Generator/fuel' },
+  { val: 'colchones', es: 'Colchones', en: 'Mattresses' },
+];
+
+function BadgeEstado({ val, es }) {
+  const opt = ESTADO_OP_OPTS.find(o => o.val === val);
+  if (!opt) return null;
+  return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${opt.badge}`}>{es ? opt.es : opt.en}</span>;
+}
+
+function EditarPunto({ punto, es, onSave, onCancel, guardando }) {
+  const [form, setForm] = useState({
+    estado_operativo: punto.estado_operativo || 'abierto',
+    personas_actuales: punto.personas_actuales ?? '',
+    capacidad_maxima: punto.capacidad_maxima || '',
+    espacio_disponible: punto.espacio_disponible || '',
+    servicios_disponibles: punto.servicios_disponibles || [],
+    necesidades_urgentes: punto.necesidades_urgentes || [],
+    telefono_publico: punto.telefono_publico || '',
+    whatsapp: punto.whatsapp || '',
+    nota_horario: punto.nota_horario || '',
+    opera_24h: punto.opera_24h || false,
+  });
+
+  const toggle = (arr, val) => arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val];
+
+  return (
+    <div className="space-y-4">
+      {/* Estado operativo */}
+      <div>
+        <p className="text-xs font-semibold text-gray-600 mb-2">{es ? 'Estado operativo:' : 'Operational status:'}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {ESTADO_OP_OPTS.map(opt => (
+            <button
+              key={opt.val}
+              type="button"
+              onClick={() => setForm(f => ({ ...f, estado_operativo: opt.val }))}
+              className={`px-3 py-1.5 rounded-xl text-xs border font-medium transition-colors ${form.estado_operativo === opt.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-600'}`}
+            >{es ? opt.es : opt.en}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Capacidad */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">{es ? 'Personas actuales' : 'Current occupancy'}</label>
+          <input type="number" value={form.personas_actuales} onChange={e => setForm(f => ({ ...f, personas_actuales: e.target.value }))}
+            className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A1F2E]" placeholder="0" />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">{es ? 'Capacidad máxima' : 'Max capacity'}</label>
+          <input type="number" value={form.capacidad_maxima} onChange={e => setForm(f => ({ ...f, capacidad_maxima: e.target.value }))}
+            className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A1F2E]" placeholder="100" />
+        </div>
+      </div>
+
+      {/* Espacio disponible */}
+      <div>
+        <label className="text-xs font-semibold text-gray-600 block mb-1">{es ? 'Descripción del espacio disponible' : 'Available space description'}</label>
+        <input type="text" value={form.espacio_disponible} onChange={e => setForm(f => ({ ...f, espacio_disponible: e.target.value }))}
+          className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A1F2E]"
+          placeholder={es ? 'Ej: Hay espacio en el salón principal' : 'E.g. Space in main hall'} />
+      </div>
+
+      {/* Servicios */}
+      <div>
+        <p className="text-xs font-semibold text-gray-600 mb-2">{es ? 'Servicios disponibles:' : 'Available services:'}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {SERVICIOS_OPTS.map(s => (
+            <button key={s.val} type="button"
+              onClick={() => setForm(f => ({ ...f, servicios_disponibles: toggle(f.servicios_disponibles, s.val) }))}
+              className={`px-3 py-1.5 rounded-xl text-xs border transition-colors ${form.servicios_disponibles.includes(s.val) ? 'bg-green-700 text-white border-green-700' : 'bg-white border-[#EDEBE8] text-gray-600'}`}
+            >{es ? s.es : s.en}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Necesidades */}
+      <div>
+        <p className="text-xs font-semibold text-gray-600 mb-2">{es ? 'Necesidades urgentes:' : 'Urgent needs:'}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {NECESIDADES_OPTS.map(n => (
+            <button key={n.val} type="button"
+              onClick={() => setForm(f => ({ ...f, necesidades_urgentes: toggle(f.necesidades_urgentes, n.val) }))}
+              className={`px-3 py-1.5 rounded-xl text-xs border transition-colors ${form.necesidades_urgentes.includes(n.val) ? 'bg-[#B83A52] text-white border-[#B83A52]' : 'bg-white border-[#EDEBE8] text-gray-600'}`}
+            >{es ? n.es : n.en}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Contacto */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">{es ? 'Teléfono público' : 'Public phone'}</label>
+          <input type="tel" value={form.telefono_publico} onChange={e => setForm(f => ({ ...f, telefono_publico: e.target.value }))}
+            className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A1F2E]" placeholder="+58 412..." />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">WhatsApp</label>
+          <input type="tel" value={form.whatsapp} onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value }))}
+            className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A1F2E]" placeholder="+58 412..." />
+        </div>
+      </div>
+
+      {/* Horario */}
+      <div>
+        <label className="text-xs font-semibold text-gray-600 block mb-1">{es ? 'Nota de horario' : 'Schedule note'}</label>
+        <input type="text" value={form.nota_horario} onChange={e => setForm(f => ({ ...f, nota_horario: e.target.value }))}
+          className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A1F2E]"
+          placeholder={es ? 'Ej: Lun-Vie 8am-6pm' : 'E.g. Mon-Fri 8am-6pm'} />
+        <label className="flex items-center gap-2 mt-2 cursor-pointer">
+          <input type="checkbox" checked={form.opera_24h} onChange={e => setForm(f => ({ ...f, opera_24h: e.target.checked }))}
+            className="rounded border-gray-300" />
+          <span className="text-xs text-gray-600">{es ? 'Opera las 24 horas' : 'Open 24 hours'}</span>
+        </label>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2 pt-2">
+        <button onClick={() => onSave(form)} disabled={guardando}
+          className="flex-1 bg-[#1A1F2E] text-white py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50">
+          {guardando ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          {es ? 'Guardar cambios' : 'Save changes'}
+        </button>
+        <button onClick={onCancel} className="px-4 py-3 border border-[#EDEBE8] rounded-xl text-sm text-gray-500 hover:bg-gray-50">
+          {es ? 'Cancelar' : 'Cancel'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function PortalInstitucional() {
   const { lang } = useLang();
@@ -20,9 +170,11 @@ export default function PortalInstitucional() {
   const [cargando, setCargando] = useState(true);
   const [tab, setTab] = useState('puntos');
   const [puntos, setPuntos] = useState([]);
+  const [expandido, setExpandido] = useState(null);
   const [editando, setEditando] = useState(null);
   const [guardando, setGuardando] = useState(false);
-  const [mensaje, setMensaje] = useState('');
+  const [msg, setMsg] = useState('');
+  const [historial, setHistorial] = useState({});
 
   useEffect(() => {
     const init = async () => {
@@ -40,39 +192,55 @@ export default function PortalInstitucional() {
     init();
   }, []);
 
-  const actualizarEstado = async (punto, nuevoEstado) => {
-    setGuardando(true);
-    try {
-      const updated = await base44.entities.PuntosAyuda.update(punto.id, {
-        estado_operativo: nuevoEstado,
-        ultima_actualizacion: new Date().toISOString(),
-      });
-      setPuntos(prev => prev.map(p => p.id === punto.id ? { ...p, ...updated } : p));
-      setMensaje(es ? 'Estado actualizado.' : 'Status updated.');
-      setTimeout(() => setMensaje(''), 3000);
-    } catch {
-      setMensaje(es ? 'Error al guardar.' : 'Error saving.');
-    } finally {
-      setGuardando(false);
-    }
+  const showMsg = (m, ok = true) => { setMsg({ text: m, ok }); setTimeout(() => setMsg(''), 3000); };
+
+  const cargarHistorial = async (puntoId) => {
+    if (historial[puntoId]) return;
+    const acts = await base44.entities.ActualizacionesSitios.filter({ sitio_id: puntoId, tipo_sitio: 'ayuda' });
+    setHistorial(prev => ({ ...prev, [puntoId]: acts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)) }));
   };
 
-  const actualizarCapacidad = async (punto, personas) => {
+  const expandir = async (puntoId) => {
+    if (expandido === puntoId) {
+      setExpandido(null);
+    } else {
+      setExpandido(puntoId);
+      await cargarHistorial(puntoId);
+    }
+    setEditando(null);
+  };
+
+  const guardarCambios = async (punto, form) => {
     setGuardando(true);
     try {
+      const estadoAnterior = punto.estado_operativo;
       const updated = await base44.entities.PuntosAyuda.update(punto.id, {
-        personas_actuales: Number(personas),
+        ...form,
+        personas_actuales: form.personas_actuales !== '' ? Number(form.personas_actuales) : null,
+        capacidad_maxima: form.capacidad_maxima || null,
         ultima_actualizacion: new Date().toISOString(),
       });
+      // Registrar actualización en historial
+      await base44.entities.ActualizacionesSitios.create({
+        sitio_id: punto.id,
+        tipo_sitio: 'ayuda',
+        tipo_actualizacion: 'actualizacion_manual',
+        descripcion: es
+          ? `Estado: ${form.estado_operativo}. Ocupación: ${form.personas_actuales || '—'}/${form.capacidad_maxima || '—'}`
+          : `Status: ${form.estado_operativo}. Occupancy: ${form.personas_actuales || '—'}/${form.capacidad_maxima || '—'}`,
+        estado_anterior: estadoAnterior,
+        estado_nuevo: form.estado_operativo,
+        reportado_por: user?.full_name || user?.email || 'institución',
+        nivel_verificacion: 'institucion',
+      });
       setPuntos(prev => prev.map(p => p.id === punto.id ? { ...p, ...updated } : p));
+      setHistorial(prev => ({ ...prev, [punto.id]: null })); // reset historial para recargar
       setEditando(null);
-      setMensaje(es ? 'Datos actualizados.' : 'Data updated.');
-      setTimeout(() => setMensaje(''), 3000);
+      showMsg(es ? '✅ Punto actualizado correctamente.' : '✅ Point updated successfully.');
     } catch {
-      setMensaje(es ? 'Error al guardar.' : 'Error saving.');
-    } finally {
-      setGuardando(false);
+      showMsg(es ? 'Error al guardar. Intenta de nuevo.' : 'Error saving. Try again.', false);
     }
+    setGuardando(false);
   };
 
   if (cargando) return (
@@ -92,20 +260,19 @@ export default function PortalInstitucional() {
 
         {/* Header */}
         <div className="bg-white rounded-xl border border-[#EDEBE8] p-4 mb-4 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-green-700 flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
-            🏥
-          </div>
+          <div className="w-12 h-12 rounded-full bg-green-700 flex items-center justify-center text-white text-xl flex-shrink-0">🏥</div>
           <div className="flex-1 min-w-0">
             <p className="font-bold text-[#1A1F2E] truncate">{user?.full_name}</p>
             <p className="text-xs text-gray-500">{es ? 'Portal Institucional' : 'Institutional Portal'}</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">{puntos.length} {es ? 'punto(s) registrado(s)' : 'registered point(s)'}</p>
           </div>
-          <button onClick={() => base44.auth.logout('/')} className="text-gray-400 hover:text-[#B83A52] p-2">
-            <LogOut size={18} />
-          </button>
+          <button onClick={() => base44.auth.logout('/')} className="text-gray-400 hover:text-[#B83A52] p-2"><LogOut size={18} /></button>
         </div>
 
-        {mensaje && (
-          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2 text-sm text-green-700 mb-3">{mensaje}</div>
+        {msg && (
+          <div className={`rounded-xl px-4 py-2.5 text-sm mb-3 border ${msg.ok !== false ? 'bg-green-50 border-green-200 text-green-700' : 'bg-[#FDF1F0] border-[#E8B4B0] text-[#B83A52]'}`}>
+            {msg.text}
+          </div>
         )}
 
         {/* Tabs */}
@@ -114,17 +281,16 @@ export default function PortalInstitucional() {
             { key: 'puntos', es: '🏥 Mis puntos', en: '🏥 My points' },
             { key: 'nuevo', es: '+ Nuevo punto', en: '+ New point' },
           ].map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex-1 py-3 font-medium transition-colors ${tab === t.key ? 'bg-[#1A1F2E] text-white' : 'text-gray-500'}`}
-            >{es ? t.es : t.en}</button>
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`flex-1 py-3 font-semibold transition-colors ${tab === t.key ? 'bg-[#1A1F2E] text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+              {es ? t.es : t.en}
+            </button>
           ))}
         </div>
 
         {/* Mis puntos */}
         {tab === 'puntos' && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {puntos.length === 0 && (
               <div className="text-center py-10">
                 <p className="text-gray-400 text-sm mb-3">{es ? 'No tienes puntos registrados.' : 'No points registered yet.'}</p>
@@ -133,71 +299,123 @@ export default function PortalInstitucional() {
                 </button>
               </div>
             )}
+
             {puntos.map(punto => (
-              <div key={punto.id} className="bg-white rounded-xl border border-[#EDEBE8] p-4 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-bold text-[#1A1F2E]">{punto.nombre_lugar}</p>
-                    <p className="text-xs text-gray-500">{punto.tipo_lugar} · {punto.ciudad}, {punto.estado_region}</p>
-                  </div>
-                </div>
-
-                {/* Estado operativo */}
-                <div>
-                  <p className="text-xs font-semibold text-gray-600 mb-1.5">{es ? 'Estado actual:' : 'Current status:'}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {ESTADO_OP_OPTS.map(opt => (
-                      <button
-                        key={opt.val}
-                        disabled={guardando}
-                        onClick={() => actualizarEstado(punto, opt.val)}
-                        className={`px-2.5 py-1.5 rounded-lg text-xs border font-medium transition-colors ${
-                          punto.estado_operativo === opt.val
-                            ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]'
-                            : 'bg-white border-[#EDEBE8] text-gray-600 hover:border-[#1A1F2E]'
-                        }`}
-                      >{es ? opt.es : opt.en}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Capacidad */}
-                <div>
-                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
-                    {es ? 'Personas actuales:' : 'Current occupancy:'} <span className="text-[#1A1F2E]">{punto.personas_actuales ?? '—'}</span>
-                    {punto.capacidad_maxima ? ` / ${punto.capacidad_maxima}` : ''}
-                  </p>
-                  {editando === punto.id ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        defaultValue={punto.personas_actuales || ''}
-                        id={`cap-${punto.id}`}
-                        className="border border-[#EDEBE8] rounded-lg px-3 py-2 text-sm w-24 focus:outline-none focus:border-[#1A1F2E]"
-                      />
-                      <button
-                        disabled={guardando}
-                        onClick={() => {
-                          const val = document.getElementById(`cap-${punto.id}`).value;
-                          actualizarCapacidad(punto, val);
-                        }}
-                        className="bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-semibold"
-                      >
-                        {es ? 'Guardar' : 'Save'}
-                      </button>
-                      <button onClick={() => setEditando(null)} className="text-gray-400 px-2 text-sm">{es ? 'Cancelar' : 'Cancel'}</button>
+              <div key={punto.id} className="bg-white rounded-xl border border-[#EDEBE8] overflow-hidden">
+                {/* Header del punto */}
+                <button
+                  onClick={() => expandir(punto.id)}
+                  className="w-full text-left px-4 py-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-[#1A1F2E] text-sm">{punto.nombre_lugar}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{punto.tipo_lugar} · {punto.ciudad}, {punto.estado_region}</p>
+                      {punto.personas_actuales != null && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          👥 {punto.personas_actuales}{punto.capacidad_maxima ? `/${punto.capacidad_maxima}` : ''} {es ? 'personas' : 'people'}
+                        </p>
+                      )}
                     </div>
-                  ) : (
-                    <button onClick={() => setEditando(punto.id)} className="flex items-center gap-1 text-xs text-[#D48C2E] hover:underline">
-                      <Edit3 size={12} /> {es ? 'Actualizar número' : 'Update count'}
-                    </button>
-                  )}
-                </div>
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <BadgeEstado val={punto.estado_operativo} es={es} />
+                      <span className="text-[10px] text-gray-400">{expandido === punto.id ? '▲' : '▼'}</span>
+                    </div>
+                  </div>
+                </button>
 
-                {punto.ultima_actualizacion && (
-                  <p className="text-[10px] text-gray-400 flex items-center gap-1">
-                    <RefreshCw size={10} /> {es ? 'Última actualización:' : 'Last update:'} {new Date(punto.ultima_actualizacion).toLocaleString()}
-                  </p>
+                {/* Panel expandido */}
+                {expandido === punto.id && (
+                  <div className="border-t border-[#EDEBE8] px-4 py-4 space-y-4">
+                    {editando === punto.id ? (
+                      <EditarPunto
+                        punto={punto}
+                        es={es}
+                        guardando={guardando}
+                        onSave={(form) => guardarCambios(punto, form)}
+                        onCancel={() => setEditando(null)}
+                      />
+                    ) : (
+                      <>
+                        {/* Info actual */}
+                        <div className="space-y-2">
+                          {punto.espacio_disponible && (
+                            <p className="text-xs text-gray-600">📋 {punto.espacio_disponible}</p>
+                          )}
+                          {punto.servicios_disponibles?.length > 0 && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">{es ? 'Servicios' : 'Services'}</p>
+                              <div className="flex flex-wrap gap-1">
+                                {punto.servicios_disponibles.map(s => {
+                                  const opt = SERVICIOS_OPTS.find(o => o.val === s);
+                                  return <span key={s} className="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-200">{opt ? (es ? opt.es : opt.en) : s}</span>;
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          {punto.necesidades_urgentes?.length > 0 && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-[#B83A52] uppercase tracking-wide mb-1">{es ? 'Necesidades urgentes' : 'Urgent needs'}</p>
+                              <div className="flex flex-wrap gap-1">
+                                {punto.necesidades_urgentes.map(n => {
+                                  const opt = NECESIDADES_OPTS.find(o => o.val === n);
+                                  return <span key={n} className="text-[10px] bg-[#FDF1F0] text-[#B83A52] px-2 py-0.5 rounded-full border border-[#E8B4B0]">{opt ? (es ? opt.es : opt.en) : n}</span>;
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          {(punto.telefono_publico || punto.whatsapp) && (
+                            <div className="flex gap-3">
+                              {punto.telefono_publico && (
+                                <a href={`tel:${punto.telefono_publico}`} className="flex items-center gap-1 text-xs text-[#1A1F2E] hover:underline">
+                                  <Phone size={12} /> {punto.telefono_publico}
+                                </a>
+                              )}
+                              {punto.whatsapp && (
+                                <a href={`https://wa.me/${punto.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-green-700 hover:underline">
+                                  💬 WhatsApp
+                                </a>
+                              )}
+                            </div>
+                          )}
+                          {punto.nota_horario && (
+                            <p className="text-xs text-gray-500">🕐 {punto.nota_horario}{punto.opera_24h ? (es ? ' · 24 horas' : ' · 24 hours') : ''}</p>
+                          )}
+                          {punto.ultima_actualizacion && (
+                            <p className="text-[10px] text-gray-400 flex items-center gap-1">
+                              <RefreshCw size={10} /> {es ? 'Actualizado:' : 'Updated:'} {new Date(punto.ultima_actualizacion).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Botón editar */}
+                        <button
+                          onClick={() => setEditando(punto.id)}
+                          className="w-full flex items-center justify-center gap-2 border-2 border-[#1A1F2E] text-[#1A1F2E] font-bold py-3 rounded-xl text-sm hover:bg-[#1A1F2E] hover:text-white transition-colors"
+                        >
+                          <Edit3 size={15} /> {es ? 'Actualizar información' : 'Update information'}
+                        </button>
+
+                        {/* Historial */}
+                        {historial[punto.id]?.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-2">{es ? 'Historial de actualizaciones' : 'Update history'}</p>
+                            <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                              {historial[punto.id].map(h => (
+                                <div key={h.id} className="text-xs bg-[#F4F4F8] rounded-lg px-3 py-2">
+                                  <p className="text-gray-700">{h.descripcion}</p>
+                                  <p className="text-[10px] text-gray-400 mt-0.5">{new Date(h.created_date).toLocaleString()} · {h.reportado_por}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {historial[punto.id]?.length === 0 && (
+                          <p className="text-xs text-gray-400 text-center py-1">{es ? 'Sin actualizaciones previas.' : 'No previous updates.'}</p>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
@@ -207,9 +425,8 @@ export default function PortalInstitucional() {
         {/* Nuevo punto */}
         {tab === 'nuevo' && (
           <div className="bg-white rounded-xl border border-[#EDEBE8] p-4">
-            <p className="text-sm text-gray-600 mb-3">
-              {es ? 'Para registrar un nuevo punto de ayuda, usa el formulario completo:' : 'To register a new help point, use the full form:'}
-            </p>
+            <p className="text-sm font-semibold text-[#1A1F2E] mb-1">{es ? 'Registrar nuevo punto de ayuda' : 'Register new help point'}</p>
+            <p className="text-xs text-gray-500 mb-4">{es ? 'Completa el formulario con los datos del refugio, hospital, comedor u otro punto de ayuda.' : 'Fill out the form with details about the shelter, hospital, food center or other help point.'}</p>
             <Link
               to="/institucional"
               className="block text-center bg-green-700 hover:bg-green-800 text-white font-bold py-3.5 rounded-xl text-sm transition-colors"
