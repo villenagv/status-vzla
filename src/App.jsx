@@ -40,6 +40,7 @@ import SolicitarInfoEdificio from './pages/SolicitarInfoEdificio';
 import Voluntario from './pages/Voluntario';
 import BusquedaCruzada from './pages/BusquedaCruzada';
 import AdminDashboard from './pages/AdminDashboard';
+import PortalVoluntario from './pages/PortalVoluntario';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -74,6 +75,7 @@ const PublicApp = () => (
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
     <Route path="/admin" element={<AdminDashboard />} />
+    <Route path="/portal-voluntario" element={<PortalVoluntario />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );

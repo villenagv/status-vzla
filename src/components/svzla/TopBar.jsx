@@ -72,6 +72,14 @@ export default function TopBar() {
             {es ? 'EN' : 'ES'}
           </button>
 
+          {user?.role === 'voluntario' && (
+            <Link to="/portal-voluntario" style={{
+              fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 20,
+              color: '#fff', background: '#0F766E', textDecoration: 'none', whiteSpace: 'nowrap',
+            }}>
+              🤝 {es ? 'Mi portal' : 'My portal'}
+            </Link>
+          )}
           {user ? (
           <Link to="/mi-perfil" style={{
             width: 28, height: 28, borderRadius: '50%', background: '#2471A3', color: '#fff',

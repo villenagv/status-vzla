@@ -176,9 +176,14 @@ export default function MiPerfil() {
                 <p className="font-bold text-[#1A1F2E] truncate">{user?.full_name || (es ? 'Usuario' : 'User')}</p>
               )}
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-              <span className={`inline-block mt-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${user?.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-50 text-blue-600'}`}>
-                {user?.role === 'admin' ? (es ? 'Administrador' : 'Admin') : (es ? 'Ciudadano' : 'Citizen')}
+              <span className={`inline-block mt-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${user?.role === 'admin' ? 'bg-purple-100 text-purple-700' : user?.role === 'voluntario' ? 'bg-[#D48C2E] text-white' : 'bg-blue-50 text-blue-600'}`}>
+                {user?.role === 'admin' ? (es ? 'Administrador' : 'Admin') : user?.role === 'voluntario' ? (es ? 'Voluntario' : 'Volunteer') : (es ? 'Ciudadano' : 'Citizen')}
               </span>
+              {(user?.role === 'voluntario' || user?.role === 'admin') && (
+                <Link to="/portal-voluntario" className="block text-[10px] text-[#0F766E] font-semibold mt-1 underline underline-offset-2 no-underline hover:opacity-80">
+                  🤝 {es ? 'Ver portal voluntario →' : 'View volunteer portal →'}
+                </Link>
+              )}
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               {editandoPerfil ? (
