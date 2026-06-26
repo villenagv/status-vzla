@@ -68,7 +68,8 @@ const MAX_FOTOS = 5;
 export default function Edificios() {
   const { lang } = useLang();
   const es = lang === 'es';
-  const [tab, setTab] = useState('directorio'); // 'directorio' | 'consultar' | 'reportar'
+  const initialTab = new URLSearchParams(window.location.search).get('tab') || 'directorio';
+  const [tab, setTab] = useState(initialTab); // 'directorio' | 'consultar' | 'reportar'
 
   // ── DIRECTORIO ──
   const [todos, setTodos] = useState([]);

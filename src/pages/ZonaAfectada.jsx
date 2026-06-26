@@ -93,12 +93,6 @@ export default function ZonaAfectada() {
     </div>
   );
 
-  // Sub-menú: redirige a página de reporte de daños
-  if (subModo === 'reportar') {
-    window.location.href = '/reportar-dano';
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
       <TopBar />
@@ -119,7 +113,7 @@ export default function ZonaAfectada() {
         {/* Sub-menú 3 opciones grandes */}
         {!subModo && (
           <div className="space-y-3 mb-6">
-            <Link to="/reportar-dano"
+            <Link to="/edificios?tab=reportar"
               className="flex items-center gap-4 bg-[#B83A52] text-white rounded-2xl px-5 py-5 no-underline">
               <span className="text-3xl flex-shrink-0">🏚️</span>
               <div className="flex-1">
