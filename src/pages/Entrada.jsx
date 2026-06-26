@@ -1,158 +1,159 @@
 import { Link } from 'react-router-dom';
 import { useLang } from '@/lib/LangContext';
 
-// Sin TopBar, sin Footer — pantalla de triage puro, carga instantánea
+/**
+ * Pantalla de triage — carga instantánea
+ * Sin TopBar, sin Footer, sin recursos externos, sin mapa
+ * 4 tarjetas de modo que caben sin scroll en 375px
+ */
 export default function Entrada() {
   const { lang, toggle: toggleLang } = useLang();
   const es = lang === 'es';
 
-  return (
-    <div className="min-h-screen flex flex-col bg-[#0D1117]">
+  const MODOS = [
+    {
+      to: '/zona-afectada',
+      emoji: '🆘',
+      colorBg: 'var(--emergency-accent)',
+      colorSubtitle: 'rgba(255,255,255,0.75)',
+      titulo: es ? 'Estoy en zona afectada' : 'I am in the affected area',
+      subtitulo: es
+        ? 'Reporta daños, pide ayuda o informa un refugio cercano'
+        : 'Report damage, ask for help or report a nearby shelter',
+    },
+    {
+      to: '/consultar',
+      emoji: '🔍',
+      colorBg: 'var(--consulta-accent)',
+      colorSubtitle: 'rgba(255,255,255,0.75)',
+      titulo: es ? 'Busco información de una zona' : 'I need info about an area',
+      subtitulo: es
+        ? 'Estado de edificios, refugios activos y zonas reportadas'
+        : 'Building status, active shelters and reported areas',
+    },
+    {
+      to: '/institucional',
+      emoji: '🏛️',
+      colorBg: 'var(--inst-accent)',
+      colorSubtitle: 'rgba(255,255,255,0.75)',
+      titulo: es ? 'Soy institución o punto de ayuda' : 'I am an institution or help point',
+      subtitulo: es
+        ? 'Registra tu refugio, hospital, comedor o centro de donaciones'
+        : 'Register your shelter, hospital, food center or donation point',
+    },
+    {
+      to: '/personas',
+      emoji: '👤',
+      colorBg: 'var(--personas-accent)',
+      colorSubtitle: 'rgba(255,255,255,0.75)',
+      titulo: es ? 'Busco o reporto a una persona' : 'I search or report a person',
+      subtitulo: es
+        ? 'Reporta a alguien sin contacto o avisa que fue encontrado'
+        : 'Report someone missing or notify they were found',
+    },
+  ];
 
-      {/* Header mínimo */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#0D1117]">
+  return (
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#111318' }}>
+
+      {/* ── Header mínimo ── */}
+      <header style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <span className="font-black text-lg text-white tracking-tight">
-            CRIS<span className="text-[#D48C2E]">·</span>VZLA
-          </span>
-          <p className="text-[9px] text-gray-500 uppercase tracking-widest leading-none">
-            {es ? 'Emergencia · Venezuela 2026' : 'Emergency · Venezuela 2026'}
-          </p>
+          <div style={{ fontSize: 17, fontWeight: 500, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
+            Status<span style={{ color: 'var(--dano-amarillo)' }}>Vzla</span>
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', lineHeight: 1.2 }}>
+            CRIS · {es ? 'Centro de reportes de emergencia' : 'Emergency reporting center'}
+          </div>
         </div>
         <button
           onClick={toggleLang}
-          className="text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500"
+          style={{
+            fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 20,
+            border: '0.5px solid rgba(255,255,255,0.20)', color: 'rgba(255,255,255,0.55)',
+            background: 'transparent', cursor: 'pointer',
+          }}
         >
           {es ? 'EN' : 'ES'}
         </button>
-      </div>
+      </header>
 
-      {/* Alerta banner */}
-      <div className="bg-[#B83A52] px-4 py-2.5 text-center">
-        <p className="text-xs text-white font-bold">
+      {/* ── Banner de alerta activa ── */}
+      <div style={{
+        background: 'var(--emergency-accent)', padding: '8px 16px', textAlign: 'center',
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 500, color: '#fff', letterSpacing: '0.02em' }}>
           🔴 {es
-            ? 'TERREMOTO ACTIVO · La Guaira, Caracas, Yaracuy · 24 junio 2026'
-            : 'ACTIVE EARTHQUAKE · La Guaira, Caracas, Yaracuy · June 24 2026'}
+            ? 'Terremoto activo · La Guaira, Caracas, Yaracuy · 24 junio 2026'
+            : 'Active earthquake · La Guaira, Caracas, Yaracuy · June 24 2026'}
         </p>
       </div>
 
-      {/* Las 4 tarjetas — ocupan toda la pantalla sin scroll */}
-      <main className="flex-1 flex flex-col p-3 gap-3">
+      {/* ── Tagline ── */}
+      <div style={{ padding: '14px 16px 6px', textAlign: 'center' }}>
+        <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.85)', lineHeight: 1.4 }}>
+          {es
+            ? 'Reconectemos a cada familia. Informemos cada zona.'
+            : 'Reconnect every family. Inform every area.'}
+        </p>
+      </div>
 
-        {/* TARJETA 1 — ROJA: Emergencia */}
-        <Link
-          to="/zona-afectada"
-          className="flex-1 flex items-center gap-4 bg-[#B83A52] rounded-2xl px-5 py-4 min-h-[80px] active:bg-[#9e3046] no-underline"
-          style={{ minHeight: '80px' }}
-        >
-          <span className="text-4xl flex-shrink-0">🆘</span>
-          <div className="flex-1">
-            <p className="font-black text-white text-lg leading-tight">
-              {es ? 'Estoy en zona afectada' : 'I am in the affected area'}
-            </p>
-            <p className="text-sm text-red-100 mt-0.5 leading-snug">
-              {es
-                ? 'Reporta daños, pide ayuda o informa un refugio cercano'
-                : 'Report damage, ask for help or report a nearby shelter'}
-            </p>
-          </div>
-          <span className="text-white opacity-50 text-2xl">›</span>
-        </Link>
-
-        {/* TARJETA 2 — AZUL: Consultar */}
-        <Link
-          to="/consultar"
-          className="flex-1 flex items-center gap-4 bg-[#1A4A8A] rounded-2xl px-5 py-4 min-h-[80px] active:bg-[#153a6e] no-underline"
-          style={{ minHeight: '80px' }}
-        >
-          <span className="text-4xl flex-shrink-0">🔍</span>
-          <div className="flex-1">
-            <p className="font-black text-white text-lg leading-tight">
-              {es ? 'Busco información de una zona' : 'I need info about an area'}
-            </p>
-            <p className="text-sm text-blue-200 mt-0.5 leading-snug">
-              {es
-                ? 'Estado de edificios, refugios activos y zonas reportadas'
-                : 'Building status, active shelters and reported areas'}
-            </p>
-          </div>
-          <span className="text-white opacity-50 text-2xl">›</span>
-        </Link>
-
-        {/* TARJETA 3 — VERDE: Institución */}
-        <Link
-          to="/institucional"
-          className="flex-1 flex items-center gap-4 bg-[#1B5E20] rounded-2xl px-5 py-4 min-h-[80px] active:bg-[#154a19] no-underline"
-          style={{ minHeight: '80px' }}
-        >
-          <span className="text-4xl flex-shrink-0">🏛️</span>
-          <div className="flex-1">
-            <p className="font-black text-white text-lg leading-tight">
-              {es ? 'Soy institución o punto de ayuda' : 'I am an institution or help point'}
-            </p>
-            <p className="text-sm text-green-200 mt-0.5 leading-snug">
-              {es
-                ? 'Registra tu refugio, hospital, comedor o centro de donaciones'
-                : 'Register your shelter, hospital, food center or donation point'}
-            </p>
-          </div>
-          <span className="text-white opacity-50 text-2xl">›</span>
-        </Link>
-
-        {/* TARJETA 4 — MORADO: Personas */}
-        <Link
-          to="/personas"
-          className="flex-1 flex items-center gap-4 bg-[#4A1A8A] rounded-2xl px-5 py-4 min-h-[80px] active:bg-[#38156e] no-underline"
-          style={{ minHeight: '80px' }}
-        >
-          <span className="text-4xl flex-shrink-0">👤</span>
-          <div className="flex-1">
-            <p className="font-black text-white text-lg leading-tight">
-              {es ? 'Busco o reporto a una persona' : 'I search or report a person'}
-            </p>
-            <p className="text-sm text-purple-200 mt-0.5 leading-snug">
-              {es
-                ? 'Reporta a alguien sin contacto o avisa que fue encontrado'
-                : 'Report someone missing or notify they were found'}
-            </p>
-          </div>
-          <span className="text-white opacity-50 text-2xl">›</span>
-        </Link>
+      {/* ── Las 4 tarjetas de modo ── */}
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '8px 12px 4px', gap: 8 }}>
+        {MODOS.map((m) => (
+          <Link
+            key={m.to}
+            to={m.to}
+            className="entry-card"
+            style={{ background: m.colorBg, border: 'none', flex: 1, minHeight: 72, maxHeight: 110 }}
+          >
+            <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{m.emoji}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 15, fontWeight: 500, color: '#fff', lineHeight: 1.3, margin: 0 }}>
+                {m.titulo}
+              </p>
+              <p style={{ fontSize: 11, color: m.colorSubtitle, marginTop: 3, lineHeight: 1.4 }}>
+                {m.subtitulo}
+              </p>
+            </div>
+            <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.45)', flexShrink: 0 }}>›</span>
+          </Link>
+        ))}
       </main>
 
-      {/* Footer mínimo — emergencias y anti-extorsión */}
-      <div className="px-4 pb-4 space-y-2">
-        {/* Teléfonos de emergencia */}
-        <div className="bg-[#1A1F2E] rounded-xl px-4 py-3">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-            📞 {es ? 'Emergencias Venezuela' : 'Venezuela Emergency Lines'}
-          </p>
-          <div className="grid grid-cols-4 gap-1">
-            {[['171','CANTV'],['*1','Movilnet'],['112','Digitel'],['911','Movistar']].map(([num, op]) => (
-              <a key={num} href={`tel:${num}`}
-                className="flex flex-col items-center bg-[#B83A52] text-white rounded-xl py-2 px-1 text-center">
-                <span className="font-black text-sm">{num}</span>
-                <span className="text-[9px] opacity-80">{op}</span>
-              </a>
-            ))}
-          </div>
+      {/* ── Teléfonos de emergencia ── */}
+      <div style={{ padding: '10px 12px 4px' }}>
+        <p style={{ fontSize: 10, fontWeight: 500, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6, textAlign: 'center' }}>
+          {es ? 'Líneas de emergencia Venezuela' : 'Venezuela emergency lines'}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 6 }}>
+          {[['171','CANTV'],['*1','Movilnet'],['112','Digitel'],['911','Movistar']].map(([num, op]) => (
+            <a key={num} href={`tel:${num}`} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              background: 'var(--emergency-accent)', borderRadius: 8, padding: '7px 4px',
+              textDecoration: 'none',
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>{num}</span>
+              <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.70)' }}>{op}</span>
+            </a>
+          ))}
         </div>
+      </div>
 
-        {/* Anti-extorsión */}
-        <div className="bg-[#2A1A20] border border-[#6B2D3E] rounded-xl px-3 py-2">
-          <p className="text-[10px] text-[#F4A4B8] font-semibold leading-relaxed text-center">
-            ⚠️ {es
-              ? 'Nunca envíes dinero a cambio de información. Si alguien pide dinero, es una estafa.'
-              : "Never send money for information. Anyone asking for money is a scammer."}
-          </p>
-        </div>
+      {/* ── Anti-extorsión ── */}
+      <div style={{ margin: '8px 12px 4px', background: 'rgba(192,57,43,0.12)', border: '0.5px solid rgba(192,57,43,0.30)', borderRadius: 8, padding: '8px 12px' }}>
+        <p style={{ fontSize: 11, color: '#f4a4b8', lineHeight: 1.4, textAlign: 'center' }}>
+          ⚠️ {es
+            ? 'Nunca envíes dinero a cambio de información. Si alguien lo pide, es una estafa.'
+            : 'Never send money for information. Anyone asking for money is a scammer.'}
+        </p>
+      </div>
 
-        {/* Acceso institucional */}
-        <div className="text-center">
-          <Link to="/login" className="text-[10px] text-gray-600 underline underline-offset-2">
-            {es ? 'Acceso institucional / Administrador' : 'Institutional access / Admin'}
-          </Link>
-        </div>
+      {/* ── Acceso institucional ── */}
+      <div style={{ textAlign: 'center', padding: '6px 16px 14px' }}>
+        <Link to="/login" style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textDecoration: 'underline' }}>
+          {es ? 'Acceso institucional / Administrador' : 'Institutional access / Admin'}
+        </Link>
       </div>
     </div>
   );

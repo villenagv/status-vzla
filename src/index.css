@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* Sistema de diseño CRIS — StatusVzla · Terremoto Venezuela 2026 */
+/* Tipografía: sistema nativo del dispositivo — sin Google Fonts externas */
 
 @tailwind base;
 @tailwind components;
@@ -6,50 +7,330 @@
 
 @layer base {
   :root {
-    --background: 240 5% 96%;
-    --foreground: 225 25% 14%;
+    /* — Shadcn tokens (requeridos) — */
+    --background: 0 0% 97%;
+    --foreground: 0 0% 8%;
     --card: 0 0% 100%;
-    --card-foreground: 225 25% 14%;
+    --card-foreground: 0 0% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 225 25% 14%;
-    --primary: 225 25% 14%;
+    --popover-foreground: 0 0% 8%;
+    --primary: 0 0% 8%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 36 60% 50%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 30 10% 92%;
-    --muted-foreground: 225 10% 45%;
-    --accent: 30 10% 92%;
-    --accent-foreground: 225 25% 14%;
-    --destructive: 348 52% 47%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 8%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 0 0% 94%;
+    --accent-foreground: 0 0% 8%;
+    --destructive: 4 67% 47%;
     --destructive-foreground: 0 0% 98%;
-    --border: 30 10% 88%;
-    --input: 30 10% 88%;
-    --ring: 225 25% 14%;
-    --radius: 0.75rem;
-    --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --color-canvas: #F4F4F8;
-    --color-card: #FFFFFF;
-    --color-border: #EDEBE8;
-    --color-primary: #1A1F2E;
-    --color-ochre: #D48C2E;
-    --color-critica: #B83A52;
-    --color-critica-light: #F4D5DD;
-    --color-safe: #2E7D32;
-    --color-safe-light: #E8F5E9;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 0 0% 8%;
+    --radius: 0.625rem;
+
+    /* — Tipografía — fuente del sistema, sin importar externas */
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+    /* — Superficies — */
+    --surface-0: #F5F5F7;   /* fondo de página */
+    --surface-1: #EFEFF1;   /* secciones internas */
+    --surface-2: #FFFFFF;   /* tarjeta principal */
+
+    /* — Texto — */
+    --text-primary: #141414;
+    --text-secondary: #555555;
+    --text-muted: #888888;
+
+    /* — Bordes — hairline 0.5px */
+    --border-color: rgba(0,0,0,0.12);
+    --border-strong: rgba(0,0,0,0.20);
+
+    /* — Modo emergencia (rojo) — */
+    --emergency-bg:     #fdf1f0;
+    --emergency-border: #e8b4b0;
+    --emergency-accent: #C0392B;
+    --emergency-text:   #7a2a22;
+    --emergency-badge-bg: #fde8e8;
+
+    /* — Modo consulta (azul) — */
+    --consulta-bg:     #f0f4fd;
+    --consulta-border: #b0c4e8;
+    --consulta-accent: #2471A3;
+    --consulta-badge-bg: #e8f0fd;
+
+    /* — Modo institucional (verde) — */
+    --inst-bg:     #f0faf4;
+    --inst-border: #a8d8bc;
+    --inst-accent: #1A7A4A;
+    --inst-badge-bg: #e6f5ed;
+
+    /* — Módulo personas (morado) — */
+    --personas-accent:   #6C3483;
+    --personas-badge-bg: #f3e8fd;
+
+    /* — Semáforo de daño — */
+    --dano-gris:     #888888;
+    --dano-amarillo: #c09a1a;
+    --dano-amarillo-bg: #fefae8;
+    --dano-naranja:  #d4621a;
+    --dano-naranja-bg: #fef3e8;
+    --dano-rojo:     #C0392B;
+    --dano-rojo-bg:  #fde8e8;
+    --dano-verde:    #1A7A4A;
+    --dano-verde-bg: #e6f5ed;
+
+    /* — Advertencia / alerta — */
+    --warn-bg:     #fef3e8;
+    --warn-border: #f0c8a0;
+    --warn-text:   #7a4010;
+  }
+
+  .dark {
+    --background: 0 0% 6%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 0 0% 95%;
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 0 0% 14%;
+    --accent-foreground: 0 0% 95%;
+    --destructive: 4 67% 40%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 85%;
+
+    --surface-0: #0E0E10;
+    --surface-1: #1A1A1C;
+    --surface-2: #242426;
+    --text-primary: #F0F0F0;
+    --text-secondary: #AAAAAA;
+    --text-muted: #666666;
+    --border-color: rgba(255,255,255,0.10);
+    --border-strong: rgba(255,255,255,0.18);
   }
 }
 
 @layer base {
-  * { @apply border-border outline-ring/50; }
-  body { @apply bg-background text-foreground font-body; background-color: #F4F4F8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--font-body);
+    background-color: var(--surface-0);
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
-.card-entry {
-  animation: cardEntry 300ms ease-out forwards;
+/* — Escala tipográfica CRIS — */
+.cris-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
 }
-@keyframes cardEntry {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+.cris-title-screen { font-size: 18px; font-weight: 500; }
+.cris-title-card   { font-size: 16px; font-weight: 500; }
+.cris-title-sec    { font-size: 14px; font-weight: 500; }
+.cris-subtitle     { font-size: 12px; font-weight: 400; color: var(--text-secondary); }
+.cris-body         { font-size: 13px; font-weight: 400; line-height: 1.5; }
+.cris-secondary    { font-size: 12px; font-weight: 400; line-height: 1.4; color: var(--text-secondary); }
+.cris-meta         { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+
+/* — Componentes — */
+
+/* Tarjeta de modo */
+.entry-card {
+  border-radius: 12px;
+  border: 0.5px solid var(--border-color);
+  padding: 20px 20px 18px;
+  min-height: 64px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform 120ms ease;
+  text-decoration: none;
+}
+.entry-card:active { transform: scale(0.98); }
+
+/* Chips / filtros */
+.chip {
+  border: 0.5px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip.active {
+  background: var(--text-primary);
+  color: var(--surface-2);
+  border-color: var(--text-primary);
+}
+
+/* Campo de texto */
+.cris-input {
+  border: 0.5px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  width: 100%;
+  outline: none;
+  transition: border-color 150ms;
+}
+.cris-input:focus { border-color: var(--consulta-accent); }
+.cris-input::placeholder { color: var(--text-muted); }
+
+/* Sección de formulario */
+.cris-section {
+  background: var(--surface-1);
+  border: 0.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+/* Badge de estado */
+.badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Botón primario */
+.btn-primary {
+  width: 100%;
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+}
+.btn-emergency { background: var(--emergency-accent); color: #fff; }
+.btn-consulta  { background: var(--consulta-accent);  color: #fff; }
+.btn-inst      { background: var(--inst-accent);      color: #fff; }
+.btn-personas  { background: var(--personas-accent);  color: #fff; }
+.btn-dark      { background: var(--text-primary);     color: var(--surface-2); }
+
+/* Botón secundario */
+.btn-secondary {
+  border: 0.5px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Nota de privacidad / advertencia */
+.cris-warning {
+  background: var(--warn-bg);
+  border: 0.5px solid var(--warn-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--warn-text);
+}
+
+/* Línea de tiempo */
+.timeline-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 0.5px solid var(--border-color);
+}
+.timeline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+/* Tarjeta de persona */
+.person-card {
+  border: 0.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--surface-2);
+}
+
+/* Divider */
+.cris-divider {
+  border: none;
+  border-top: 0.5px solid var(--border-color);
+  margin: 14px 0;
+}
+
+/* Número de paso */
+.step-number {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--surface-2);
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Barra de progreso */
+.progress-bar {
+  height: 2px;
+  background: var(--border-color);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--emergency-accent);
+  border-radius: 2px;
+  transition: width 200ms ease;
+}
+
+/* Upload foto */
+.photo-upload {
+  border: 0.5px dashed var(--border-strong);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  background: var(--surface-1);
+  cursor: pointer;
+}
+
+/* Fondo modo oscuro */
+.cris-dark-surface {
+  background: #111318;
 }
