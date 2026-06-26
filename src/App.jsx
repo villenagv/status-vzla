@@ -28,6 +28,7 @@ import DirectorioEncontrados from './pages/DirectorioEncontrados';
 import CentrosApoyo from './pages/CentrosApoyo';
 import Personas from './pages/Personas';
 import ReportarDano from './pages/ReportarDano';
+import Edificios from './pages/Edificios';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -50,6 +51,7 @@ const PublicApp = () => (
     <Route path="/centros-apoyo" element={<CentrosApoyo />} />
     <Route path="/personas" element={<Personas />} />
     <Route path="/reportar-dano" element={<ReportarDano />} />
+    <Route path="/edificios" element={<Edificios />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );

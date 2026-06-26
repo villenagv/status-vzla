@@ -1,50 +1,57 @@
 import { Link } from 'react-router-dom';
 import { useLang } from '@/lib/LangContext';
+import { Phone } from 'lucide-react';
 
 const MODOS = [
   {
     to: '/zona-afectada',
-    emoji: '🆘',
+    icon: '🆘',
     bg: '#C0392B',
+    hoverBg: '#A93226',
+    labelColor: '#FFCDD2',
     label: { es: 'EMERGENCIA', en: 'EMERGENCY' },
     titulo: { es: 'Estoy en zona afectada', en: 'I am in the affected area' },
-    subtitulo: {
-      es: 'Reporta daños · Pide ayuda · Informa refugio cercano',
-      en: 'Report damage · Ask for help · Report nearby shelter',
-    },
+    sub: { es: 'Reporta daños · Pide ayuda · Informa refugio', en: 'Report damage · Ask for help · Shelter' },
   },
   {
     to: '/consultar',
-    emoji: '🔍',
+    icon: '🔍',
     bg: '#1A5276',
+    hoverBg: '#154360',
+    labelColor: '#BBDEFB',
     label: { es: 'CONSULTAR', en: 'SEARCH INFO' },
     titulo: { es: 'Busco información de una zona', en: 'I need info about an area' },
-    subtitulo: {
-      es: 'Edificios · Refugios activos · Zonas reportadas',
-      en: 'Buildings · Active shelters · Reported areas',
-    },
+    sub: { es: 'Edificios · Refugios activos · Zonas', en: 'Buildings · Shelters · Areas' },
   },
   {
     to: '/personas',
-    emoji: '👤',
+    icon: '👤',
     bg: '#6C3483',
+    hoverBg: '#5B2C6F',
+    labelColor: '#E1BEE7',
     label: { es: 'PERSONAS', en: 'PEOPLE' },
     titulo: { es: 'Busco o reporto a una persona', en: 'I search or report a person' },
-    subtitulo: {
-      es: 'Persona sin contacto · Alguien encontrado · Estado de familiar',
-      en: 'Missing person · Someone found · Family status',
-    },
+    sub: { es: 'Persona sin contacto · Alguien encontrado', en: 'Missing person · Someone found' },
+  },
+  {
+    to: '/edificios',
+    icon: '🏗️',
+    bg: '#784212',
+    hoverBg: '#633510',
+    labelColor: '#FFE0B2',
+    label: { es: 'EDIFICIOS', en: 'BUILDINGS' },
+    titulo: { es: '¿Es seguro este edificio?', en: 'Is this building safe?' },
+    sub: { es: 'Consulta daños · Reporta estructuras · Ver estado', en: 'Check damage · Report structures · View status' },
   },
   {
     to: '/institucional',
-    emoji: '🏛️',
+    icon: '🏛️',
     bg: '#1A5C3A',
+    hoverBg: '#145A32',
+    labelColor: '#C8E6C9',
     label: { es: 'INSTITUCIÓN', en: 'INSTITUTION' },
     titulo: { es: 'Soy institución o punto de ayuda', en: 'I am an institution or help point' },
-    subtitulo: {
-      es: 'Refugio · Hospital · Comedor · Centro de donaciones',
-      en: 'Shelter · Hospital · Food center · Donation point',
-    },
+    sub: { es: 'Refugio · Hospital · Comedor · Donaciones', en: 'Shelter · Hospital · Food · Donations' },
   },
 ];
 
@@ -60,172 +67,130 @@ export default function Entrada() {
   const es = lang === 'es';
 
   return (
-    <div style={{
-      minHeight: '100dvh',
-      display: 'flex',
-      flexDirection: 'column',
-      background: '#0D1117',
-      maxWidth: 480,
-      margin: '0 auto',
-    }}>
+    <div className="min-h-screen bg-white flex flex-col">
 
-      {/* ── Header ── */}
-      <header style={{
-        padding: '14px 16px 12px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-      }}>
-        <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1 }}>
-            Status<span style={{ color: '#E8B84B' }}>Vzla</span>
+      {/* ── TopBar blanca ── */}
+      <header className="border-b border-gray-100 bg-white sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <div>
+            <span className="text-xl font-bold text-gray-900 tracking-tight">
+              Status<span className="text-amber-600">Vzla</span>
+            </span>
+            <span className="hidden sm:inline ml-2 text-xs text-gray-400 font-medium tracking-widest uppercase">CRIS</span>
           </div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 3, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            CRIS · {es ? 'Red de información de emergencia' : 'Emergency information network'}
-          </div>
-        </div>
-        <button
-          onClick={toggleLang}
-          style={{
-            fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 20,
-            border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.60)',
-            background: 'rgba(255,255,255,0.06)', cursor: 'pointer', letterSpacing: '0.04em',
-          }}
-        >
-          {es ? 'EN' : 'ES'}
-        </button>
-      </header>
 
-      {/* ── Alerta activa ── */}
-      <div style={{
-        background: '#C0392B',
-        padding: '10px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-      }}>
-        <span style={{ fontSize: 14, flexShrink: 0 }}>🔴</span>
-        <div>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#fff', lineHeight: 1.2, margin: 0 }}>
-            {es ? 'TERREMOTO ACTIVO' : 'ACTIVE EARTHQUAKE'}
-          </p>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.80)', margin: 0, marginTop: 1 }}>
-            {es ? 'La Guaira · Caracas · Yaracuy · 24 junio 2026' : 'La Guaira · Caracas · Yaracuy · June 24 2026'}
-          </p>
-        </div>
-      </div>
-
-      {/* ── Pregunta principal ── */}
-      <div style={{ padding: '16px 16px 8px' }}>
-        <p style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4, margin: 0 }}>
-          {es ? '¿Cuál es tu situación?' : 'What is your situation?'}
-        </p>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.40)', margin: '3px 0 0' }}>
-          {es ? 'Toca la opción que mejor te describe' : 'Tap the option that best describes you'}
-        </p>
-      </div>
-
-      {/* ── Tarjetas de modo ── */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '4px 12px 8px', gap: 8 }}>
-        {MODOS.map((m) => (
-          <Link
-            key={m.to}
-            to={m.to}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              background: m.bg,
-              borderRadius: 14,
-              padding: '16px 16px 15px',
-              textDecoration: 'none',
-              flex: 1,
-              minHeight: 76,
-              maxHeight: 106,
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Acento de fondo sutil */}
-            <div style={{
-              position: 'absolute', top: 0, right: 0, bottom: 0, width: 80,
-              background: 'rgba(255,255,255,0.05)', borderRadius: '0 14px 14px 0',
-            }} />
-
-            <span style={{ fontSize: 30, lineHeight: 1, flexShrink: 0 }}>{m.emoji}</span>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              {/* Label de categoría */}
-              <span style={{
-                fontSize: 9, fontWeight: 700, letterSpacing: '0.10em',
-                color: 'rgba(255,255,255,0.60)', textTransform: 'uppercase',
-                display: 'block', marginBottom: 3,
-              }}>
-                {es ? m.label.es : m.label.en}
-              </span>
-              {/* Título principal */}
-              <p style={{ fontSize: 16, fontWeight: 600, color: '#fff', lineHeight: 1.25, margin: 0 }}>
-                {es ? m.titulo.es : m.titulo.en}
-              </p>
-              {/* Subtítulo */}
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 4, lineHeight: 1.4 }}>
-                {es ? m.subtitulo.es : m.subtitulo.en}
+          <div className="flex items-center gap-2">
+            {/* Alerta activa — compacta en header */}
+            <div className="hidden md:flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+              <p className="text-xs font-semibold text-red-700">
+                {es ? 'Terremoto activo · La Guaira, Caracas, Yaracuy' : 'Active earthquake · La Guaira, Caracas, Yaracuy'}
               </p>
             </div>
 
-            <span style={{ fontSize: 18, color: 'rgba(255,255,255,0.40)', flexShrink: 0, fontWeight: 300 }}>›</span>
-          </Link>
-        ))}
-      </main>
+            <button onClick={toggleLang}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer">
+              {es ? 'EN' : 'ES'}
+            </button>
+          </div>
+        </div>
+      </header>
 
-      {/* ── Teléfonos de emergencia ── */}
-      <div style={{ padding: '10px 12px 6px' }}>
-        <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 7, textAlign: 'center' }}>
-          📞 {es ? 'Llamadas de emergencia' : 'Emergency calls'}
+      {/* ── Banner alerta móvil ── */}
+      <div className="md:hidden bg-red-600 text-white px-4 py-2.5 flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
+        <p className="text-xs font-semibold">
+          {es ? 'Terremoto activo · La Guaira, Caracas, Yaracuy · 24 junio 2026' : 'Active earthquake · La Guaira, Caracas, Yaracuy · June 24, 2026'}
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-          {TELS.map(({ num, op }) => (
-            <a key={num} href={`tel:${num}`} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              background: '#C0392B', borderRadius: 10, padding: '8px 4px',
-              textDecoration: 'none', gap: 2,
-            }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{num}</span>
-              <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.02em' }}>{op}</span>
-            </a>
+      </div>
+
+      {/* ── Layout principal ── */}
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
+
+        {/* Headline */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            {es ? '¿Cuál es tu situación?' : 'What is your situation?'}
+          </h1>
+          <p className="text-sm sm:text-base text-gray-500">
+            {es ? 'Toca o haz clic en la opción que mejor te describe.' : 'Tap or click the option that best describes you.'}
+          </p>
+        </div>
+
+        {/* Grid de modos — 1 col móvil / 2-3 col PC */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+          {MODOS.map((m) => (
+            <Link
+              key={m.to}
+              to={m.to}
+              style={{ background: m.bg }}
+              className="group flex items-center gap-4 rounded-2xl p-5 text-white no-underline transition-all hover:scale-[1.01] hover:shadow-lg active:scale-[0.99]"
+            >
+              <span className="text-3xl flex-shrink-0">{m.icon}</span>
+              <div className="flex-1 min-w-0">
+                <span className="block text-[10px] font-bold tracking-widest mb-1 opacity-70">
+                  {es ? m.label.es : m.label.en}
+                </span>
+                <p className="text-base font-bold leading-tight">
+                  {es ? m.titulo.es : m.titulo.en}
+                </p>
+                <p className="text-xs mt-1 opacity-70 leading-relaxed">
+                  {es ? m.sub.es : m.sub.en}
+                </p>
+              </div>
+              <span className="text-xl opacity-40 flex-shrink-0">›</span>
+            </Link>
           ))}
         </div>
-      </div>
 
-      {/* ── Anti-extorsión ── */}
-      <div style={{
-        margin: '8px 12px 4px',
-        background: 'rgba(192,57,43,0.15)',
-        border: '1px solid rgba(192,57,43,0.35)',
-        borderRadius: 10,
-        padding: '9px 13px',
-        display: 'flex',
-        gap: 8,
-        alignItems: 'flex-start',
-      }}>
-        <span style={{ fontSize: 13, flexShrink: 0, marginTop: 1 }}>⚠️</span>
-        <p style={{ fontSize: 11, color: '#F1948A', lineHeight: 1.45, margin: 0 }}>
-          {es
-            ? 'Nunca envíes dinero a cambio de información. Si alguien lo pide, es una estafa.'
-            : 'Never send money for information. If someone asks, it is a scam.'}
-        </p>
-      </div>
+        {/* ── Sección inferior: teléfonos + advertencia ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-      {/* ── Footer discreto ── */}
-      <div style={{ textAlign: 'center', padding: '8px 16px 16px', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
-        <Link to="/login" style={{ fontSize: 10, color: 'rgba(255,255,255,0.20)', textDecoration: 'underline' }}>
-          {es ? 'Acceso institucional / Administrador' : 'Institutional access / Admin'}
-        </Link>
-        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.12)', margin: 0 }}>
-          StatusVzla · CRIS · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}
-        </p>
-      </div>
+          {/* Teléfonos de emergencia */}
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Phone size={14} className="text-gray-400" />
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                {es ? 'Líneas de emergencia' : 'Emergency lines'}
+              </p>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {TELS.map(({ num, op }) => (
+                <a key={num} href={`tel:${num}`}
+                  className="flex flex-col items-center bg-red-600 hover:bg-red-700 rounded-xl py-3 px-1 no-underline transition-colors">
+                  <span className="text-sm font-bold text-white">{num}</span>
+                  <span className="text-[9px] text-red-200 mt-0.5">{op}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Anti-extorsión */}
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
+            <span className="text-lg flex-shrink-0 mt-0.5">⚠️</span>
+            <div>
+              <p className="text-xs font-bold text-amber-800 mb-1">
+                {es ? 'Alerta de seguridad' : 'Security alert'}
+              </p>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                {es
+                  ? 'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados. Si alguien pide dinero, es una estafa.'
+                  : 'Never send money in exchange for information. This platform does not authorize payments or private rescue fees. If someone asks for money, it is a scam.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer discreto */}
+        <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="text-xs text-gray-300">
+            <span className="font-semibold text-gray-400">StatusVzla</span> · CRIS · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}
+          </p>
+          <Link to="/login" className="text-xs text-gray-300 hover:text-gray-500 underline">
+            {es ? 'Acceso institucional / Admin' : 'Institutional access / Admin'}
+          </Link>
+        </div>
+      </main>
     </div>
   );
 }
