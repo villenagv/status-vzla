@@ -23,7 +23,7 @@ const NIVEL_LABELS = {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { email_destino, nombre_reportante, relacion, mensaje, codigo_cris, persona_id, nombre_persona, lang = 'es' } = await req.json();
+    const { email_destino, nombre_reportante, telefono_reportante, contacto_telefono, relacion, mensaje, codigo_cris, persona_id, nombre_persona, lang = 'es' } = await req.json();
     const es = lang !== 'en';
 
     if (!email_destino) return Response.json({ error: 'email_destino requerido' }, { status: 400 });
@@ -58,6 +58,9 @@ ${
 }
 ${
   relacion ? `<p style="font-size:14px;color:#555;margin:0 0 6px">🔗 ${es ? 'Relación: ' : 'Relationship: '}${relacion}</p>` : ''
+}
+${
+  (nombre_reportante || telefono_reportante || contacto_telefono) ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;margin:12px 0"><p style="font-size:13px;font-weight:700;color:#166534;margin:0 0 4px">${es ? 'Contacto del reporte' : 'Report contact'}</p>${nombre_reportante ? `<p style="font-size:13px;color:#374151;margin:0 0 3px">${es ? 'Nombre: ' : 'Name: '}${nombre_reportante}</p>` : ''}${(telefono_reportante || contacto_telefono) ? `<p style="font-size:13px;color:#374151;margin:0">${es ? 'Teléfono: ' : 'Phone: '}${telefono_reportante || contacto_telefono}</p>` : ''}<p style="font-size:11px;color:#166534;margin:8px 0 0;line-height:1.4">${es ? 'Verifica la información antes de compartirla. Nunca envíes dinero.' : 'Verify this information before sharing it. Never send money.'}</p></div>` : ''
 }
 ${
   mensaje ? `<p style="font-size:14px;color:#1a1f2e;background:#fdfaeb;border:1px solid #f0e8c0;border-radius:8px;padding:12px;margin:12px 0;line-height:1.6">💬 \u201c${mensaje}\u201d</p>` : ''
