@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-const APP_URL = 'https://app.statusvzla.com';
+const APP_URL = 'https://statusvzla.com';
 
 const ESTADO_LABEL = {
   es: {

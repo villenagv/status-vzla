@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-const APP_URL = 'https://app.statusvzla.com';
+const APP_URL = 'https://statusvzla.com';
 
 const NIVEL_LABELS = {
   es: { leve: 'Daño leve', moderado: 'Daño moderado', grave: 'Daño grave — NO ENTRAR', critico: 'CRÍTICO — NO ENTRAR', colapsado: 'COLAPSADO — EVACUADO', no_evaluado: 'Sin evaluar' },

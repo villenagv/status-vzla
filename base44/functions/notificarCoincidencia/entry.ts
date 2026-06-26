@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ message: 'No active subscribers' }), { status: 200 });
     }
 
-    const enlace = `https://app.statusvzla.com/persona?id=${entidad_id}`;
+    const enlace = `https://statusvzla.com/persona?id=${entidad_id}`;
     const subject = plantilla.subject;
     const body = plantilla.body(datos.nombre, enlace, datos.estado, datos.notas) + bloqueContactos(datos.notas || datos.mensaje || '', lang);
 
