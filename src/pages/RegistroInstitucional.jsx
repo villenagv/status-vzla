@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -27,6 +27,7 @@ const PASO_CONFIRMACION = 'confirmacion';
 export default function RegistroInstitucional() {
   const { lang } = useLang();
   const es = lang === 'es';
+  const [usuario, setUsuario] = useState(null);
 
   // Paso actual
   const [paso, setPaso] = useState(PASO_INSTITUCION);
@@ -35,7 +36,8 @@ export default function RegistroInstitucional() {
   const [inst, setInst] = useState({
     institucion_nombre: '', institucion_tipo: '', institucion_ciudad: '',
     institucion_estado: '', responsable_nombre: '', responsable_telefono: '',
-    responsable_email: '',
+    responsable_email: '', responsable_rol: 'responsable_institucional',
+    responsable_origen: 'manual', responsable_user_id: '',
   });
   const [instId, setInstId] = useState(null);
   const [guardandoInst, setGuardandoInst] = useState(false);
@@ -49,12 +51,30 @@ export default function RegistroInstitucional() {
 
   const setI = (k, v) => setInst(f => ({ ...f, [k]: v }));
 
+  useEffect(() => {
+    base44.auth.me()
+      .then(u => {
+        setUsuario(u);
+        setInst(f => ({
+          ...f,
+          responsable_nombre: f.responsable_nombre || u.full_name || '',
+          responsable_email: f.responsable_email || u.email || '',
+          responsable_user_id: u.id || '',
+          responsable_rol: u.role === 'voluntario' ? 'voluntario_apoyo' : f.responsable_rol,
+          responsable_origen: 'usuario_logeado',
+        }));
+      })
+      .catch(() => {});
+  }, []);
+
   // PASO 1: Registrar institución
   const registrarInstitucion = async () => {
     const errores = {};
     if (!inst.institucion_nombre.trim()) errores.institucion_nombre = es ? 'El nombre del lugar es obligatorio.' : 'Place name is required.';
     if (!inst.institucion_tipo) errores.institucion_tipo = es ? 'Selecciona el tipo de lugar.' : 'Select the place type.';
-    if (!inst.responsable_telefono.trim()) errores.responsable_telefono = es ? 'El teléfono del responsable es obligatorio.' : 'Responsible phone is required.';
+    if (!inst.institucion_ciudad.trim()) errores.institucion_ciudad = es ? 'La ciudad es obligatoria.' : 'City is required.';
+    if (!inst.institucion_estado.trim()) errores.institucion_estado = es ? 'El estado es obligatorio.' : 'State is required.';
+    if (!inst.responsable_telefono.trim() && !inst.responsable_email.trim()) errores.responsable_telefono = es ? 'Agrega teléfono o email del responsable.' : 'Add responsible phone or email.';
     if (Object.keys(errores).length > 0) {
       setCamposError(errores);
       setInstError(es ? 'Corrige los campos marcados en rojo antes de continuar.' : 'Fix the fields marked in red before continuing.');
@@ -64,7 +84,11 @@ export default function RegistroInstitucional() {
     setGuardandoInst(true);
     setInstError('');
     try {
-      const creada = await base44.entities.RegistroInstitucional.create(inst);
+      const creada = await base44.entities.RegistroInstitucional.create({
+        ...inst,
+        responsable_user_id: usuario?.id || inst.responsable_user_id,
+        responsable_origen: usuario ? 'usuario_logeado' : 'manual',
+      });
       setInstId(creada.id);
       setPaso(PASO_PERSONAS);
     } catch {
@@ -204,25 +228,47 @@ export default function RegistroInstitucional() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">{es ? 'Ciudad' : 'City'} *</label>
-                  <input value={inst.institucion_ciudad} onChange={e => setI('institucion_ciudad', e.target.value)} placeholder="Caracas" className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1A1F2E]" />
+                  <input value={inst.institucion_ciudad} onChange={e => { setI('institucion_ciudad', e.target.value); setCamposError(p => ({ ...p, institucion_ciudad: '' })); }} placeholder="Caracas" className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none ${camposError.institucion_ciudad ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-[#EDEBE8] focus:border-[#1A1F2E]'}`} />
+                  {camposError.institucion_ciudad && <p className="text-xs text-red-600 mt-1">⚠ {camposError.institucion_ciudad}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">{es ? 'Estado' : 'State'} *</label>
-                  <input value={inst.institucion_estado} onChange={e => setI('institucion_estado', e.target.value)} placeholder="Miranda" className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1A1F2E]" />
+                  <input value={inst.institucion_estado} onChange={e => { setI('institucion_estado', e.target.value); setCamposError(p => ({ ...p, institucion_estado: '' })); }} placeholder="Miranda" className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none ${camposError.institucion_estado ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-[#EDEBE8] focus:border-[#1A1F2E]'}`} />
+                  {camposError.institucion_estado && <p className="text-xs text-red-600 mt-1">⚠ {camposError.institucion_estado}</p>}
                 </div>
               </div>
             </div>
 
             <div className="bg-white border border-[#EDEBE8] rounded-xl p-4 space-y-3">
               <h3 className="text-sm font-bold text-[#1A1F2E]">{es ? 'Responsable' : 'Responsible person'}</h3>
-              <p className="text-xs text-gray-400">{es ? 'No se publicará.' : 'Will not be published.'}</p>
+              <p className="text-xs text-gray-400">{es ? 'No se publicará. Si estás logeado, usamos tus datos para avanzar más rápido.' : 'Will not be published. If you are logged in, we use your data to move faster.'}</p>
+
+              {usuario && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-bold text-green-800">
+                    {es ? `Sesión iniciada: ${usuario.full_name || usuario.email}` : `Logged in: ${usuario.full_name || usuario.email}`}
+                  </p>
+                  <p className="text-[11px] text-green-700">
+                    {es ? 'Puedes operar como voluntario de apoyo. Tus datos quedan como responsable privado del envío.' : 'You can operate as a support volunteer. Your data is saved as the private responsible contact for this submission.'}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" onClick={() => setI('responsable_rol', 'responsable_institucional')} className={`rounded-lg px-2 py-2 text-[11px] font-bold border ${inst.responsable_rol === 'responsable_institucional' ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white text-gray-600 border-green-200'}`}>
+                      {es ? 'Responsable del lugar' : 'Place responsible'}
+                    </button>
+                    <button type="button" onClick={() => setI('responsable_rol', 'voluntario_apoyo')} className={`rounded-lg px-2 py-2 text-[11px] font-bold border ${inst.responsable_rol === 'voluntario_apoyo' ? 'bg-green-700 text-white border-green-700' : 'bg-white text-gray-600 border-green-200'}`}>
+                      {es ? 'Voluntario de apoyo' : 'Support volunteer'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">{es ? 'Nombre del responsable' : 'Responsible name'}</label>
                 <input value={inst.responsable_nombre} onChange={e => setI('responsable_nombre', e.target.value)} placeholder={es ? 'Ej: Carlos Pérez' : 'E.g: Carlos Pérez'} className="w-full border border-[#EDEBE8] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1F2E]" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                   <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">{es ? 'Teléfono' : 'Phone'} *</label>
+                   <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">{es ? 'Teléfono' : 'Phone'}{inst.responsable_email ? '' : ' *'}</label>
                    <input
                      value={inst.responsable_telefono}
                      onChange={e => { setI('responsable_telefono', e.target.value); setCamposError(p => ({ ...p, responsable_telefono: '' })); }}
@@ -233,7 +279,7 @@ export default function RegistroInstitucional() {
                  </div>
                 <div>
                   <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">Email</label>
-                  <input type="email" value={inst.responsable_email} onChange={e => setI('responsable_email', e.target.value)} placeholder="correo@..." className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1A1F2E]" />
+                  <input type="email" value={inst.responsable_email} onChange={e => { setI('responsable_email', e.target.value); setCamposError(p => ({ ...p, responsable_telefono: '' })); }} placeholder="correo@..." className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1A1F2E]" />
                 </div>
               </div>
             </div>
