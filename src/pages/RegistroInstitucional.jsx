@@ -310,7 +310,7 @@ export default function RegistroInstitucional() {
               <div className="border-2 border-dashed border-[#EDEBE8] rounded-xl p-4 text-center">
                 <input
                   type="file"
-                  accept="image/*,.csv,.xlsx,.xls"
+                  accept=".csv,.xlsx,.xls,.txt"
                   id="file-upload"
                   className="hidden"
                   onChange={e => { setArchivo(e.target.files[0]); setIndexError(''); }}
@@ -322,7 +322,7 @@ export default function RegistroInstitucional() {
                       ? <span className="font-semibold text-[#1A1F2E]">📄 {archivo.name}</span>
                       : (es ? 'Toca para seleccionar foto o archivo' : 'Tap to select photo or file')}
                   </span>
-                  <span className="text-[10px] text-gray-400">JPG · PNG · CSV · Excel</span>
+                  <span className="text-[10px] text-gray-400">Excel (.xlsx) · CSV · TXT</span>
                 </label>
               </div>
 

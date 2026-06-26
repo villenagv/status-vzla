@@ -3,26 +3,28 @@ import { Copy, Check } from 'lucide-react';
 
 const PROMPT_ES = `Actúa como un asistente de datos de emergencia. A continuación te pego una lista desordenada de personas encontradas en un centro de acopio o refugio. Por favor extrae la información y organízala en una tabla con estas columnas exactas:
 
-| Nombre Completo | Fecha de Nacimiento | Teléfono de Contacto | Condición | Observaciones |
+| Nombre Completo | Fecha de Nacimiento | Teléfono de Contacto | Email | Condición | Observaciones |
 
 Reglas:
 - Si un dato no aparece, escribe "N/A"
 - Para Condición usa solo: a salvo / herido leve / herido grave / fallecido reportado / no sabe
 - El formato debe ser limpio para copiarlo a una tabla
 - No inventes datos que no estén en el texto
+- El archivo debe estar en formato Excel (.xlsx), CSV (.csv) o texto plano (.txt)
 
 Aquí está la lista:
 [PEGA AQUÍ TU LISTADO]`;
 
 const PROMPT_EN = `Act as an emergency data assistant. Below I paste a disorganized list of people found at a shelter or aid center. Please extract the information and organize it into a table with these exact columns:
 
-| Full Name | Date of Birth | Contact Phone | Condition | Notes |
+| Full Name | Date of Birth | Contact Phone | Email | Condition | Notes |
 
 Rules:
 - If a piece of data is missing, write "N/A"
 - For Condition use only: safe / minor injury / serious injury / death reported / unknown
 - Format must be clean enough to copy into a table
 - Do not invent data that isn't in the text
+- The file must be in Excel (.xlsx), CSV (.csv) or plain text (.txt) format
 
 Here is the list:
 [PASTE YOUR LIST HERE]`;

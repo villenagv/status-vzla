@@ -26,6 +26,7 @@ function FilaEditable({ persona, idx, es, onChange, onDelete }) {
       <td className="px-2 py-2"><input value={local.nombre_completo} onChange={e => setLocal(p => ({ ...p, nombre_completo: e.target.value }))} className="w-full border rounded px-2 py-1 text-xs" /></td>
       <td className="px-2 py-2"><input value={local.fecha_nacimiento || ''} onChange={e => setLocal(p => ({ ...p, fecha_nacimiento: e.target.value }))} className="w-full border rounded px-2 py-1 text-xs" placeholder="DD/MM/AAAA" /></td>
       <td className="px-2 py-2"><input value={local.telefono_contacto || ''} onChange={e => setLocal(p => ({ ...p, telefono_contacto: e.target.value }))} className="w-full border rounded px-2 py-1 text-xs" /></td>
+      <td className="px-2 py-2"><input value={local.email || ''} onChange={e => setLocal(p => ({ ...p, email: e.target.value }))} className="w-full border rounded px-2 py-1 text-xs" placeholder="correo@..." /></td>
       <td className="px-2 py-2">
         <select value={local.condicion} onChange={e => setLocal(p => ({ ...p, condicion: e.target.value }))} className="border rounded px-1 py-1 text-xs">
           {CONDICIONES.map(c => <option key={c} value={c}>{es ? CONDICION_LABEL[c].es : CONDICION_LABEL[c].en}</option>)}
@@ -60,6 +61,7 @@ function FilaEditable({ persona, idx, es, onChange, onDelete }) {
       <td className="px-2 py-2 text-xs font-semibold text-[#1A1F2E]">{persona.nombre_completo || '—'}</td>
       <td className="px-2 py-2 text-xs text-gray-600">{persona.fecha_nacimiento || '—'}</td>
       <td className="px-2 py-2 text-xs text-gray-600">{persona.telefono_contacto || '—'}</td>
+      <td className="px-2 py-2 text-xs text-gray-600">{persona.email || '—'}</td>
       <td className="px-2 py-2">
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cond.color}`}>
           {es ? cond.es : cond.en}
@@ -95,6 +97,7 @@ export default function TablaPersonas({ personas, es, onChange, onDelete }) {
             <th className="px-2 py-2">{es ? 'Nombre' : 'Name'}</th>
             <th className="px-2 py-2">{es ? 'F. Nacimiento' : 'Birth Date'}</th>
             <th className="px-2 py-2">{es ? 'Teléfono' : 'Phone'}</th>
+            <th className="px-2 py-2">Email</th>
             <th className="px-2 py-2">{es ? 'Condición' : 'Condition'}</th>
             <th className="px-2 py-2">{es ? 'Traslado' : 'Transfer'}</th>
             <th className="px-2 py-2">{es ? 'Observaciones' : 'Notes'}</th>

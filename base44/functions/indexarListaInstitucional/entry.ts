@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
               edad_aprox: { type: 'string' },
               sexo: { type: 'string' },
               telefono_contacto: { type: 'string' },
+              email: { type: 'string', description: 'Correo electrónico de contacto' },
               documento_identidad: { type: 'string' },
               condicion: { type: 'string', description: 'a_salvo, herido_leve, herido_grave, fallecido_reportado, no_identificado, no_sabe' },
               observaciones: { type: 'string' }

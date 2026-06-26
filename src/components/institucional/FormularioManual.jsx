@@ -10,7 +10,7 @@ const CONDICIONES = [
   { val: 'no_sabe', es: 'No sé / No disponible', en: 'Unknown / N/A' },
 ];
 
-const EMPTY = { nombre_completo: '', fecha_nacimiento: '', telefono_contacto: '', condicion: 'a_salvo', sera_trasladado: 'no_sabe', destino_traslado: '', telefono_destino: '', observaciones: '' };
+const EMPTY = { nombre_completo: '', fecha_nacimiento: '', telefono_contacto: '', email: '', condicion: 'a_salvo', sera_trasladado: 'no_sabe', destino_traslado: '', telefono_destino: '', observaciones: '' };
 
 export default function FormularioManual({ es, onAgregar }) {
   const [form, setForm] = useState(EMPTY);
@@ -52,6 +52,15 @@ export default function FormularioManual({ es, onAgregar }) {
             value={form.telefono_contacto}
             onChange={e => set('telefono_contacto', e.target.value)}
             placeholder="+58..."
+            className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1A1F2E]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">Email</label>
+          <input
+            value={form.email}
+            onChange={e => set('email', e.target.value)}
+            placeholder="correo@ejemplo.com"
             className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1A1F2E]"
           />
         </div>
