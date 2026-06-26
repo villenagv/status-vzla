@@ -52,6 +52,15 @@ const ACCIONES = [
     variant: 'dark',
   },
   {
+    emoji: '📋',
+    to: '/directorio-encontrados',
+    es_titulo: 'Directorio de personas encontradas',
+    en_titulo: 'Directory of found people',
+    es_desc: 'Ver y compartir tarjetas de personas vistas o encontradas.',
+    en_desc: 'View and share cards of people seen or found.',
+    variant: 'amber',
+  },
+  {
     emoji: '🏥',
     to: '/consultar',
     es_titulo: 'Refugios, hospitales y puntos de ayuda',

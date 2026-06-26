@@ -153,8 +153,15 @@ export default function BuscarPersona() {
           <div className="text-6xl">✅</div>
           <h2 className="text-2xl font-black text-[#1A1F2E]">{es ? 'Búsqueda registrada.' : 'Search registered.'}</h2>
           <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">
-            {es ? 'Si alguien actualiza esta ficha, te avisaremos al email registrado.' : 'If anyone updates this record, we will notify you at the registered email.'}
+            {es
+              ? 'Búsqueda registrada. Si encontramos a alguien que buscas, te avisaremos de inmediato al email registrado. También recibirás notificación si alguien actualiza esta ficha.'
+              : 'Search registered. If we find someone you are looking for, we will notify you immediately at your registered email. You will also be notified if anyone updates this record.'}
           </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 text-sm text-blue-800 font-medium">
+            🔔 {es
+              ? 'Activa: recibirás un email si alguien reporta haber visto o encontrado a esta persona.'
+              : 'Active: you will receive an email if someone reports seeing or finding this person.'}
+          </div>
         </div>
         {!user && mostrarLogin && <PostReporteLogin es={es} onSkip={() => setMostrarLogin(false)} />}
         <Link to="/" className="block text-center bg-[#1A1F2E] text-white px-6 py-4 rounded-2xl font-bold text-base">

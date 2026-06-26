@@ -152,9 +152,15 @@ export default function ReportarEncontrado() {
           <h2 className="text-2xl font-black text-[#1A1F2E]">{es ? 'Gracias. Tu reporte fue enviado.' : 'Thank you. Your report was submitted.'}</h2>
           <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">
             {personaVinculada
-              ? (es ? `Los familiares de ${personaVinculada.nombre_completo} serán notificados por email.` : `${personaVinculada.nombre_completo}'s family will be notified by email.`)
-              : (es ? 'Tu información está registrada y puede ayudar a reunir familias.' : 'Your information is registered and can help reunite families.')}
+              ? (es ? `Los familiares de ${personaVinculada.nombre_completo} serán notificados por email de inmediato.` : `${personaVinculada.nombre_completo}'s family will be notified by email immediately.`)
+              : (es ? 'Tu reporte fue registrado en el directorio de personas encontradas y puede ayudar a reunir familias.' : 'Your report was added to the found people directory and can help reunite families.')}
           </p>
+          <Link
+            to="/directorio-encontrados"
+            className="block w-full text-center bg-[#D48C2E] text-white font-black py-4 rounded-2xl text-base"
+          >
+            📋 {es ? 'Ver directorio de encontrados' : 'View found people directory'}
+          </Link>
         </div>
         {mostrarLogin && <PostReporteLogin es={es} onSkip={() => setMostrarLogin(false)} />}
         <Link to="/" className="block text-center bg-[#1A1F2E] text-white px-6 py-4 rounded-2xl font-bold text-base">

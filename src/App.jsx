@@ -24,6 +24,7 @@ import RegistroInstitucional from './pages/RegistroInstitucional';
 import EstoyAqui from './pages/EstoyAqui';
 import ZonaAfectada from './pages/ZonaAfectada';
 import FueraZona from './pages/FueraZona';
+import DirectorioEncontrados from './pages/DirectorioEncontrados';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -42,6 +43,7 @@ const PublicApp = () => (
     <Route path="/estoy-aqui" element={<EstoyAqui />} />
     <Route path="/zona-afectada" element={<ZonaAfectada />} />
     <Route path="/fuera-zona" element={<FueraZona />} />
+    <Route path="/directorio-encontrados" element={<DirectorioEncontrados />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
