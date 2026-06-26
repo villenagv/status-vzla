@@ -2,80 +2,77 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const ALLOWED_EMAIL = 'villenagv@gmail.com';
 const ALLOWED_ENTITIES = [
-  'PersonaCRIS', 'PersonasBuscadas', 'PersonasEncontradas',
-  'ReportesDano', 'PuntosAyuda', 'Suscripciones',
-  'SolicitudesInfoEdificio', 'CruceBusqueda', 'Coincidencia',
-  'Necesidades', 'OfertasAyuda', 'InfraestructuraSos',
+  'PersonaCRIS', 'PersonasBuscadas', 'PersonasEncontradas', 'PersonaRegistrada',
+  'RegistroInstitucional', 'ReportesDano', 'InfraestructuraSos', 'PuntosAyuda',
+  'EstadoOperativoEdificio', 'ActualizacionesSitios', 'PistasPersonas',
+  'SolicitudesInfoEdificio', 'CruceBusqueda', 'Coincidencia', 'Necesidades',
+  'OfertasAyuda', 'Suscripciones', 'NotificacionesUsuario',
 ];
 
-const ENTITY_NAME_TO_KEY = {
-  PersonaCRIS: 'PersonaCRIS', PersonasBuscadas: 'PersonasBuscadas',
-  PersonasEncontradas: 'PersonasEncontradas', ReportesDano: 'ReportesDano',
-  PuntosAyuda: 'PuntosAyuda', Suscripciones: 'Suscripciones',
-  SolicitudesInfoEdificio: 'SolicitudesInfoEdificio', CruceBusqueda: 'CruceBusqueda',
-  Coincidencia: 'Coincidencia', Necesidades: 'Necesidades',
-  OfertasAyuda: 'OfertasAyuda', InfraestructuraSos: 'InfraestructuraSos',
-};
+const PHOTO_FIELDS = [
+  'foto_url', 'foto_url_2', 'foto_principal_url', 'foto_urls', 'foto_adicional_url',
+  'fotos_adicionales_urls', 'archivo_url', 'file_url', 'video_url',
+];
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || (user.role !== 'admin' && user.email !== ALLOWED_EMAIL)) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    }
-    if (user.email !== ALLOWED_EMAIL) {
-      return new Response(JSON.stringify({ error: 'Only villenagv@gmail.com can manage data' }), { status: 403 });
-    }
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.email !== ALLOWED_EMAIL) return Response.json({ error: 'Only super admin can manage data' }, { status: 403 });
 
     const body = await req.json();
-    const { action, entity_name, record_id, ids, query } = body;
+    const { action, entity_name, record_id, ids } = body;
 
-    // Action: list entities
     if (action === 'list_entities') {
       return Response.json({ entities: ALLOWED_ENTITIES });
     }
 
-    // Validate entity
-    if (!entity_name || !ENTITY_NAME_TO_KEY[entity_name]) {
-      return new Response(JSON.stringify({ error: 'Invalid entity' }), { status: 400 });
+    if (!entity_name || !ALLOWED_ENTITIES.includes(entity_name)) {
+      return Response.json({ error: 'Invalid entity' }, { status: 400 });
     }
+
+    const entityApi = base44.asServiceRole.entities[entity_name];
+    if (!entityApi) return Response.json({ error: 'Entity not available' }, { status: 400 });
 
     if (action === 'list_records') {
-      const maxRecords = Math.min(body.limit || 30, 50);
-      const records = await base44.asServiceRole.entities[entity_name].list('-created_date', maxRecords);
-      return Response.json({ records });
-    }
-
-    if (action === 'filter_records') {
-      const filterQuery = query || {};
-      if (body.search_field && body.search_value) {
-        filterQuery[body.search_field] = { $contains: body.search_value };
-      }
-      const maxRecords = Math.min(body.limit || 30, 50);
-      const records = await base44.asServiceRole.entities[entity_name].filter(filterQuery, '-created_date', maxRecords);
+      const maxRecords = Math.min(Number(body.limit) || 50, 100);
+      const records = await entityApi.list('-created_date', maxRecords);
       return Response.json({ records });
     }
 
     if (action === 'delete_single' && record_id) {
-      await base44.asServiceRole.entities[entity_name].delete(record_id);
-      return Response.json({ ok: true });
+      await entityApi.delete(record_id);
+      return Response.json({ ok: true, deleted: 1 });
     }
 
     if (action === 'delete_many') {
-      const idsList = ids || [];
+      const idsList = Array.isArray(ids) ? ids.filter(Boolean).slice(0, 100) : [];
+      let deleted = 0;
       for (const id of idsList) {
-        await base44.asServiceRole.entities[entity_name].delete(id).catch(() => {});
+        try {
+          await entityApi.delete(id);
+          deleted += 1;
+        } catch (_error) {}
       }
-      return Response.json({ ok: true, deleted: idsList.length });
+      return Response.json({ ok: true, deleted });
     }
 
-    if (action === 'delete_all_filtered' && query) {
-      const deleted = await base44.asServiceRole.entities[entity_name].deleteMany(query);
-      return Response.json({ ok: true, deleted: deleted.deleted_count || 0 });
+    if (action === 'clear_photos' && record_id) {
+      const record = await entityApi.get(record_id);
+      const update = {};
+      for (const field of PHOTO_FIELDS) {
+        if (Array.isArray(record[field])) update[field] = [];
+        else if (record[field]) update[field] = '';
+      }
+      if (Object.keys(update).length === 0) {
+        return Response.json({ ok: true, cleared: 0 });
+      }
+      await entityApi.update(record_id, update);
+      return Response.json({ ok: true, cleared: Object.keys(update).length });
     }
 
-    return new Response(JSON.stringify({ error: 'Unknown action' }), { status: 400 });
+    return Response.json({ error: 'Unknown action' }, { status: 400 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
