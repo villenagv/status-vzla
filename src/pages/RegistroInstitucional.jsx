@@ -37,6 +37,7 @@ export default function RegistroInstitucional() {
   const [instId, setInstId] = useState(null);
   const [guardandoInst, setGuardandoInst] = useState(false);
   const [instError, setInstError] = useState('');
+  const [camposError, setCamposError] = useState({});
 
   // Personas
   const [personas, setPersonas] = useState([]);
@@ -52,10 +53,16 @@ export default function RegistroInstitucional() {
 
   // PASO 1: Registrar institución
   const registrarInstitucion = async () => {
-    if (!inst.institucion_nombre || !inst.institucion_tipo || !inst.institucion_ciudad || !inst.institucion_estado || !inst.responsable_telefono) {
-      setInstError(es ? 'Completa los campos obligatorios (*).' : 'Fill in all required fields (*).');
+    const errores = {};
+    if (!inst.institucion_nombre.trim()) errores.institucion_nombre = es ? 'El nombre del lugar es obligatorio.' : 'Place name is required.';
+    if (!inst.institucion_tipo) errores.institucion_tipo = es ? 'Selecciona el tipo de lugar.' : 'Select the place type.';
+    if (!inst.responsable_telefono.trim()) errores.responsable_telefono = es ? 'El teléfono del responsable es obligatorio.' : 'Responsible phone is required.';
+    if (Object.keys(errores).length > 0) {
+      setCamposError(errores);
+      setInstError(es ? 'Corrige los campos marcados en rojo antes de continuar.' : 'Fix the fields marked in red before continuing.');
       return;
     }
+    setCamposError({});
     setGuardandoInst(true);
     setInstError('');
     try {
@@ -200,18 +207,25 @@ export default function RegistroInstitucional() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">{es ? 'Nombre del lugar' : 'Place name'} *</label>
-                <input value={inst.institucion_nombre} onChange={e => setI('institucion_nombre', e.target.value)} placeholder={es ? 'Ej: Refugio Escuela Bolívar' : 'E.g: Bolivar School Shelter'} className="w-full border border-[#EDEBE8] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1F2E]" />
+                <input
+                  value={inst.institucion_nombre}
+                  onChange={e => { setI('institucion_nombre', e.target.value); setCamposError(p => ({ ...p, institucion_nombre: '' })); }}
+                  placeholder={es ? 'Ej: Refugio Escuela Bolívar' : 'E.g: Bolivar School Shelter'}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${camposError.institucion_nombre ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-[#EDEBE8] focus:border-[#1A1F2E]'}`}
+                />
+                {camposError.institucion_nombre && <p className="text-xs text-red-600 mt-1">⚠ {camposError.institucion_nombre}</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#1A1F2E] mb-2">{es ? 'Tipo de lugar' : 'Place type'} *</label>
                 <div className="flex flex-wrap gap-2">
                   {TIPOS.map(t => (
-                    <button key={t.val} type="button" onClick={() => setI('institucion_tipo', t.val)} className={`px-3 py-2 rounded-xl text-xs border transition-colors ${inst.institucion_tipo === t.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-600'}`}>
+                    <button key={t.val} type="button" onClick={() => { setI('institucion_tipo', t.val); setCamposError(p => ({ ...p, institucion_tipo: '' })); }} className={`px-3 py-2 rounded-xl text-xs border transition-colors ${inst.institucion_tipo === t.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : camposError.institucion_tipo ? 'bg-red-50 border-red-300 text-red-700' : 'bg-white border-[#EDEBE8] text-gray-600'}`}>
                       {es ? t.es : t.en}
                     </button>
                   ))}
                 </div>
+                {camposError.institucion_tipo && <p className="text-xs text-red-600 mt-1">⚠ {camposError.institucion_tipo}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -235,9 +249,15 @@ export default function RegistroInstitucional() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">{es ? 'Teléfono' : 'Phone'} *</label>
-                  <input value={inst.responsable_telefono} onChange={e => setI('responsable_telefono', e.target.value)} placeholder="+58..." className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1A1F2E]" />
-                </div>
+                   <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">{es ? 'Teléfono' : 'Phone'} *</label>
+                   <input
+                     value={inst.responsable_telefono}
+                     onChange={e => { setI('responsable_telefono', e.target.value); setCamposError(p => ({ ...p, responsable_telefono: '' })); }}
+                     placeholder="+58..."
+                     className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none ${camposError.responsable_telefono ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-[#EDEBE8] focus:border-[#1A1F2E]'}`}
+                   />
+                   {camposError.responsable_telefono && <p className="text-xs text-red-600 mt-1">⚠ {camposError.responsable_telefono}</p>}
+                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-[#1A1F2E] mb-1">Email</label>
                   <input type="email" value={inst.responsable_email} onChange={e => setI('responsable_email', e.target.value)} placeholder="correo@..." className="w-full border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1A1F2E]" />
