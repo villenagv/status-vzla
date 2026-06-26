@@ -319,7 +319,7 @@ export default function Edificios() {
                         return (
                           <tr key={r.id} className="hover:bg-gray-50">
                             <td className="px-4 py-3">
-                              <p className="font-semibold text-gray-900 text-xs">{r.nombre_lugar || r.tipo_estructura || '—'}</p>
+                              <Link to={`/edificio?id=${r.id}`} className="font-semibold text-blue-900 hover:text-blue-700 text-xs no-underline hover:underline">{r.nombre_lugar || r.tipo_estructura || '—'}</Link>
                               <p className="text-[10px] text-gray-400">{r.tipo_estructura}</p>
                             </td>
                             <td className="px-4 py-3 text-xs text-gray-600">
@@ -361,10 +361,11 @@ export default function Edificios() {
                     const c = cfg(r.nivel_dano);
                     const noEntrar = ['grave', 'critico'].includes(r.nivel_dano);
                     return (
-                      <div key={r.id} style={{ background: c.bg, borderColor: c.border }} className="border rounded-xl p-3">
-                        <div className="flex justify-between items-start gap-2 mb-1">
-                          <div>
-                            <p className="text-sm font-bold text-gray-900">{r.nombre_lugar || r.tipo_estructura}</p>
+                      <Link key={r.id} to={`/edificio?id=${r.id}`} className="no-underline block">
+                      <div style={{ background: c.bg, borderColor: c.border }} className="border rounded-xl p-3">
+                       <div className="flex justify-between items-start gap-2 mb-1">
+                         <div>
+                           <p className="text-sm font-bold text-gray-900">{r.nombre_lugar || r.tipo_estructura}</p>
                             <p className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={9} />{r.direccion} · {r.ciudad}</p>
                           </div>
                           {noEntrar && <span className="text-[10px] font-black text-white bg-red-600 px-2 py-0.5 rounded flex-shrink-0">{es ? 'NO ENTRAR' : 'DO NOT ENTER'}</span>}
@@ -382,6 +383,7 @@ export default function Edificios() {
                           </div>
                         )}
                       </div>
+                    </Link>
                     );
                   })}
                 </div>

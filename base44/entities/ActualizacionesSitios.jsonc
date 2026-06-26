@@ -8,33 +8,63 @@
     "tipo_sitio": {
       "type": "string",
       "enum": [
-        "dano",
-        "ayuda"
+        "edificio",
+        "refugio",
+        "hospital",
+        "punto_ayuda"
       ]
     },
-    "tipo_actualizacion": {
-      "type": "string"
+    "tipo_accion": {
+      "type": "string",
+      "enum": [
+        "tengo_actualizacion",
+        "confirmo_mismo_estado",
+        "informacion_incorrecta",
+        "reportar_urgencia",
+        "nuevo_nivel_dano",
+        "personas_atrapadas",
+        "riesgo_marcado",
+        "estado_cambiado",
+        "verificado"
+      ]
     },
     "descripcion": {
       "type": "string"
     },
-    "estado_anterior": {
+    "nivel_dano_anterior": {
       "type": "string"
     },
-    "estado_nuevo": {
+    "nivel_dano_nuevo": {
       "type": "string"
     },
-    "reportado_por": {
+    "personas_atrapadas_anterior": {
       "type": "string"
     },
-    "nivel_verificacion": {
+    "personas_atrapadas_nuevo": {
+      "type": "string"
+    },
+    "es_sensible": {
+      "type": "boolean",
+      "default": false
+    },
+    "es_verificado": {
+      "type": "boolean",
+      "default": false
+    },
+    "reportante_nombre": {
+      "type": "string"
+    },
+    "reportante_contacto": {
+      "type": "string"
+    },
+    "fuente": {
       "type": "string",
-      "default": "comunidad"
+      "default": "ciudadano"
     }
   },
   "required": [
     "sitio_id",
     "tipo_sitio",
-    "tipo_actualizacion"
+    "tipo_accion"
   ]
 }

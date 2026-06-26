@@ -47,7 +47,7 @@ const ESTADO_EMOJI = {
   caso_cerrado: '📁',
 };
 
-function buildEmailHtml({ nombre, estadoCaso, ubicacion, mensaje_extra, updateLink, lang }) {
+function buildEmailHtml({ nombre, estadoCaso, ubicacion, mensaje_extra, updateLink, profileLink, lang }) {
   const es = lang !== 'en';
   const labelEs = ESTADO_LABEL_ES[estadoCaso] || estadoCaso;
   const labelEn = ESTADO_LABEL_EN[estadoCaso] || estadoCaso;
@@ -106,7 +106,7 @@ function buildEmailHtml({ nombre, estadoCaso, ubicacion, mensaje_extra, updateLi
 
         <!-- CTA buttons -->
         <tr><td style="padding:0 28px 20px;">
-          <a href="https://app.statusvzla.com" style="display:block;background:#1A1F2E;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:10px;font-weight:700;font-size:14px;margin-bottom:10px;">${cta_label}</a>
+          <a href="${profileLink}" style="display:block;background:#1A1F2E;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:10px;font-weight:700;font-size:14px;margin-bottom:8px;">${cta_label}</a>
           ${updateLink ? `<a href="${updateLink}" style="display:block;background:#fff;border:2px solid #D48C2E;color:#D48C2E;text-decoration:none;text-align:center;padding:12px;border-radius:10px;font-weight:700;font-size:13px;">${update_label}</a>` : ''}
         </td></tr>
 
@@ -169,6 +169,7 @@ Deno.serve(async (req) => {
       });
 
       const updateLink = `${APP_URL}/actualizar-estado?token=${token}`;
+      const profileLink = `${APP_URL}/persona?id=${persona_id}&token=${token}`;
       const lang = 'es'; // default to Spanish for Venezuela context
 
       const htmlBody = buildEmailHtml({
@@ -177,6 +178,7 @@ Deno.serve(async (req) => {
         ubicacion,
         mensaje_extra: datos_persona?.mensaje || '',
         updateLink,
+        profileLink,
         lang,
       });
 
