@@ -7,23 +7,29 @@ const ACCIONES = [
   {
     to: '/reportar-encontrado',
     icon: '🔍',
-    bg: 'bg-purple-600',
+    bg: '#5B21B6',
+    border: '#7C3AED',
     label: { es: 'Reportar persona encontrada', en: 'Report found person' },
     desc: { es: 'Indica quién fue visto o encontrado, su estado y ubicación. Conecta con familias que lo buscan.', en: 'Report who was seen or found, their status and location. Connect with families searching for them.' },
+    badge: { es: 'Personas', en: 'People' },
   },
   {
     to: '/registro-institucional',
     icon: '📋',
-    bg: 'bg-teal-600',
+    bg: '#0F766E',
+    border: '#14B8A6',
     label: { es: 'Subir listado de personas en mi centro', en: 'Upload list of people at my center' },
     desc: { es: 'Registra tu refugio, hospital o centro y sube el listado de personas que tienes a cargo. CSV, Excel o foto.', en: 'Register your shelter, hospital or center and upload the list of people in your care. CSV, Excel or photo.' },
+    badge: { es: 'Institucional', en: 'Institutional' },
   },
   {
     to: '/institucional',
     icon: '🏥',
-    bg: 'bg-green-700',
+    bg: '#166534',
+    border: '#22C55E',
     label: { es: 'Registrar centro de apoyo', en: 'Register support center' },
     desc: { es: 'Agrega un refugio, hospital, comedor o punto de ayuda a la plataforma con su ubicación, estado y contacto.', en: 'Add a shelter, hospital, food center or help point with location, status and contact.' },
+    badge: { es: 'Centros', en: 'Centers' },
   },
 ];
 
@@ -32,62 +38,84 @@ export default function Voluntario() {
   const es = lang === 'es';
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: '#0F1117' }}>
       <TopBar />
 
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-900 mb-4">
+        <Link to="/" className="inline-flex items-center gap-1.5 text-sm mb-5 no-underline"
+          style={{ color: 'rgba(255,255,255,0.4)' }}>
           ← {es ? 'Inicio' : 'Home'}
         </Link>
 
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-3xl">🤝</span>
-          <h1 className="text-2xl font-bold text-gray-900">{es ? 'Soy voluntario o personal de apoyo' : 'I am a volunteer or support staff'}</h1>
+        {/* Header */}
+        <div className="rounded-2xl p-5 mb-5" style={{ background: 'linear-gradient(135deg, #4C1D95 0%, #2563EB 100%)', border: '1px solid rgba(124,58,237,0.4)' }}>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-4xl">🤝</span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: 'rgba(196,181,253,0.8)' }}>
+                {es ? 'Modo voluntario' : 'Volunteer mode'}
+              </p>
+              <h1 className="text-xl font-bold text-white leading-tight">
+                {es ? 'Soy voluntario o personal de apoyo' : 'I am a volunteer or support staff'}
+              </h1>
+            </div>
+          </div>
+          <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.70)' }}>
+            {es
+              ? 'Registra personas encontradas, sube listados y mantén los centros de apoyo actualizados.'
+              : 'Record found people, upload lists and keep support centers updated.'}
+          </p>
         </div>
-        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-          {es
-            ? 'Usa esta sección para registrar la información de personas encontradas, subir listados de centros de apoyo y mantener actualizada la plataforma con datos verificables.'
-            : 'Use this section to record information about found people, upload aid center lists and keep the platform updated with verifiable data.'}
-        </p>
 
         {/* Advertencia de privacidad */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-6 flex gap-3">
+        <div className="rounded-xl p-3 mb-5 flex gap-3" style={{ background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.25)' }}>
           <span className="text-base flex-shrink-0 mt-0.5">⚠️</span>
           <div>
-            <p className="text-xs font-bold text-amber-800 mb-1">{es ? 'Privacidad y seguridad' : 'Privacy and security'}</p>
-            <p className="text-xs text-amber-700 leading-relaxed">
+            <p className="text-xs font-bold mb-1" style={{ color: '#FCD34D' }}>{es ? 'Privacidad y seguridad' : 'Privacy and security'}</p>
+            <p className="text-xs leading-relaxed" style={{ color: 'rgba(253,230,138,0.85)' }}>
               {es
-                ? 'Nunca compartas teléfonos, correos o datos médicos sensibles de forma pública. Las instituciones registradas pasan por verificación. '
-                : 'Never share phones, emails or sensitive medical data publicly. Registered institutions go through verification. '}
-              <strong>{es ? 'No pidas ni aceptes dinero por información.' : 'Do not ask for or accept money for information.'}</strong>
+                ? 'Nunca compartas teléfonos, correos o datos médicos sensibles públicamente. '
+                : 'Never share phones, emails or sensitive medical data publicly. '}
+              <strong style={{ color: '#FCD34D' }}>{es ? 'No pidas ni aceptes dinero por información.' : 'Do not ask for or accept money for information.'}</strong>
             </p>
           </div>
         </div>
 
         {/* Acciones */}
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{es ? 'Elige una acción' : 'Choose an action'}</p>
-        <div className="space-y-3 mb-6">
+        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.30)' }}>
+          {es ? 'Elige una acción' : 'Choose an action'}
+        </p>
+        <div className="space-y-3 mb-5">
           {ACCIONES.map((a) => (
-            <Link key={a.to} to={a.to} style={{ background: a.bg }} className="flex items-start gap-3 rounded-xl p-4 text-white no-underline hover:opacity-90 active:scale-[0.99] transition-all">
-              <span className="text-2xl flex-shrink-0">{a.icon}</span>
+            <Link key={a.to} to={a.to} className="flex items-start gap-4 rounded-2xl p-4 no-underline group transition-all"
+              style={{ background: a.bg, border: `1px solid ${a.border}` }}>
+              <span className="text-2xl flex-shrink-0 mt-0.5">{a.icon}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold leading-tight">{es ? a.label.es : a.label.en}</p>
-                <p className="text-xs mt-1 opacity-70 leading-relaxed">{es ? a.desc.es : a.desc.en}</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-bold text-white leading-tight">{es ? a.label.es : a.label.en}</p>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                    style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)' }}>
+                    {es ? a.badge.es : a.badge.en}
+                  </span>
+                </div>
+                <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                  {es ? a.desc.es : a.desc.en}
+                </p>
               </div>
-              <span className="text-lg opacity-30 flex-shrink-0">›</span>
+              <span className="text-xl flex-shrink-0 mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>›</span>
             </Link>
           ))}
         </div>
 
-        {/* Recordatorio de verificación */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex gap-3">
+        {/* Recordatorio institucional */}
+        <div className="rounded-xl p-4 flex gap-3" style={{ background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(59,130,246,0.25)' }}>
           <span className="text-base flex-shrink-0 mt-0.5">💡</span>
           <div>
-            <p className="text-xs font-bold text-blue-800 mb-1">{es ? '¿Datos de una institución?' : 'Institution data?'}</p>
-            <p className="text-xs text-blue-700 leading-relaxed">
+            <p className="text-xs font-bold mb-1" style={{ color: '#93C5FD' }}>{es ? '¿Datos de una institución?' : 'Institution data?'}</p>
+            <p className="text-xs leading-relaxed" style={{ color: 'rgba(147,197,253,0.80)' }}>
               {es
-                ? 'Si representas oficialmente a Protección Civil, Bomberos, un hospital público o refugio habilitado, tus registros son marcados como institucionales. Coordina con el administrador de la plataforma.'
-                : 'If you officially represent Civil Protection, Firefighters, a public hospital or enabled shelter, your records are marked as institutional. Coordinate with the platform administrator.'}
+                ? 'Si representas a Protección Civil, Bomberos, un hospital o refugio habilitado, tus registros son marcados como institucionales. Coordina con el administrador.'
+                : 'If you represent Civil Protection, Firefighters, a public hospital or enabled shelter, your records are marked as institutional. Coordinate with the administrator.'}
             </p>
           </div>
         </div>
