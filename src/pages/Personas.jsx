@@ -50,7 +50,6 @@ export default function Personas() {
     ]).then(([buscadas, registradas]) => {
       // Normalizar PersonaRegistrada para mostrar en el directorio
       const regNorm = registradas
-        .filter(r => r.condicion !== 'a_salvo')
         .map(r => ({
           id: r.id,
           nombre_completo: r.nombre_completo,
@@ -61,7 +60,8 @@ export default function Personas() {
           sexo: r.sexo,
           foto_url: null,
           descripcion_fisica: r.observaciones || '',
-          estado_caso: r.condicion === 'fallecido_reportado' ? 'fallecido_reportado'
+          estado_caso: r.condicion === 'a_salvo' ? 'encontrado_con_vida'
+            : r.condicion === 'fallecido_reportado' ? 'fallecido_reportado'
             : (r.condicion === 'herido_grave' || r.condicion === 'herido_leve') ? 'en_hospital_refugio'
             : 'informacion_recibida',
           contacto_telefono: '',
@@ -116,12 +116,12 @@ export default function Personas() {
         </Link>
 
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
-          👤 {es ? 'Personas desaparecidas' : 'Missing people'}
+          👤 {es ? 'Necesito ayuda con una persona' : 'I need help with a person'}
         </h1>
         <p className="text-xs text-gray-500 mb-4 leading-relaxed">
           {es
-            ? 'Directorio ciudadano de búsqueda y localización. Si reconoces a alguien, comparte su tarjeta.'
-            : 'Citizen directory for search and location. If you recognize someone, share their card.'}
+            ? 'Busca, reporta o revisa listas institucionales. Elige la acción más cercana a tu situación.'
+            : 'Search, report, or review institutional lists. Choose the action closest to your situation.'}
         </p>
 
         {/* Acciones principales — primero que todo */}
@@ -131,14 +131,18 @@ export default function Personas() {
             <Plus size={18} />
             {es ? 'Registrar persona desaparecida' : 'Register missing person'}
           </Link>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <Link to="/reportar-encontrado"
-              className="flex items-center justify-center gap-2 bg-[#D48C2E] text-white font-bold py-3.5 rounded-2xl text-sm no-underline text-center">
-              🙋 {es ? 'Reportar encontrada' : 'Report found person'}
+              className="flex items-center justify-center gap-1 bg-[#D48C2E] text-white font-bold py-3.5 rounded-2xl text-xs no-underline text-center">
+              🙋 {es ? 'Vi a alguien' : 'Saw someone'}
             </Link>
             <Link to="/directorio-encontrados"
-              className="flex items-center justify-center gap-2 bg-white border-2 border-[#1A1F2E] text-[#1A1F2E] font-bold py-3.5 rounded-2xl text-sm no-underline text-center">
-              📋 {es ? 'Dir. encontrados' : 'Found directory'}
+              className="flex items-center justify-center gap-1 bg-white border-2 border-[#1A1F2E] text-[#1A1F2E] font-bold py-3.5 rounded-2xl text-xs no-underline text-center">
+              📋 {es ? 'Encontrados' : 'Found list'}
+            </Link>
+            <Link to="/centros-apoyo"
+              className="flex items-center justify-center gap-1 bg-blue-50 border-2 border-blue-200 text-blue-700 font-bold py-3.5 rounded-2xl text-xs no-underline text-center">
+              🏥 {es ? 'Refugios' : 'Shelters'}
             </Link>
           </div>
         </div>
@@ -254,13 +258,18 @@ export default function Personas() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <Link to={`/persona?id=${p.id}`} className="font-black text-sm text-[#1A1F2E] leading-tight hover:underline no-underline">{p.nombre_completo}</Link>
+                      {p._fuente === 'institucional' ? (
+                        <span className="font-black text-sm text-[#1A1F2E] leading-tight">{p.nombre_completo}</span>
+                      ) : (
+                        <Link to={`/persona?id=${p.id}`} className="font-black text-sm text-[#1A1F2E] leading-tight hover:underline no-underline">{p.nombre_completo}</Link>
+                      )}
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${st.bg}`}>
                         {es ? st.es : st.en}
                       </span>
                     </div>
 
                     <div className="flex flex-wrap gap-1 mb-1.5">
+                      {p._fuente === 'institucional' && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full font-bold">{es ? 'Registro institucional' : 'Institutional record'}</span>}
                       {p.edad_aprox && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{p.edad_aprox} {es ? 'años' : 'yrs'}</span>}
                       {p.sexo && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full capitalize">{p.sexo}</span>}
                     </div>
@@ -284,12 +293,12 @@ export default function Personas() {
 
                 {/* Acciones */}
                 <div className="grid grid-cols-2 gap-2 mt-3">
-                  <BotonNotificarme personaId={p.id} nombre={p.nombre_completo} />
-                  {p.contacto_telefono && (
-                    <a href={`https://wa.me/${p.contacto_telefono.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"
-                      className="flex items-center justify-center gap-1.5 bg-green-600 text-white text-xs font-bold py-2.5 rounded-xl">
-                      💬 {es ? 'Contactar' : 'Contact'}
-                    </a>
+                  {p._fuente !== 'institucional' ? (
+                    <BotonNotificarme personaId={p.id} nombre={p.nombre_completo} />
+                  ) : (
+                    <Link to="/centros-apoyo" className="flex items-center justify-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold py-2.5 rounded-xl">
+                      🏥 {es ? 'Ver centros' : 'View centers'}
+                    </Link>
                   )}
                   <button onClick={() => compartir(p)}
                     className={`flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 rounded-xl transition-colors ${compartidoId === p.id ? 'bg-green-600 text-white' : 'bg-[#1A1F2E] text-white'}`}>
@@ -298,16 +307,22 @@ export default function Personas() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <Link to={`/reportar-encontrado`}
-                    className="flex items-center justify-center gap-1 text-xs font-semibold text-[#D48C2E] bg-[#FFF8EE] border border-[#E6C195] py-2 rounded-xl">
-                    ✋ {es ? 'La encontré' : 'I found them'}
-                  </Link>
-                  <Link to={`/pista?persona=${p.id}`}
-                    className="flex items-center justify-center gap-1 text-xs font-semibold text-[#1A4A8A] bg-blue-50 border border-blue-200 py-2 rounded-xl">
-                    <Eye size={11} /> {es ? 'Tengo info' : 'Have info'}
-                  </Link>
-                </div>
+                {p._fuente !== 'institucional' ? (
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <Link to={`/reportar-encontrado`}
+                      className="flex items-center justify-center gap-1 text-xs font-semibold text-[#D48C2E] bg-[#FFF8EE] border border-[#E6C195] py-2 rounded-xl">
+                      ✋ {es ? 'La encontré' : 'I found them'}
+                    </Link>
+                    <Link to={`/pista?persona=${p.id}`}
+                      className="flex items-center justify-center gap-1 text-xs font-semibold text-[#1A4A8A] bg-blue-50 border border-blue-200 py-2 rounded-xl">
+                      <Eye size={11} /> {es ? 'Tengo info' : 'Have info'}
+                    </Link>
+                  </div>
+                ) : (
+                  <p className="mt-2 text-[11px] text-blue-700 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+                    {es ? 'Ficha aportada por una institución. Contactos privados protegidos.' : 'Record submitted by an institution. Private contacts protected.'}
+                  </p>
+                )}
               </div>
             );
           })}

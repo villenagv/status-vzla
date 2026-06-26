@@ -32,8 +32,26 @@ export default function DirectorioEncontrados() {
   const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState(null);
 
   useEffect(() => {
-    base44.entities.PersonasEncontradas.list('-updated_date', 200)
-      .then(data => {
+    Promise.all([
+      base44.entities.PersonasEncontradas.list('-updated_date', 200),
+      base44.entities.PersonaRegistrada.list('-created_date', 200),
+    ])
+      .then(([encontradas, registradas]) => {
+        const institucionales = registradas.map(r => ({
+          id: r.id,
+          nombre_o_descripcion: r.nombre_completo,
+          condicion: r.condicion || 'no_identificado',
+          nombre_lugar: r.institucion_nombre || '',
+          ciudad: r.ciudad || '',
+          estado_region: r.estado_region || '',
+          edad_aprox: r.edad_aprox || '',
+          sexo: r.sexo || '',
+          descripcion_fisica: r.observaciones || '',
+          foto_url: '',
+          updated_date: r.updated_date || r.created_date,
+          _fuente: 'institucional',
+        }));
+        const data = [...encontradas, ...institucionales];
         setTodos(data);
         setFiltrados(data);
       })
@@ -75,8 +93,8 @@ export default function DirectorioEncontrados() {
         </h1>
         <p className="text-sm text-gray-500 mb-3 leading-relaxed">
           {es
-            ? 'Directorio de personas vistas, encontradas o reportadas por la comunidad. Si reconoces a alguien, comparte la tarjeta.'
-            : 'Directory of people seen, found or reported by the community. If you recognize someone, share the card.'}
+            ? 'Directorio de personas vistas, encontradas o registradas por instituciones. Si reconoces a alguien, comparte la tarjeta.'
+            : 'Directory of people seen, found, or registered by institutions. If you recognize someone, share the card.'}
         </p>
 
         {/* Anti-extorsión */}
@@ -169,9 +187,9 @@ export default function DirectorioEncontrados() {
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 mb-1.5">
+                      {p._fuente === 'institucional' && <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-100">{es ? 'Registro institucional' : 'Institutional record'}</span>}
                       {p.edad_aprox && <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{p.edad_aprox} {es ? 'años' : 'yrs'}</span>}
                       {p.sexo && <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">{p.sexo}</span>}
-                      {p.cedula && <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-100">CI: {p.cedula}</span>}
                     </div>
 
                     {lugar && (

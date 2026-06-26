@@ -55,8 +55,9 @@ export default function BuscarPersona() {
   const [fotoUrls, setFotoUrls] = useState([]);
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
+  const [personaCreada, setPersonaCreada] = useState(null);
   const [personaId] = useState(() => `persona-${Date.now()}`);
-  const [modoRapido, setModoRapido] = useState(false);
+  const [modoRapido, setModoRapido] = useState(true);
 
   const [posiblesDuplicados, setPosiblesDuplicados] = useState([]);
   const [buscandoDups, setBuscandoDups] = useState(false);
@@ -121,10 +122,6 @@ export default function BuscarPersona() {
       setError(es ? 'El email no es válido. Revísalo antes de continuar.' : 'The email is not valid. Please check it before continuing.');
       return;
     }
-    if (!dupCheck && form.nombre_completo.trim().length >= 3) {
-      await checkDuplicados();
-      return;
-    }
     setEnviando(true);
     try {
       const nueva = await base44.entities.PersonasBuscadas.create({
@@ -156,6 +153,7 @@ export default function BuscarPersona() {
           datos_persona: { nombre_completo: nueva.nombre_completo },
         });
       }
+      setPersonaCreada(nueva);
       setResultado('ok');
       setMostrarLogin(true);
     } catch {
@@ -179,14 +177,24 @@ export default function BuscarPersona() {
           </p>
           <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 text-sm text-blue-800 font-medium">
             🔔 {es
-              ? 'Activa: recibirás un email si alguien reporta haber visto o encontrado a esta persona.'
-              : 'Active: you will receive an email if someone reports seeing or finding this person.'}
+              ? 'Si dejaste email, recibirás avisos cuando alguien reporte información sobre esta persona.'
+              : 'If you left an email, you will receive alerts when someone reports information about this person.'}
           </div>
         </div>
         {!user && mostrarLogin && <PostReporteLogin es={es} onSkip={() => setMostrarLogin(false)} />}
-        <Link to="/" className="block text-center bg-[#1A1F2E] text-white px-6 py-4 rounded-2xl font-bold text-base">
-          {es ? 'Volver al inicio' : 'Back to home'}
-        </Link>
+        <div className="grid gap-2">
+          {personaCreada?.id && (
+            <Link to={`/persona?id=${personaCreada.id}`} className="block text-center bg-[#B83A52] text-white px-6 py-4 rounded-2xl font-bold text-base">
+              {es ? 'Ver ficha creada' : 'View created record'}
+            </Link>
+          )}
+          <Link to="/personas" className="block text-center bg-white border-2 border-[#1A1F2E] text-[#1A1F2E] px-6 py-4 rounded-2xl font-bold text-base">
+            {es ? 'Ver directorio de personas' : 'View people directory'}
+          </Link>
+          <Link to="/" className="block text-center bg-[#1A1F2E] text-white px-6 py-4 rounded-2xl font-bold text-base">
+            {es ? 'Volver al inicio' : 'Back to home'}
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -216,8 +224,8 @@ export default function BuscarPersona() {
         </h1>
         <p className="text-sm text-gray-500 mb-3 leading-relaxed">
           {es
-            ? 'Registra a la persona que buscas. Responde solo lo que sepas — solo tu nombre y teléfono son obligatorios. Tus datos de contacto no se publicarán.'
-            : "Register the person you're looking for. Answer only what you know — only your name and phone are required. Your contact details won't be published."}
+            ? 'Registra a la persona que buscas. Responde solo lo que sepas. Tus datos de contacto no se publicarán.'
+            : "Register the person you're looking for. Answer only what you know. Your contact details won't be published."}
         </p>
         <button onClick={() => setModoRapido(v => !v)} type="button" className={`text-xs font-semibold px-3 py-1.5 rounded-lg border mb-4 cursor-pointer ${modoRapido ? 'bg-[#D48C2E] text-white border-[#D48C2E]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#D48C2E]'}`}>
           ⚡ {modoRapido ? (es ? 'Versión completa' : 'Full version') : (es ? 'Modo rápido' : 'Quick mode')}
@@ -246,8 +254,8 @@ export default function BuscarPersona() {
             </h3>
             <p className="text-xs text-gray-600 leading-relaxed">
               {es
-                ? '¿Es la misma persona? Puedes suscribirte para recibir actualizaciones, o crear una nueva si es diferente.'
-                : "Is it the same person? You can subscribe to receive updates, or create a new one if it's different."}
+                ? 'Si es la misma persona, suscríbete a esa ficha. Si no, continúa abajo y crea una nueva búsqueda.'
+                : 'If this is the same person, subscribe to that record. If not, continue below and create a new search.'}
             </p>
             <div className="space-y-2">
               {posiblesDuplicados.map(p => {
@@ -314,7 +322,12 @@ export default function BuscarPersona() {
             <p className="text-xs font-bold text-[#1A1F2E]">{es ? '⚡ Modo rápido — solo lo esencial' : '⚡ Quick mode — only essentials'}</p>
             <input required placeholder={es ? 'Nombre completo de la persona' : 'Person\'s full name'} value={form.nombre_completo} onChange={e => { set('nombre_completo', e.target.value); setDupCheck(false); setDecisionDup(null); setPosiblesDuplicados([]); }} onBlur={checkDuplicados} className={inputCls} />
             <input required placeholder={es ? 'Última ubicación conocida' : 'Last known location'} value={form.ultima_ubicacion_conocida} onChange={e => set('ultima_ubicacion_conocida', e.target.value)} className={inputCls} />
-            <input required placeholder={es ? 'Tu teléfono de contacto' : 'Your contact phone'} value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
+            <div className="grid grid-cols-2 gap-2">
+              <input placeholder={es ? 'Ciudad' : 'City'} value={form.ciudad} onChange={e => set('ciudad', e.target.value)} className={inputCls} />
+              <input placeholder={es ? 'Estado' : 'State'} value={form.estado_region} onChange={e => set('estado_region', e.target.value)} className={inputCls} />
+            </div>
+            <input required placeholder={es ? 'Tu teléfono o WhatsApp' : 'Your phone or WhatsApp'} value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
+            <input type="email" placeholder={es ? 'Email para avisarte (opcional)' : 'Email for updates (optional)'} value={form.contacto_email} onChange={e => set('contacto_email', e.target.value)} className={inputCls} />
             <button type="submit" disabled={enviando || !form.nombre_completo || !form.ultima_ubicacion_conocida || !form.contacto_telefono} className="w-full bg-[#1A1F2E] disabled:opacity-40 text-white font-black py-4 rounded-xl text-base transition-colors flex items-center justify-center gap-2 cursor-pointer">
               {enviando ? <Loader2 size={18} className="animate-spin" /> : '🔎'} {es ? 'Registrar búsqueda' : 'Register search'}
             </button>

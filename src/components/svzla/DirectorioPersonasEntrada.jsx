@@ -30,7 +30,6 @@ export default function DirectorioPersonasEntrada() {
     ]).then(([buscadas, registradas]) => {
       // Normalizar PersonaRegistrada al mismo formato que PersonasBuscadas
       const regNorm = registradas
-        .filter(r => r.condicion !== 'a_salvo')
         .map(r => ({
           id: r.id,
           nombre_completo: r.nombre_completo,
@@ -38,8 +37,9 @@ export default function DirectorioPersonasEntrada() {
           estado_region: r.estado_region,
           ultima_ubicacion_conocida: r.institucion_nombre || r.ciudad || '',
           edad_aprox: r.edad_aprox,
-          estado_caso: r.condicion === 'herido_grave' ? 'informacion_recibida'
-            : r.condicion === 'herido_leve' ? 'informacion_recibida'
+          estado_caso: r.condicion === 'a_salvo' ? 'encontrado_con_vida'
+            : r.condicion === 'herido_grave' ? 'en_hospital_refugio'
+            : r.condicion === 'herido_leve' ? 'en_hospital_refugio'
             : r.condicion === 'fallecido_reportado' ? 'fallecido_reportado'
             : 'informacion_recibida',
           _fuente: 'institucional',
@@ -116,6 +116,21 @@ export default function DirectorioPersonasEntrada() {
           const st = ESTADO_BADGE[p.estado_caso] || { es: p.estado_caso, en: p.estado_caso, cls: 'bg-gray-100 text-gray-600' };
           return (
             <div key={p.id} className="px-4 py-2.5 flex items-center gap-2">
+              {p._fuente === 'institucional' ? (
+                <div className="flex-1 min-w-0 rounded-lg py-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{p.nombre_completo}</p>
+                      <p className="text-xs text-gray-400 truncate">
+                        🏥 {es ? 'Registro institucional' : 'Institutional record'} · {p.ultima_ubicacion_conocida || p.ciudad}
+                      </p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${st.cls}`}>
+                      {es ? st.es : st.en}
+                    </span>
+                  </div>
+                </div>
+              ) : (
               <Link to={`/persona?id=${p.id}`} className="flex-1 min-w-0 hover:bg-gray-50 rounded-lg py-1 no-underline">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -130,7 +145,8 @@ export default function DirectorioPersonasEntrada() {
                   </span>
                 </div>
               </Link>
-              <BotonNotificarme personaId={p.id} nombre={p.nombre_completo} className="flex-shrink-0" />
+              )}
+              {p._fuente !== 'institucional' && <BotonNotificarme personaId={p.id} nombre={p.nombre_completo} className="flex-shrink-0" />}
             </div>
           );
         })}

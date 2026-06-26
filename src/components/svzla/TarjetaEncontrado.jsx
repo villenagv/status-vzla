@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Share2, Download, X, MapPin, Clock } from 'lucide-react';
+import { Share2, X, MapPin, Clock } from 'lucide-react';
 import { useLang } from '@/lib/LangContext';
 
 /**
@@ -31,8 +31,8 @@ export default function TarjetaEncontrado({ persona, onClose }) {
 
   // Texto para compartir por mensaje
   const shareText = es
-    ? `📢 CRIS · statusvzla.com\n\n¡Persona encontrada!\n\n👤 ${persona.nombre_o_descripcion}${persona.edad_aprox ? ` · ${persona.edad_aprox} años` : ''}${persona.sexo ? ` · ${persona.sexo}` : ''}\n\nEstado: ${condLabel}\n📍 ${lugar || 'Ubicación no especificada'}\n\nSi la reconoces, contacta a quien la reportó o visita statusvzla.com`
-    : `📢 CRIS · statusvzla.com\n\nPerson found!\n\n👤 ${persona.nombre_o_descripcion}${persona.edad_aprox ? ` · ${persona.edad_aprox} years` : ''}${persona.sexo ? ` · ${persona.sexo}` : ''}\n\nStatus: ${condLabel}\n📍 ${lugar || 'Location not specified'}\n\nIf you recognize them, contact the reporter or visit statusvzla.com`;
+    ? `📢 CRIS · statusvzla.com\n\n¡Persona encontrada!\n\n👤 ${persona.nombre_o_descripcion}${persona.edad_aprox ? ` · ${persona.edad_aprox} años` : ''}${persona.sexo ? ` · ${persona.sexo}` : ''}\n\nEstado: ${condLabel}\n📍 ${lugar || 'Ubicación no especificada'}\n\nSi la reconoces, revisa el directorio o reporta información en statusvzla.com`
+    : `📢 CRIS · statusvzla.com\n\nPerson found!\n\n👤 ${persona.nombre_o_descripcion}${persona.edad_aprox ? ` · ${persona.edad_aprox} years` : ''}${persona.sexo ? ` · ${persona.sexo}` : ''}\n\nStatus: ${condLabel}\n📍 ${lugar || 'Location not specified'}\n\nIf you recognize them, check the directory or report information at statusvzla.com`;
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -112,11 +112,6 @@ export default function TarjetaEncontrado({ persona, onClose }) {
                   {persona.sexo && (
                     <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-semibold capitalize">
                       {persona.sexo}
-                    </span>
-                  )}
-                  {persona.cedula && (
-                    <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-200">
-                      CI: {persona.cedula}
                     </span>
                   )}
                 </div>

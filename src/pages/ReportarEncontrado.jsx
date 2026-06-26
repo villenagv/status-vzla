@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Loader2, ShieldAlert, Search, Phone } from 'lucide-react';
+import { ChevronLeft, Loader2, ShieldAlert, Search } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import PostReporteLogin from '@/components/svzla/PostReporteLogin';
 import { useLang } from '@/lib/LangContext';
@@ -77,7 +77,7 @@ export default function ReportarEncontrado() {
   const [resultado, setResultado] = useState(null);
   const [mostrarLogin, setMostrarLogin] = useState(false);
   const [fotoId] = useState(() => `encontrado-${Date.now()}`);
-  const [modoRapido, setModoRapido] = useState(false);
+  const [modoRapido, setModoRapido] = useState(true);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -200,6 +200,19 @@ export default function ReportarEncontrado() {
             : 'Use this form if you saw, found or have real information about a person. Write verifiable data. Do not post rumors.'}
         </p>
 
+        <div className="flex rounded-2xl overflow-hidden border-2 border-[#EDEBE8] mb-4 bg-white">
+          <button
+            type="button"
+            onClick={() => setModoRapido(true)}
+            className={`flex-1 py-3 text-sm font-bold transition-colors cursor-pointer ${modoRapido ? 'bg-[#1A1F2E] text-white' : 'text-gray-500'}`}
+          >⚡ {es ? 'Modo rápido' : 'Quick mode'}</button>
+          <button
+            type="button"
+            onClick={() => setModoRapido(false)}
+            className={`flex-1 py-3 text-sm font-bold transition-colors cursor-pointer ${!modoRapido ? 'bg-[#1A1F2E] text-white' : 'text-gray-500'}`}
+          >📋 {es ? 'Modo completo' : 'Full mode'}</button>
+        </div>
+
         {/* Anti-extorsión */}
         <div className="flex gap-3 bg-[#FDF1F0] border-2 border-[#E8B4B0] rounded-2xl p-4 mb-5">
           <ShieldAlert size={18} className="text-[#B83A52] flex-shrink-0 mt-0.5" />
@@ -225,10 +238,14 @@ export default function ReportarEncontrado() {
                     className={`py-3 rounded-xl text-xs font-bold border-2 cursor-pointer ${form.condicion === c.val ? c.sel : 'bg-white border-[#EDEBE8] text-gray-700'}`}>{es ? c.es : c.en}</button>
                 ))}
               </div>
-              <input required value={form.ciudad} onChange={e => set('ciudad', e.target.value)}
-                placeholder={es ? 'Ciudad' : 'City'} className={inputCls} />
-              <input required value={form.estado_region} onChange={e => set('estado_region', e.target.value)}
-                placeholder={es ? 'Estado' : 'State'} className={inputCls} />
+              <input required value={form.ubicacion_actual} onChange={e => set('ubicacion_actual', e.target.value)}
+                placeholder={es ? 'Lugar donde está o fue vista' : 'Where they are or were seen'} className={inputCls} />
+              <div className="grid grid-cols-2 gap-2">
+                <input required value={form.ciudad} onChange={e => set('ciudad', e.target.value)}
+                  placeholder={es ? 'Ciudad' : 'City'} className={inputCls} />
+                <input required value={form.estado_region} onChange={e => set('estado_region', e.target.value)}
+                  placeholder={es ? 'Estado' : 'State'} className={inputCls} />
+              </div>
               <input value={form.reportado_por_telefono} onChange={e => set('reportado_por_telefono', e.target.value)}
                 placeholder={es ? 'Tu teléfono, email o WhatsApp (opcional)' : 'Your phone, email or WhatsApp (optional)'} className={inputCls} />
             </div>
@@ -292,22 +309,9 @@ export default function ReportarEncontrado() {
                       <p className="text-xs font-bold text-[#7A5000] mb-1">
                         🔔 {es ? 'Familia buscando activamente' : 'Family actively searching'}
                       </p>
-                      {p.contacto_nombre && (
-                        <p className="text-xs text-gray-600">{es ? 'Contacto:' : 'Contact:'} <strong>{p.contacto_nombre}</strong></p>
-                      )}
-                      <div className="flex flex-wrap gap-2 mt-1.5">
-                        {p.contacto_telefono && (
-                          <a href={`tel:${p.contacto_telefono}`} className="flex items-center gap-1 text-xs bg-white border border-[#E6C195] text-[#7A5000] px-2 py-1.5 rounded-lg font-bold">
-                            <Phone size={11} /> {p.contacto_telefono}
-                          </a>
-                        )}
-                        {p.contacto_whatsapp && (
-                          <a href={`https://wa.me/${p.contacto_whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"
-                            className="flex items-center gap-1 text-xs bg-green-50 border border-green-200 text-green-800 px-2 py-1.5 rounded-lg font-bold">
-                            📱 WhatsApp
-                          </a>
-                        )}
-                      </div>
+                      <p className="text-xs text-gray-600">
+                        {es ? 'Sus datos privados no se muestran aquí. Si vinculas esta ficha, la familia recibirá una alerta.' : 'Private contact details are hidden. If you link this record, the family will receive an alert.'}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -528,7 +532,22 @@ export default function ReportarEncontrado() {
             </>
           )}
           {modoRapido && (
-            <p className="text-center text-xs text-gray-400">{es ? 'En modo rápido. Cambia a versión completa si tienes más datos.' : 'Quick mode. Switch to full version if you have more data.'}</p>
+            <>
+              {resultado === 'err' && (
+                <div className="bg-[#FDF1F0] border-2 border-[#E8B4B0] rounded-2xl p-4 text-sm text-[#B83A52] font-medium">
+                  ⚠️ {es ? 'Error al enviar. Verifica tu conexión e intenta de nuevo.' : 'Error submitting. Check your connection and try again.'}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={enviando || !form.nombre_o_descripcion || !form.condicion || !form.ubicacion_actual || !form.ciudad || !form.estado_region}
+                className="w-full bg-green-700 hover:bg-green-800 disabled:opacity-40 text-white font-black py-5 rounded-2xl text-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {enviando ? <Loader2 size={20} className="animate-spin" /> : '🙋'}
+                {es ? 'Enviar reporte rápido' : 'Submit quick report'}
+              </button>
+              <p className="text-center text-xs text-gray-400">{es ? 'En modo rápido. Cambia a versión completa si tienes más datos.' : 'Quick mode. Switch to full version if you have more data.'}</p>
+            </>
           )}
         </form>
       </div>
