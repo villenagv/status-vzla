@@ -1,0 +1,36 @@
+{
+  "name": "Coincidencia",
+  "type": "object",
+  "properties": {
+    "nombre_coincidencia": {
+      "type": "string"
+    },
+    "tipo_origen": {
+      "type": "string",
+      "enum": [
+        "ciudadano_reconocio",
+        "familiar_busca",
+        "persona_contacto_directo",
+        "encontrado",
+        "reportante"
+      ]
+    },
+    "contacto": {
+      "type": "string"
+    },
+    "mensaje": {
+      "type": "string"
+    },
+    "relacion": {
+      "type": "string"
+    },
+    "mostrar": {
+      "type": "boolean",
+      "default": false
+    },
+    "ciudad": {
+      "type": "string"
+    }
+  },
+  "required": []
+}

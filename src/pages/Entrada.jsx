@@ -94,6 +94,15 @@ export default function Entrada() {
               ))}
             </div>
 
+            <Link to="/busqueda-cruzada" className="flex items-center gap-3 bg-purple-700 hover:bg-purple-800 rounded-xl p-4 text-white no-underline mb-3 transition-colors">
+              <span className="text-2xl flex-shrink-0">🔗</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold leading-tight">{es ? 'Regístrate para que te encuentren' : 'Register to be found'}</p>
+                <p className="text-xs mt-0.5 opacity-70 leading-snug">{es ? 'Búsqueda cruzada: te buscan o buscas a alguien — conéctense.' : 'Cross-search: looking for you or someone — get connected.'}</p>
+              </div>
+              <span className="text-lg opacity-30 flex-shrink-0">›</span>
+            </Link>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3"><Phone size={13} className="text-gray-400" /><p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{es ? 'Emergencias' : 'Emergency'}</p></div>

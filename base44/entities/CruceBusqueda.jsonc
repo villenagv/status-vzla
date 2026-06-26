@@ -1,0 +1,41 @@
+{
+  "name": "CruceBusqueda",
+  "type": "object",
+  "properties": {
+    "nombre_creador": {
+      "type": "string"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "red_social": {
+      "type": "string"
+    },
+    "red_social_tipo": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "persona_resultados": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "resultado_mensaje": {
+      "type": "string"
+    },
+    "fondo": {
+      "type": "string",
+      "default": "ciudadano"
+    }
+  },
+  "required": []
+}
