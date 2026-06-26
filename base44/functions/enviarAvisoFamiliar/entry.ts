@@ -3,6 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+
     const { email_destino, nombre_reportante, relacion, mensaje, codigo_cris, persona_id, nombre_persona, lang } = await req.json();
     const es = lang !== 'en';
 
@@ -65,8 +66,27 @@ StatusVzla · ${es ? 'Herramienta ciudadana y no partidista' : 'Citizen, non-par
 </table>
 </td></tr></table></body></html>`;
 
-    await base44.asServiceRole.integrations.Core.SendEmail({ to: email_destino, subject, body });
-    return Response.json({ ok: true, enviado_a: email_destino });
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'StatusVzla CRIS <onboarding@resend.dev>',
+        to: email_destino,
+        subject,
+        html: body,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Response.json({ error: data.message || data.error?.message || 'Error enviando email' }, { status: 500 });
+    }
+
+    return Response.json({ ok: true, enviado_a: email_destino, id: data.id });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

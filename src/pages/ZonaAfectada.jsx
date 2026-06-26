@@ -62,6 +62,11 @@ export default function ZonaAfectada() {
         condiciones_medicas: form.condiciones_medicas?.length ? form.condiciones_medicas.join(', ') : '',
         condicion_especial: form.medicamento_urgente || '',
         es_menor: form.con_ninos === 'si',
+        avisar_nombre: form.avisar_nombre || '',
+        avisar_email: form.avisar_email || '',
+        avisar_telefono: form.avisar_telefono || '',
+        avisar_mensaje: form.avisar_mensaje || form.mensaje_rápido || '',
+        avisar_relacion: form.avisar_relacion || '',
         notas_publicas: [
           `${form.estado_fisico || ''}${form.lugar_seguro ? ' — ' + form.lugar_seguro : ''}`,
           form.necesidades?.length ? `Necesita: ${form.necesidades.join(', ')}.` : '',

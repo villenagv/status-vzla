@@ -58,9 +58,9 @@ export default function StepFamilia({ form, setVal, es }) {
           <input type="email" value={form.avisar_email || ''} onChange={e => setVal('avisar_email', e.target.value)}
             placeholder={es ? 'Correo al que enviaremos el aviso...' : 'Email to send the notice to...'}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900" />
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">
-            📨 {es ? 'Por ahora el aviso llega solo a correos registrados en la plataforma. Para enviar a cualquier correo externo, necesita activar un servicio como Resend o SendGrid.'
-              : 'For now, the notice only reaches emails registered in the platform. To send to any external email, activate a service like Resend or SendGrid.'}
+          <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 leading-relaxed">
+            📨 {es ? 'El aviso se envía automáticamente al correo que indiques, esté o no registrado en la plataforma.'
+              : 'The notice is sent automatically to the email you indicate, whether or not they are registered on the platform.'}
           </p>
         </div>
         <div>

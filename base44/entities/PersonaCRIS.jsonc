@@ -117,6 +117,21 @@
     },
     "notas_publicas": {
       "type": "string"
+    },
+    "avisar_nombre": {
+      "type": "string"
+    },
+    "avisar_email": {
+      "type": "string"
+    },
+    "avisar_telefono": {
+      "type": "string"
+    },
+    "avisar_mensaje": {
+      "type": "string"
+    },
+    "avisar_relacion": {
+      "type": "string"
     }
   },
   "required": []
