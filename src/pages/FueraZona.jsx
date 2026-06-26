@@ -7,7 +7,6 @@ import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 
 const MODO = [
-  { val: 'salvo',    es: '✅ Estoy a salvo',                          en: '✅ I am safe' },
   { val: 'buscar',   es: '🔎 Busco a alguien en la zona afectada',    en: '🔎 Looking for someone in the area' },
   { val: 'mensaje',  es: '💬 Quiero que mi familiar me encuentre',     en: '💬 I want my family to find me' },
   { val: 'ayudar',   es: '🤝 Puedo ayudar',                          en: '🤝 I can help' },
@@ -101,27 +100,16 @@ export default function FueraZona() {
         {/* Selección de modo */}
         {!modo && (
           <div className="space-y-2.5">
+            <div className="bg-green-50 border-2 border-green-200 rounded-2xl px-4 py-3 mb-1">
+              <p className="text-sm font-bold text-green-800">✅ {es ? 'Entendemos que estás a salvo. ¿Qué quieres hacer?' : 'We understand you are safe. What would you like to do?'}</p>
+            </div>
             {MODO.map(m => (
               <button key={m.val} onClick={() => setModo(m.val)}
                 className="w-full flex items-center gap-4 bg-white border-2 border-[#EDEBE8] rounded-2xl px-5 py-4 text-left hover:border-[#1A1F2E] transition-colors cursor-pointer">
-                <span className="text-2xl">{m.val === 'salvo' ? '✅' : m.val === 'buscar' ? '🔎' : m.val === 'mensaje' ? '💬' : '🤝'}</span>
+                <span className="text-2xl">{m.val === 'buscar' ? '🔎' : m.val === 'mensaje' ? '💬' : '🤝'}</span>
                 <span className="font-bold text-base text-[#1A1F2E]">{es ? m.es : m.en}</span>
               </button>
             ))}
-          </div>
-        )}
-
-        {/* Modo: a salvo */}
-        {modo === 'salvo' && (
-          <div className="space-y-4">
-            <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-5 text-center">
-              <p className="text-4xl mb-2">✅</p>
-              <p className="font-black text-lg text-green-800">{es ? '¡Nos alegra que estés a salvo!' : 'We are glad you are safe!'}</p>
-              <p className="text-sm text-green-700 mt-1">{es ? '¿Buscas a alguien? Usa las opciones de abajo.' : 'Looking for someone? Use the options below.'}</p>
-            </div>
-            <button onClick={() => setModo('buscar')} className="w-full bg-[#1A1F2E] text-white font-black py-4 rounded-2xl cursor-pointer">{es ? '🔎 Busco a alguien en la zona' : '🔎 Looking for someone in the area'}</button>
-            <button onClick={() => setModo('mensaje')} className="w-full bg-white border-2 border-[#EDEBE8] text-[#1A1F2E] font-bold py-4 rounded-2xl cursor-pointer">{es ? '💬 Dejar mensaje para que me encuentren' : '💬 Leave a message to be found'}</button>
-            <button onClick={() => setModo('')} className="w-full text-sm text-gray-400 py-2 cursor-pointer">{es ? '← Volver' : '← Back'}</button>
           </div>
         )}
 

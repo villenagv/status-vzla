@@ -51,6 +51,7 @@ export default function ReportarEncontrado() {
 
   const [form, setForm] = useState({
     nombre_o_descripcion: '',
+    cedula: '',
     condicion: '',
     tipo_lugar: '',
     nombre_lugar: '',
@@ -110,6 +111,7 @@ export default function ReportarEncontrado() {
         persona_buscada_id: personaVinculada?.id || '',
         fuente: 'web_publica',
         nivel_verificacion: 'comunidad',
+        descripcion_fisica: form.descripcion_fisica,
       });
 
       if (personaVinculada?.id) {
@@ -295,19 +297,55 @@ export default function ReportarEncontrado() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
+                <FieldLabel label={es ? 'Cédula de identidad' : 'ID number'}
+                  hint={es ? 'Si la conoces o es legible' : 'If known or readable'} />
+                <input
+                  placeholder={es ? 'Ej: V-12345678' : 'E.g: V-12345678'}
+                  value={form.cedula}
+                  onChange={e => set('cedula', e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div>
                 <FieldLabel label={es ? 'Edad aprox.' : 'Approx. age'} />
                 <input placeholder={es ? 'Ej: 40' : 'E.g: 40'} value={form.edad_aprox} onChange={e => set('edad_aprox', e.target.value)} className={inputCls} />
               </div>
-              <div>
-                <FieldLabel label={es ? 'Sexo' : 'Sex'} />
-                <select value={form.sexo} onChange={e => set('sexo', e.target.value)} className={inputCls}>
-                  <option value="">{es ? 'No sé' : "Don't know"}</option>
-                  <option value="femenino">{es ? 'Femenino' : 'Female'}</option>
-                  <option value="masculino">{es ? 'Masculino' : 'Male'}</option>
-                  <option value="otro">{es ? 'Otro' : 'Other'}</option>
-                </select>
+            </div>
+
+            <div>
+              <FieldLabel label={es ? 'Sexo' : 'Sex'} />
+              <div className="flex gap-2">
+                {[
+                  { val: 'femenino', es: '♀ Femenino', en: '♀ Female' },
+                  { val: 'masculino', es: '♂ Masculino', en: '♂ Male' },
+                  { val: '', es: '❓ No sé', en: '❓ Unknown' },
+                ].map(s => (
+                  <button key={s.val} type="button" onClick={() => set('sexo', s.val)}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors cursor-pointer ${form.sexo === s.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-700'}`}>
+                    {es ? s.es : s.en}
+                  </button>
+                ))}
               </div>
             </div>
+
+            <div>
+              <FieldLabel label={es ? 'Descripción física' : 'Physical description'}
+                hint={es ? 'Ropa, cabello, señas particulares, cicatrices, tatuajes...' : 'Clothing, hair, marks, scars, tattoos...'} />
+              <textarea rows={2} placeholder={es ? 'Ej: Cabello negro corto, camisa azul, 1.70m, cicatriz en mejilla izquierda...' : 'E.g: Short black hair, blue shirt, 5\'7", scar on left cheek...'} value={form.descripcion_fisica} onChange={e => set('descripcion_fisica', e.target.value)} className={`${inputCls} resize-none`} />
+            </div>
+
+            {/* Foto para identificar */}
+            {!lowBw && (
+              <div className="bg-[#F0F4FD] border border-blue-200 rounded-xl p-3 space-y-2">
+                <p className="text-xs font-bold text-blue-800">
+                  📷 {es ? 'Foto para identificación (opcional, muy útil)' : 'Photo for identification (optional, very helpful)'}
+                </p>
+                <p className="text-xs text-blue-700">
+                  {es ? 'Una foto ayuda a los familiares a confirmar la identidad de la persona.' : 'A photo helps family members confirm the person\'s identity.'}
+                </p>
+                <FotosDragDrop category="encontrados" caseId={fotoId} caseLabel={form.nombre_o_descripcion || 'encontrado'} maxFiles={2} onUploaded={setFotoUrls} disabled={enviando} />
+              </div>
+            )}
 
             <div>
               <FieldLabel label={es ? '¿Cuándo lo/la viste?' : 'When did you see them?'}
@@ -397,14 +435,7 @@ export default function ReportarEncontrado() {
             <textarea rows={3} placeholder={es ? 'Escribe aquí...' : 'Write here...'} value={form.notas_publicas} onChange={e => set('notas_publicas', e.target.value)} className={`${inputCls} resize-none`} />
           </div>
 
-          {/* Foto */}
-          {!lowBw && (
-            <div>
-              <FieldLabel label={es ? 'Foto (opcional, máx. 2)' : 'Photo (optional, max 2)'}
-                hint={es ? 'No es obligatorio.' : 'Not required.'} />
-              <FotosDragDrop category="encontrados" caseId={fotoId} caseLabel={form.nombre_o_descripcion || 'encontrado'} maxFiles={2} onUploaded={setFotoUrls} disabled={enviando} />
-            </div>
-          )}
+
 
           {/* Sección 4: Quien reporta */}
           <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-3">
