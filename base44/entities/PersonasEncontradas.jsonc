@@ -1,0 +1,89 @@
+{
+  "name": "PersonasEncontradas",
+  "type": "object",
+  "properties": {
+    "nombre_o_descripcion": {
+      "type": "string"
+    },
+    "condicion": {
+      "type": "string",
+      "enum": [
+        "a_salvo",
+        "herido_leve",
+        "herido_grave",
+        "fallecido_reportado",
+        "no_identificado"
+      ]
+    },
+    "ubicacion_actual": {
+      "type": "string"
+    },
+    "tipo_lugar": {
+      "type": "string",
+      "enum": [
+        "refugio",
+        "hospital",
+        "centro_acopio",
+        "domicilio",
+        "via_publica",
+        "otro"
+      ]
+    },
+    "nombre_lugar": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "telefono_contacto": {
+      "type": "string"
+    },
+    "email_contacto": {
+      "type": "string"
+    },
+    "descripcion_fisica": {
+      "type": "string"
+    },
+    "edad_aprox": {
+      "type": "string"
+    },
+    "sexo": {
+      "type": "string"
+    },
+    "notas_publicas": {
+      "type": "string"
+    },
+    "foto_url": {
+      "type": "string"
+    },
+    "persona_buscada_id": {
+      "type": "string"
+    },
+    "reportado_por_nombre": {
+      "type": "string"
+    },
+    "reportado_por_telefono": {
+      "type": "string"
+    },
+    "reportado_por_email": {
+      "type": "string"
+    },
+    "nivel_verificacion": {
+      "type": "string",
+      "default": "comunidad"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "web_publica"
+    }
+  },
+  "required": [
+    "nombre_o_descripcion",
+    "condicion",
+    "ciudad",
+    "estado_region"
+  ]
+}

@@ -30,6 +30,17 @@ const cards = [
     badge: null,
   },
   {
+    key: 'found',
+    icon: '🙋',
+    titleKey: 'card_encontrado_title',
+    descKey: 'card_encontrado_desc',
+    to: '/reportar-encontrado',
+    bg: 'bg-[#F0FAF4]',
+    border: 'border-[#A8D8BC]',
+    iconBg: 'bg-green-100',
+    badge: null,
+  },
+  {
     key: 'blue',
     icon: '🗺️',
     titleKey: 'card2_title',

@@ -1,0 +1,27 @@
+{
+  "name": "TokensAutoUpdate",
+  "type": "object",
+  "properties": {
+    "token": {
+      "type": "string"
+    },
+    "persona_id": {
+      "type": "string"
+    },
+    "email_destino": {
+      "type": "string"
+    },
+    "usado": {
+      "type": "boolean",
+      "default": false
+    },
+    "expira": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "token",
+    "persona_id",
+    "email_destino"
+  ]
+}
