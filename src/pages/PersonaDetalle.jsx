@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Share2, MapPin, Clock, AlertTriangle, Phone, Copy, Check } from 'lucide-react';
+import { ChevronLeft, Share2, MapPin, Clock, AlertTriangle, Phone, Mail, Copy, Check } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import FichaPersonaDescargable from '@/components/svzla/FichaPersonaDescargable';
+import ActualizarPersonaPerfil from '@/components/svzla/ActualizarPersonaPerfil';
 
 const ESTADO_CONFIG = {
   buscando:             { es: '🔴 Sin contacto',           en: '🔴 Missing',               cls: 'bg-red-100 text-red-800 border-red-200' },
@@ -36,6 +37,7 @@ export default function PersonaDetalle() {
 
   const [persona, setPersona] = useState(null);
   const [pistas, setPistas] = useState([]);
+  const [reportesEncontrado, setReportesEncontrado] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [copiado, setCopiado] = useState(false);
   const [telSub, setTelSub] = useState('');
@@ -47,9 +49,11 @@ export default function PersonaDetalle() {
     Promise.all([
       base44.entities.PersonasBuscadas.get(id),
       base44.entities.PistasPersonas.filter({ persona_id: id }, '-created_date', 20).catch(() => []),
-    ]).then(([p, pis]) => {
+      base44.entities.PersonasEncontradas.filter({ persona_buscada_id: id }, '-created_date', 10).catch(() => []),
+    ]).then(([p, pis, encontrados]) => {
       setPersona(p);
       setPistas(pis);
+      setReportesEncontrado(encontrados);
     }).catch(() => {}).finally(() => setCargando(false));
   }, [id]);
 
@@ -109,6 +113,10 @@ export default function PersonaDetalle() {
 
   const st = ESTADO_CONFIG[persona.estado_caso] || ESTADO_CONFIG['buscando'];
   const esBuscando = ['buscando', 'informacion_recibida', 'visto_no_confirmado'].includes(persona.estado_caso);
+  const contactosEncontrado = reportesEncontrado.flatMap(r => [
+    { nombre: r.reportado_por_nombre || (es ? 'Persona que reportó' : 'Reporter'), telefono: r.reportado_por_telefono, email: r.reportado_por_email, lugar: r.nombre_lugar || r.ubicacion_actual },
+    { nombre: r.nombre_lugar || (es ? 'Lugar reportado' : 'Reported place'), telefono: r.telefono_contacto, email: r.email_contacto, lugar: r.ubicacion_actual },
+  ]).filter(c => c.telefono || c.email).slice(0, 6);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -191,6 +199,35 @@ export default function PersonaDetalle() {
             </div>
           )}
         </div>
+
+        {/* CONTACTOS VISIBLES */}
+        {(persona.contacto_telefono || persona.contacto_email || contactosEncontrado.length > 0) && (
+          <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4 space-y-3">
+            <h2 className="text-sm font-medium text-gray-700">{es ? 'A quién contactar si la encuentras' : 'Who to contact if found'}</h2>
+            {(persona.contacto_telefono || persona.contacto_email) && (
+              <div className="bg-green-50 border border-green-100 rounded-lg p-3 space-y-2">
+                {persona.contacto_telefono && <a href={`tel:${persona.contacto_telefono}`} className="flex items-center gap-2 text-sm text-green-800 font-semibold"><Phone size={14} /> {persona.contacto_telefono}</a>}
+                {persona.contacto_email && <a href={`mailto:${persona.contacto_email}`} className="flex items-center gap-2 text-sm text-green-800 font-semibold"><Mail size={14} /> {persona.contacto_email}</a>}
+              </div>
+            )}
+            {contactosEncontrado.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-gray-500">{es ? 'Contactos de reportes “la encontré”' : 'Contacts from “I found them” reports'}</p>
+                {contactosEncontrado.map((c, i) => (
+                  <div key={i} className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                    <p className="text-xs font-semibold text-blue-900">{c.nombre}</p>
+                    {c.telefono && <a href={`tel:${c.telefono}`} className="flex items-center gap-1.5 text-xs text-blue-800 mt-1"><Phone size={12} /> {c.telefono}</a>}
+                    {c.email && <a href={`mailto:${c.email}`} className="flex items-center gap-1.5 text-xs text-blue-800 mt-1"><Mail size={12} /> {c.email}</a>}
+                    {c.lugar && <p className="text-[10px] text-blue-700 mt-1">📍 {c.lugar}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-[10px] text-amber-700 bg-amber-50 rounded-lg px-2 py-1.5">⚠️ {es ? 'Verifica antes de compartir y nunca envíes dinero.' : 'Verify before sharing and never send money.'}</p>
+          </div>
+        )}
+
+        <ActualizarPersonaPerfil persona={persona} es={es} onUpdated={(actualizada, evento) => { setPersona(actualizada); if (evento) setPistas(prev => [{ ...evento, id: `local-${Date.now()}` }, ...prev]); }} />
 
         {/* PISTAS / LÍNEA DE TIEMPO */}
         {pistas.length > 0 && (
