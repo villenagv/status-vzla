@@ -31,6 +31,19 @@ function FilaEditable({ persona, idx, es, onChange, onDelete }) {
           {CONDICIONES.map(c => <option key={c} value={c}>{es ? CONDICION_LABEL[c].es : CONDICION_LABEL[c].en}</option>)}
         </select>
       </td>
+      <td className="px-2 py-2">
+        <select value={local.sera_trasladado || 'no_sabe'} onChange={e => setLocal(p => ({ ...p, sera_trasladado: e.target.value }))} className="border rounded px-1 py-1 text-xs w-full">
+          <option value="si">{es ? 'Sí' : 'Yes'}</option>
+          <option value="no">No</option>
+          <option value="no_sabe">{es ? 'No sé' : 'Unknown'}</option>
+        </select>
+        {local.sera_trasladado === 'si' && (
+          <input value={local.destino_traslado || ''} onChange={e => setLocal(p => ({ ...p, destino_traslado: e.target.value }))} placeholder={es ? 'Destino...' : 'Destination...'} className="w-full border rounded px-2 py-1 text-xs mt-1" />
+        )}
+        {local.sera_trasladado === 'si' && (
+          <input value={local.telefono_destino || ''} onChange={e => setLocal(p => ({ ...p, telefono_destino: e.target.value }))} placeholder={es ? 'Tel. destino...' : 'Dest. phone...'} className="w-full border rounded px-2 py-1 text-xs mt-1" />
+        )}
+      </td>
       <td className="px-2 py-2"><input value={local.observaciones || ''} onChange={e => setLocal(p => ({ ...p, observaciones: e.target.value }))} className="w-full border rounded px-2 py-1 text-xs" /></td>
       <td className="px-2 py-2">
         <div className="flex gap-1">
@@ -52,7 +65,14 @@ function FilaEditable({ persona, idx, es, onChange, onDelete }) {
           {es ? cond.es : cond.en}
         </span>
       </td>
-      <td className="px-2 py-2 text-xs text-gray-500 max-w-[120px] truncate">{persona.observaciones || '—'}</td>
+      <td className="px-2 py-2 text-xs">
+        {persona.sera_trasladado === 'si'
+          ? <span className="text-blue-700 font-semibold">🚑 {persona.destino_traslado || (es ? 'Sí — sin destino' : 'Yes — no dest.')}{persona.telefono_destino ? ` · ${persona.telefono_destino}` : ''}</span>
+          : persona.sera_trasladado === 'no'
+            ? <span className="text-gray-400">{es ? 'No' : 'No'}</span>
+            : <span className="text-gray-400">{es ? 'No sabe' : 'Unknown'}</span>}
+      </td>
+      <td className="px-2 py-2 text-xs text-gray-500 max-w-[100px] truncate">{persona.observaciones || '—'}</td>
       <td className="px-2 py-2">
         <div className="flex gap-1">
           <button onClick={() => setEditando(true)} className="p-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100"><Edit3 size={12} /></button>
@@ -76,7 +96,8 @@ export default function TablaPersonas({ personas, es, onChange, onDelete }) {
             <th className="px-2 py-2">{es ? 'F. Nacimiento' : 'Birth Date'}</th>
             <th className="px-2 py-2">{es ? 'Teléfono' : 'Phone'}</th>
             <th className="px-2 py-2">{es ? 'Condición' : 'Condition'}</th>
-            <th className="px-2 py-2">{es ? 'Observaciones' : 'Notes'}</th>
+            <th className="px-2 py-2">{es ? 'Traslado' : 'Transfer'}</th>
+            <th className="px-2 py-2">{es ? 'Notas' : 'Notes'}</th>
             <th className="px-2 py-2">{es ? 'Acciones' : 'Actions'}</th>
           </tr>
         </thead>

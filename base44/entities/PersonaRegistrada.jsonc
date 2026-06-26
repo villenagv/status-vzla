@@ -38,6 +38,21 @@
       ],
       "default": "a_salvo"
     },
+    "sera_trasladado": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no",
+        "no_sabe"
+      ],
+      "default": "no_sabe"
+    },
+    "destino_traslado": {
+      "type": "string"
+    },
+    "telefono_destino": {
+      "type": "string"
+    },
     "ciudad": {
       "type": "string"
     },
