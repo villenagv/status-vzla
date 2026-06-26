@@ -8,21 +8,42 @@
     "persona_id": {
       "type": "string"
     },
+    "edificio_id": {
+      "type": "string"
+    },
+    "grupo_id": {
+      "type": "string"
+    },
+    "grupo_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "email_notificacion": {
+      "type": "string"
+    },
+    "telefono_whatsapp": {
       "type": "string"
     },
     "activa": {
       "type": "boolean",
       "default": true
     },
+    "esta_verificado": {
+      "type": "boolean",
+      "default": false
+    },
     "es_creador": {
       "type": "boolean",
       "default": false
+    },
+    "lang": {
+      "type": "string",
+      "default": "es"
     }
   },
   "required": [
-    "user_id",
-    "persona_id",
     "email_notificacion"
   ]
 }

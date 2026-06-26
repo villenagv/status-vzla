@@ -1,0 +1,37 @@
+{
+  "name": "GruposNotificacion",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "persona",
+        "edificio",
+        "zona",
+        "refugio",
+        "institucional"
+      ]
+    },
+    "entidad_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suscriptores": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}

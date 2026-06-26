@@ -59,6 +59,7 @@ export default function MiPerfil() {
   const [reportes, setReportes] = useState([]);
   const [subs, setSubs] = useState([]);
   const [personasSub, setPersonasSub] = useState([]);
+  const [historial, setHistorial] = useState([]);
   const [editandoPerfil, setEditandoPerfil] = useState(false);
   const [nombreEdit, setNombreEdit] = useState('');
   const [guardando, setGuardando] = useState(false);
@@ -70,16 +71,18 @@ export default function MiPerfil() {
         const u = await base44.auth.me();
         setUser(u);
         setNombreEdit(u.full_name || '');
-        const [nots, mySubs, allPersonas, allReportes] = await Promise.all([
+        const [nots, mySubs, allPersonas, allReportes, historialItems] = await Promise.all([
           base44.entities.NotificacionesUsuario.filter({ user_id: u.id }),
           base44.entities.Suscripciones.filter({ user_id: u.id }),
           base44.entities.PersonasBuscadas.filter({ created_by_id: u.id }),
           base44.entities.InfraestructuraSos.filter({ created_by_id: u.id }),
+          base44.entities.HistorialUsuario.filter({ user_id: u.id }),
         ]);
         setNotificaciones(nots.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
         setSubs(mySubs);
         setBusquedas(allPersonas);
         setReportes(allReportes);
+        setHistorial(historialItems.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
 
         const personasIds = [...new Set(mySubs.map(s => s.persona_id))];
         if (personasIds.length > 0) {
@@ -222,6 +225,7 @@ export default function MiPerfil() {
             { key: 'reportes', icon: '🚨', es: 'Reportes', en: 'Reports' },
             { key: 'suscripciones', icon: '⭐', es: 'Seguidos', en: 'Following' },
             { key: 'notificaciones', icon: '🔔', es: noLeidas > 0 ? `Avisos (${noLeidas})` : 'Avisos', en: noLeidas > 0 ? `Alerts (${noLeidas})` : 'Alerts' },
+            { key: 'historial', icon: '📜', es: 'Historial', en: 'History' },
           ].map(t => (
             <button
               key={t.key}
@@ -334,6 +338,51 @@ export default function MiPerfil() {
             )}
           </div>
         )}
+
+        {/* Tab: Historial */}
+        {tab === 'historial' && (
+          <div className="space-y-2">
+            {historial.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-400 mb-2">{es ? 'No tienes actividad registrada aún.' : 'No activity yet.'}</p>
+                <p className="text-xs text-gray-300">{es ? 'Tus búsquedas y consultas aparecerán aquí.' : 'Your searches and queries will appear here.'}</p>
+              </div>
+            ) : (
+              historial.slice(0, 30).map(h => {
+                const types = {
+                  busqueda_persona: { icon: '🔎', es: 'Buscó persona', en: 'Searched person' },
+                  consulta_edificio: { icon: '🏗️', es: 'Consultó edificio', en: 'Consulted building' },
+                  reporte_creado: { icon: '📋', es: 'Reporte creado', en: 'Report created' },
+                  actualizacion_realizada: { icon: '🔄', es: 'Actualizó estado', en: 'Updated status' },
+                  persona_encontrada: { icon: '✅', es: 'Encontró persona', en: 'Found person' },
+                  suscripcion_agregada: { icon: '⭐', es: 'Agregó seguimiento', en: 'Added following' },
+                };
+                const t = types[h.tipo_accion] || { icon: '📄', es: h.tipo_accion, en: h.tipo_accion };
+                return (
+                  <div key={h.id} className="bg-white border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+                    <span className="text-base flex-shrink-0">{t.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">{es ? t.es : t.en}</p>
+                      {h.entidad_nombre && <p className="text-xs text-gray-500">{h.entidad_nombre}</p>}
+                      <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1 flex-wrap">
+                        📍 {h.ciudad || '—'} · {new Date(h.created_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+            {historial.length > 30 && (
+              <p className="text-center text-xs text-gray-400 py-2">{es ? 'Mostrando los últimos 30' : 'Showing last 30'}</p>
+            )}
+          </div>
+        )}
+
+        <div className="mt-6 text-center">
+          <Link to="/suscripciones" className="inline-flex items-center gap-2 bg-[#1A1F2E] text-white text-sm font-bold px-5 py-3 rounded-xl no-underline hover:opacity-90 transition-opacity">
+            📢 {es ? 'Mis Grupos de Notificación' : 'My Notification Groups'}
+          </Link>
+        </div>
       </div>
     </div>
   );

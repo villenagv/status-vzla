@@ -1,0 +1,39 @@
+{
+  "name": "HistorialUsuario",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "tipo_accion": {
+      "type": "string",
+      "enum": [
+        "busqueda_persona",
+        "consulta_edificio",
+        "reporte_creado",
+        "actualizacion_realizada",
+        "persona_encontrada",
+        "suscripcion_agregada"
+      ]
+    },
+    "entidad_id": {
+      "type": "string"
+    },
+    "entidad_nombre": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "tipo_accion"
+  ]
+}

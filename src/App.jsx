@@ -33,6 +33,7 @@ import EdificioDetalle from './pages/EdificioDetalle';
 import PersonaDetalle from './pages/PersonaDetalle';
 import Pista from './pages/Pista';
 import Seguimiento from './pages/Seguimiento';
+import Suscripciones from './pages/Suscripciones';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -60,6 +61,7 @@ const PublicApp = () => (
     <Route path="/persona" element={<PersonaDetalle />} />
     <Route path="/pista" element={<Pista />} />
     <Route path="/seguimiento" element={<Seguimiento />} />
+    <Route path="/suscripciones" element={<Suscripciones />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
