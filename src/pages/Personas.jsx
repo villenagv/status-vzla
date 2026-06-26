@@ -47,27 +47,57 @@ export default function Personas() {
     Promise.all([
       base44.entities.PersonasBuscadas.list('-updated_date', 300),
       base44.entities.PersonaRegistrada.list('-created_date', 300),
-    ]).then(([buscadas, registradas]) => {
-      // Normalizar PersonaRegistrada para mostrar en el directorio
-      const regNorm = registradas
-        .map(r => ({
-          id: r.id,
-          nombre_completo: r.nombre_completo,
-          ciudad: r.ciudad,
-          estado_region: r.estado_region,
-          ultima_ubicacion_conocida: r.institucion_nombre || r.ciudad || '',
-          edad_aprox: r.edad_aprox,
-          sexo: r.sexo,
-          foto_url: null,
-          descripcion_fisica: r.observaciones || '',
-          estado_caso: r.condicion === 'a_salvo' ? 'encontrado_con_vida'
-            : r.condicion === 'fallecido_reportado' ? 'fallecido_reportado'
-            : (r.condicion === 'herido_grave' || r.condicion === 'herido_leve') ? 'en_hospital_refugio'
-            : 'informacion_recibida',
-          contacto_telefono: '',
-          _fuente: 'institucional',
-        }));
-      setTodos([...buscadas, ...regNorm]);
+      base44.entities.PersonaCRIS.list('-created_date', 300),
+      base44.entities.CruceBusqueda.list('-created_date', 300),
+    ]).then(([buscadas, registradas, cris, cruces]) => {
+      const buscadasNorm = buscadas.map(p => ({ ...p, _fuente: 'busqueda', _orden: p.updated_date || p.created_date }));
+      const regNorm = registradas.map(r => ({
+        id: `inst-${r.id}`,
+        nombre_completo: r.nombre_completo,
+        ciudad: r.ciudad,
+        estado_region: r.estado_region,
+        ultima_ubicacion_conocida: r.institucion_nombre || r.ciudad || '',
+        edad_aprox: r.edad_aprox,
+        sexo: r.sexo,
+        foto_url: null,
+        descripcion_fisica: r.observaciones || '',
+        estado_caso: r.condicion === 'a_salvo' ? 'encontrado_con_vida'
+          : r.condicion === 'fallecido_reportado' ? 'fallecido_reportado'
+          : (r.condicion === 'herido_grave' || r.condicion === 'herido_leve') ? 'en_hospital_refugio'
+          : 'informacion_recibida',
+        _fuente: 'institucional',
+        _orden: r.created_date,
+      }));
+      const crisNorm = cris.map(r => ({
+        id: `cris-${r.id}`,
+        nombre_completo: [r.nombre, r.apellido].filter(Boolean).join(' ') || r.apodo || (es ? 'Persona registrada' : 'Registered person'),
+        apodo: r.apodo,
+        ciudad: r.ciudad,
+        estado_region: r.estado_region,
+        ultima_ubicacion_conocida: r.ubicacion_texto || r.ultima_ubicacion_conocida || r.centro_apoyo || '',
+        edad_aprox: r.edad_aproximada,
+        sexo: r.sexo,
+        foto_url: r.foto_url,
+        descripcion_fisica: r.notas_publicas || r.necesidades_inmediatas || '',
+        estado_caso: ['a_salvo', 'estoy_aqui', 'encontrado'].includes(r.estado_actual) ? 'encontrado_con_vida'
+          : ['herido', 'atencion_urgente', 'en_hospital', 'en_refugio'].includes(r.estado_actual) ? 'en_hospital_refugio'
+          : 'informacion_recibida',
+        _fuente: 'cris',
+        _orden: r.updated_date || r.created_date,
+      }));
+      const cruceNorm = cruces.map(r => ({
+        id: `cruce-${r.id}`,
+        nombre_completo: r.nombre_creador || (es ? 'Persona registrada' : 'Registered person'),
+        ciudad: r.ciudad,
+        estado_region: r.estado_region,
+        ultima_ubicacion_conocida: [r.ciudad, r.estado_region].filter(Boolean).join(', '),
+        foto_url: null,
+        descripcion_fisica: es ? 'Registro de búsqueda cruzada con contactos protegidos.' : 'Cross-search registration with protected contact details.',
+        estado_caso: 'informacion_recibida',
+        _fuente: 'cruce',
+        _orden: r.created_date,
+      }));
+      setTodos([...buscadasNorm, ...regNorm, ...crisNorm, ...cruceNorm].sort((a, b) => new Date(b._orden || 0) - new Date(a._orden || 0)));
     }).catch(() => {}).finally(() => setCargando(false));
   }, []);
 
@@ -110,7 +140,7 @@ export default function Personas() {
   return (
     <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
       <TopBar />
-      <div className="max-w-lg mx-auto w-full px-4 py-5">
+      <div className="max-w-3xl mx-auto w-full px-4 py-5">
         <Link to="/" className="flex items-center gap-1 text-sm text-gray-500 mb-4 hover:text-[#1A1F2E]">
           <ChevronLeft size={16} /> {es ? 'Volver' : 'Go back'}
         </Link>
@@ -238,8 +268,8 @@ export default function Personas() {
           </div>
         )}
 
-        {/* Lista de personas */}
-        <div className="space-y-2.5">
+        {/* Grilla de personas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {visibles.map(p => {
             const st = ESTADO_CONFIG[p.estado_caso] || ESTADO_CONFIG['buscando'];
             const esCritico = p.estado_caso === 'buscando';
@@ -258,10 +288,10 @@ export default function Personas() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      {p._fuente === 'institucional' ? (
-                        <span className="font-black text-sm text-[#1A1F2E] leading-tight">{p.nombre_completo}</span>
-                      ) : (
+                      {p._fuente === 'busqueda' ? (
                         <Link to={`/persona?id=${p.id}`} className="font-black text-sm text-[#1A1F2E] leading-tight hover:underline no-underline">{p.nombre_completo}</Link>
+                      ) : (
+                        <span className="font-black text-sm text-[#1A1F2E] leading-tight">{p.nombre_completo}</span>
                       )}
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${st.bg}`}>
                         {es ? st.es : st.en}
@@ -270,6 +300,8 @@ export default function Personas() {
 
                     <div className="flex flex-wrap gap-1 mb-1.5">
                       {p._fuente === 'institucional' && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full font-bold">{es ? 'Registro institucional' : 'Institutional record'}</span>}
+                      {p._fuente === 'cris' && <span className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full font-bold">{es ? 'Se registró para ser encontrado' : 'Registered to be found'}</span>}
+                      {p._fuente === 'cruce' && <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">{es ? 'Búsqueda cruzada' : 'Cross search'}</span>}
                       {p.edad_aprox && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{p.edad_aprox} {es ? 'años' : 'yrs'}</span>}
                       {p.sexo && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full capitalize">{p.sexo}</span>}
                     </div>
@@ -293,11 +325,15 @@ export default function Personas() {
 
                 {/* Acciones */}
                 <div className="grid grid-cols-2 gap-2 mt-3">
-                  {p._fuente !== 'institucional' ? (
+                  {p._fuente === 'busqueda' ? (
                     <BotonNotificarme personaId={p.id} nombre={p.nombre_completo} />
-                  ) : (
+                  ) : p._fuente === 'institucional' ? (
                     <Link to="/centros-apoyo" className="flex items-center justify-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold py-2.5 rounded-xl">
                       🏥 {es ? 'Ver centros' : 'View centers'}
+                    </Link>
+                  ) : (
+                    <Link to="/busqueda-cruzada" className="flex items-center justify-center gap-1.5 bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold py-2.5 rounded-xl">
+                      🔗 {es ? 'Cruzar datos' : 'Cross-check'}
                     </Link>
                   )}
                   <button onClick={() => compartir(p)}
@@ -307,7 +343,7 @@ export default function Personas() {
                   </button>
                 </div>
 
-                {p._fuente !== 'institucional' ? (
+                {p._fuente === 'busqueda' ? (
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     <Link to={`/reportar-encontrado`}
                       className="flex items-center justify-center gap-1 text-xs font-semibold text-[#D48C2E] bg-[#FFF8EE] border border-[#E6C195] py-2 rounded-xl">
@@ -320,7 +356,9 @@ export default function Personas() {
                   </div>
                 ) : (
                   <p className="mt-2 text-[11px] text-blue-700 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
-                    {es ? 'Ficha aportada por una institución. Contactos privados protegidos.' : 'Record submitted by an institution. Private contacts protected.'}
+                    {p._fuente === 'institucional'
+                      ? (es ? 'Ficha aportada por una institución. Contactos privados protegidos.' : 'Record submitted by an institution. Private contacts protected.')
+                      : (es ? 'Registro visible para ayudar a encontrar coincidencias. Contactos privados protegidos.' : 'Visible record to help find matches. Private contacts protected.')}
                   </p>
                 )}
               </div>
