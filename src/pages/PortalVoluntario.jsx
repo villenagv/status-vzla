@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Loader2, Edit3, Save, X, ExternalLink, RefreshCw } from 'lucide-react';
+import { ChevronLeft, Loader2, Edit3, Save, X, ExternalLink, RefreshCw, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -119,25 +119,101 @@ function FichaPersonaRegistrada({ ficha, es, onActualizar }) {
   );
 }
 
-function FichaPersonaBuscada({ persona, es }) {
+function FichaPersonaBuscada({ persona, es, onUpdateEstado }) {
+  const [cambiando, setCambiando] = useState(false);
+  const [editEstado, setEditEstado] = useState(false);
   const st = ESTADO_LABEL[persona.estado_caso] || ESTADO_LABEL.buscando;
+
+  const ESTADOS_OPCIONES = [
+    { val: 'buscando', es: '🔴 Sin contacto', en: '🔴 Missing' },
+    { val: 'informacion_recibida', es: '🔵 Con pistas', en: '🔵 Has leads' },
+    { val: 'encontrado_con_vida', es: '✅ Localizado', en: '✅ Located' },
+    { val: 'en_hospital_refugio', es: '🏥 Hospital/refugio', en: '🏥 Hospital/shelter' },
+    { val: 'caso_cerrado', es: '🔒 Cerrado', en: '🔒 Closed' },
+  ];
+
+  const cambiarEstado = async (nuevoEstado) => {
+    setCambiando(true);
+    try {
+      await base44.entities.PersonasBuscadas.update(persona.id, { estado_caso: nuevoEstado });
+      onUpdateEstado(persona.id, nuevoEstado);
+      setEditEstado(false);
+    } catch {}
+    setCambiando(false);
+  };
+
   return (
     <div className="bg-white border border-[#EDEBE8] rounded-xl px-4 py-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm text-[#1A1F2E] truncate">{persona.nombre_completo}</p>
-          <p className="text-xs text-gray-400 mt-0.5">📍 {persona.ultima_ubicacion_conocida} · {persona.ciudad}</p>
+          <p className="text-xs text-gray-400 mt-0.5">📍 {persona.ultima_ubicacion_conocida || persona.ciudad}</p>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.color}`}>
+          <button
+            onClick={() => setEditEstado(v => !v)}
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.color}`}
+            title={es ? 'Cambiar estado' : 'Change status'}
+          >
             {es ? st.es : st.en}
-          </span>
+          </button>
           <Link to={`/persona?id=${persona.id}`} className="text-gray-400 hover:text-[#1A1F2E] p-1" title={es ? 'Ver ficha' : 'View record'}>
             <ExternalLink size={13} />
           </Link>
         </div>
       </div>
+      {editEstado && (
+        <div className="mt-2 border-t border-[#EDEBE8] pt-2 flex flex-wrap gap-1.5">
+          {ESTADOS_OPCIONES.map(op => (
+            <button
+              key={op.val}
+              onClick={() => cambiarEstado(op.val)}
+              disabled={cambiando || persona.estado_caso === op.val}
+              className={`text-[10px] font-bold px-2 py-1 rounded-full border transition-colors disabled:opacity-40 ${persona.estado_caso === op.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-600 hover:border-[#1A1F2E]'}`}
+            >
+              {es ? op.es : op.en}
+            </button>
+          ))}
+        </div>
+      )}
       <p className="text-[10px] text-gray-400 mt-1.5">{new Date(persona.created_date).toLocaleDateString()}</p>
+    </div>
+  );
+}
+
+const PRIORIDAD_SOS = {
+  critica: { es: '🔴 Crítica', en: '🔴 Critical', color: 'bg-red-100 text-red-700' },
+  alta: { es: '🟠 Alta', en: '🟠 High', color: 'bg-orange-100 text-orange-700' },
+  normal: { es: '⚪ Normal', en: '⚪ Normal', color: 'bg-gray-100 text-gray-600' },
+};
+
+function FichaSolicitud({ reporte, es }) {
+  const pr = PRIORIDAD_SOS[reporte.prioridad] || PRIORIDAD_SOS.normal;
+  return (
+    <div className="bg-white border border-[#EDEBE8] rounded-xl px-4 py-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm text-[#1A1F2E] truncate">
+            {reporte.tipo_reporte || reporte.categoria || (es ? 'Reporte' : 'Report')}
+          </p>
+          <p className="text-xs text-gray-400 mt-0.5">📍 {reporte.direccion || reporte.ciudad}, {reporte.estado_region}</p>
+        </div>
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${pr.color}`}>
+          {es ? pr.es : pr.en}
+        </span>
+      </div>
+      {reporte.personas_atrapadas === 'si' && (
+        <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded-full">
+          <AlertTriangle size={9} /> {es ? 'Personas atrapadas' : 'Trapped people'}
+        </span>
+      )}
+      {reporte.descripcion && (
+        <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">{reporte.descripcion}</p>
+      )}
+      <div className="flex items-center justify-between mt-1.5">
+        <p className="text-[10px] text-gray-400">{new Date(reporte.created_date).toLocaleDateString()}</p>
+        <span className="text-[10px] text-gray-400 capitalize">{reporte.estado_reporte || reporte.nivel_verificacion || ''}</span>
+      </div>
     </div>
   );
 }
@@ -150,6 +226,7 @@ export default function PortalVoluntario() {
   const [tab, setTab] = useState('registradas');
   const [personasRegistradas, setPersonasRegistradas] = useState([]);
   const [personasBuscadas, setPersonasBuscadas] = useState([]);
+  const [solicitudes, setSolicitudes] = useState([]);
   const [cargandoDatos, setCargandoDatos] = useState(false);
 
   useEffect(() => {
@@ -167,18 +244,24 @@ export default function PortalVoluntario() {
   const cargarDatos = async () => {
     setCargandoDatos(true);
     try {
-      const [registradas, buscadas] = await Promise.all([
+      const [registradas, buscadas, reportesSos] = await Promise.all([
         base44.entities.PersonaRegistrada.filter({ created_by_id: user.id }, '-created_date', 100),
         base44.entities.PersonasBuscadas.filter({ created_by_id: user.id }, '-created_date', 100),
+        base44.entities.InfraestructuraSos.filter({ created_by_id: user.id }, '-created_date', 100),
       ]);
       setPersonasRegistradas(registradas);
       setPersonasBuscadas(buscadas);
+      setSolicitudes(reportesSos);
     } catch {}
     setCargandoDatos(false);
   };
 
   const actualizarFicha = (id, datos) => {
     setPersonasRegistradas(prev => prev.map(p => p.id === id ? { ...p, ...datos } : p));
+  };
+
+  const actualizarEstadoBusqueda = (id, nuevoEstado) => {
+    setPersonasBuscadas(prev => prev.map(p => p.id === id ? { ...p, estado_caso: nuevoEstado } : p));
   };
 
   if (cargando) return (
@@ -217,24 +300,34 @@ export default function PortalVoluntario() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <div className="bg-white rounded-xl border border-[#EDEBE8] px-3 py-3 text-center">
             <p className="text-2xl font-black text-[#0F766E]">{personasRegistradas.length}</p>
-            <p className="text-[10px] text-gray-500 font-medium">{es ? 'Fichas subidas' : 'Records uploaded'}</p>
+            <p className="text-[10px] text-gray-500 font-medium">{es ? 'Fichas' : 'Records'}</p>
           </div>
           <div className="bg-white rounded-xl border border-[#EDEBE8] px-3 py-3 text-center">
             <p className="text-2xl font-black text-[#D48C2E]">{personasBuscadas.length}</p>
-            <p className="text-[10px] text-gray-500 font-medium">{es ? 'Búsquedas creadas' : 'Searches created'}</p>
+            <p className="text-[10px] text-gray-500 font-medium">{es ? 'Búsquedas' : 'Searches'}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-[#EDEBE8] px-3 py-3 text-center">
+            <p className="text-2xl font-black text-[#B83A52]">{solicitudes.length}</p>
+            <p className="text-[10px] text-gray-500 font-medium">{es ? 'Reportes' : 'Reports'}</p>
           </div>
         </div>
 
         {/* Acciones rápidas */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <Link to="/registro-institucional" className="flex items-center gap-2 bg-[#0F766E] text-white text-xs font-bold px-3 py-3 rounded-xl no-underline">
-            📋 {es ? 'Subir listado' : 'Upload list'}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <Link to="/registro-institucional" className="flex flex-col items-center gap-1 bg-[#0F766E] text-white text-[10px] font-bold px-2 py-3 rounded-xl no-underline text-center">
+            <span className="text-base">📋</span>
+            {es ? 'Subir listado' : 'Upload list'}
           </Link>
-          <Link to="/reportar-encontrado" className="flex items-center gap-2 bg-[#5B21B6] text-white text-xs font-bold px-3 py-3 rounded-xl no-underline">
-            🔍 {es ? 'Reportar persona' : 'Report person'}
+          <Link to="/buscar-persona" className="flex flex-col items-center gap-1 bg-[#D48C2E] text-white text-[10px] font-bold px-2 py-3 rounded-xl no-underline text-center">
+            <span className="text-base">🔎</span>
+            {es ? 'Publicar búsqueda' : 'Post search'}
+          </Link>
+          <Link to="/reportar" className="flex flex-col items-center gap-1 bg-[#B83A52] text-white text-[10px] font-bold px-2 py-3 rounded-xl no-underline text-center">
+            <span className="text-base">🚨</span>
+            {es ? 'Nuevo reporte' : 'New report'}
           </Link>
         </div>
 
@@ -243,6 +336,7 @@ export default function PortalVoluntario() {
           {[
             { key: 'registradas', icon: '📋', es: `Fichas (${personasRegistradas.length})`, en: `Records (${personasRegistradas.length})` },
             { key: 'buscadas', icon: '🔎', es: `Búsquedas (${personasBuscadas.length})`, en: `Searches (${personasBuscadas.length})` },
+            { key: 'solicitudes', icon: '🚨', es: `Reportes (${solicitudes.length})`, en: `Reports (${solicitudes.length})` },
           ].map(t => (
             <button
               key={t.key}
@@ -259,7 +353,9 @@ export default function PortalVoluntario() {
           <p className="text-xs text-gray-500">
             {tab === 'registradas'
               ? (es ? 'Personas que registraste en listas institucionales' : 'People you registered in institutional lists')
-              : (es ? 'Búsquedas de personas que publicaste' : 'Person searches you published')}
+              : tab === 'buscadas'
+              ? (es ? 'Búsquedas de personas que publicaste' : 'Person searches you published')
+              : (es ? 'Reportes de emergencia que enviaste' : 'Emergency reports you submitted')}
           </p>
           <button
             onClick={cargarDatos}
@@ -314,7 +410,26 @@ export default function PortalVoluntario() {
                   </div>
                 ) : (
                   personasBuscadas.map(p => (
-                    <FichaPersonaBuscada key={p.id} persona={p} es={es} />
+                    <FichaPersonaBuscada key={p.id} persona={p} es={es} onUpdateEstado={actualizarEstadoBusqueda} />
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Tab: Solicitudes / reportes SOS */}
+            {tab === 'solicitudes' && (
+              <div className="space-y-2">
+                {solicitudes.length === 0 ? (
+                  <div className="text-center py-10">
+                    <p className="text-3xl mb-3">🚨</p>
+                    <p className="text-sm text-gray-500 mb-2">{es ? 'No has enviado reportes.' : 'No reports submitted yet.'}</p>
+                    <Link to="/reportar" className="text-sm text-[#B83A52] font-semibold underline underline-offset-2">
+                      {es ? 'Enviar un reporte →' : 'Submit a report →'}
+                    </Link>
+                  </div>
+                ) : (
+                  solicitudes.map(r => (
+                    <FichaSolicitud key={r.id} reporte={r} es={es} />
                   ))
                 )}
               </div>
