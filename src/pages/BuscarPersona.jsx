@@ -49,7 +49,6 @@ export default function BuscarPersona() {
     nombre_completo: '', apodo: '', edad_aprox: '', sexo: '',
     descripcion_fisica: '', ultima_ubicacion_conocida: '', ciudad: '',
     estado_region: '', fecha_ultima_vez: '', hora_ultima_vez: '',
-    telefono_persona: '', email_persona: '',
     contacto_nombre: '', contacto_telefono: '',
     contacto_email: '', contacto_whatsapp: '', notas_publicas: '',
   });
@@ -129,7 +128,7 @@ export default function BuscarPersona() {
         fuente: 'web_publica',
         estado_caso: 'buscando',
       });
-      const email = form.contacto_email || form.email_persona;
+      const email = form.contacto_email;
       if (email) {
         await base44.entities.Suscripciones.create({
           user_id: user?.id || 'anonimo',
@@ -139,9 +138,9 @@ export default function BuscarPersona() {
           es_creador: true,
         });
         await base44.functions.invoke('notificarCoincidencia', {
-          tipo_notificacion: 'nueva_busqueda', // This might need its own template
+          tipo_notificacion: 'actualizacion_suscripcion',
           entidad_id: nueva.id,
-          datos: { nombre: nueva.nombre_completo },
+          datos: { nombre: nueva.nombre_completo, estado: 'buscando', notas: 'Nueva búsqueda registrada. Te avisaremos si hay novedades.' },
           lang: lang,
         });
         

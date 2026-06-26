@@ -1,15 +1,31 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
+import { useLowBw } from '@/lib/LowBwContext';
+import { getContadores } from '@/lib/counters';
 
 export default function ContadoresEntrada() {
   const { lang } = useLang();
+  const { lowBw } = useLowBw();
   const es = lang === 'es';
   const [datos, setDatos] = useState(null);
 
   useEffect(() => {
     const cargar = async () => {
       try {
+        if (lowBw) {
+          const cached = await getContadores();
+          setDatos({
+            edificios: cached.total_reportes || 0,
+            criticos: cached.criticos || 0,
+            atrapados: cached.atrapados || 0,
+            buscados: cached.personas_buscando || 0,
+            encontrados: cached.personas_encontradas || 0,
+            puntos: cached.puntos_abiertos || 0,
+            fallecidos: cached.fallecidos || 0,
+          });
+          return;
+        }
         const [reportes, personas, puntos, encontrados] = await Promise.all([
           base44.entities.ReportesDano.list(null, 200),
           base44.entities.PersonasBuscadas.filter({ estado_caso: 'buscando' }, null, 200),

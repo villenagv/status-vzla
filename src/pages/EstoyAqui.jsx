@@ -46,7 +46,7 @@ export default function EstoyAqui() {
 
   const [form, setForm] = useState({
     nombre: '', apellido: '', apodo: '', edad_aproximada: '',
-    telefono_parcial: '', familiar_nombre: '',
+    telefono_parcial: '', familiar_nombre: '', avisar_email: '',
     ubicacion_tipo: '', ubicacion_texto: '',
     ciudad: '', estado_region: '',
     estado_actual: '', necesidades: [],
@@ -96,6 +96,20 @@ export default function EstoyAqui() {
         es_sensible: false,
         reportante_nombre: `${form.nombre} ${form.apellido}`.trim(),
       });
+      if (form.avisar_email?.trim() && (form.familiar_nombre?.trim() || form.nombre?.trim())) {
+        try {
+          await base44.functions.invoke('enviarAvisoFamiliar', {
+            email_destino: form.avisar_email.trim(),
+            nombre_reportante: form.nombre,
+            relacion: form.familiar_nombre || '',
+            mensaje: form.mensaje || '',
+            codigo_cris: codigo,
+            persona_id: persona.id,
+            nombre_persona: form.nombre || '',
+            lang: lang,
+          });
+        } catch { /* email fallback — reporte ya guardado */ }
+      }
       setCodigoCRIS(codigo);
     } catch {
       setError(true);
@@ -182,6 +196,10 @@ export default function EstoyAqui() {
                 <label className="block text-sm font-bold text-[#1A1F2E] mb-1">{es ? 'Familiar que te busca' : 'Family looking for you'}</label>
                 <input placeholder={es ? 'Ej: mi mamá Carmen' : 'E.g: my mom Carmen'} value={form.familiar_nombre} onChange={e => set('familiar_nombre', e.target.value)} className={inputCls} />
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-[#1A1F2E] mb-1">📧 {es ? 'Email para avisar a tu familiar (opcional)' : 'Email to notify your family (optional)'}</label>
+              <input type="email" placeholder={es ? 'correo de tu familiar' : 'your family\'s email'} value={form.avisar_email} onChange={e => set('avisar_email', e.target.value)} className={inputCls} />
             </div>
           </div>
 
