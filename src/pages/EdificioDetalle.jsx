@@ -388,10 +388,10 @@ export default function EdificioDetalle() {
                     )}
                   </div>
                 ))}
-                {updateFotos.length < 3 && (
+                {updateFotos.length < 5 && (
                   <label className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
                     <Camera size={16} className="text-gray-400" />
-                    <input type="file" accept="image/*" className="hidden" onChange={e => { const f = Array.from(e.target.files || []).slice(0, 3); f.forEach(subirUpdateFoto); e.target.value = ''; }} />
+                    <input type="file" accept="image/*" className="hidden" onChange={e => { const f = Array.from(e.target.files || []).slice(0, 5); f.forEach(subirUpdateFoto); e.target.value = ''; }} />
                   </label>
                 )}
               </div>

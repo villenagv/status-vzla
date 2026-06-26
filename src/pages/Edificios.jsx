@@ -68,6 +68,8 @@ const PERSONA_ESTADO = {
 
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 placeholder-gray-400";
 const MAX_FOTOS = 5;
+const MAX_FOTOS_INFRA = 5;
+const MAX_FOTOS_REFUGIO = 3;
 
 export default function Edificios() {
   const { lang } = useLang();
@@ -102,6 +104,9 @@ export default function Edificios() {
       setPersonas(b.filter(p => p.estado_caso !== 'caso_cerrado'));
       setEncontrados(e);
     }).catch(() => {}).finally(() => setCargandoPer(false));
+    base44.entities.SolicitudesInfoEdificio.filter({ estado_solicitud: 'pendiente' }, '-created_date', 10)
+      .then(sols => { if (sols) setSolicitudes(sols.filter(s => s.nombre_lugar && !s.reporte_encontrado_id)); })
+      .catch(() => {}).finally(() => setCargandoSols(false));
   }, []);
 
   // ── CONSULTAR ──
@@ -116,6 +121,10 @@ export default function Edificios() {
   const [subEnviando, setSubEnviando] = useState(false);
   const [subOk, setSubOk] = useState(false);
 
+  // ── SOLICITUDES PENDIENTES ──
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [cargandoSols, setCargandoSols] = useState(true);
+
   const suscribirse = async (reporteId, nombre) => {
     if (!subEmail.trim()) return;
     setSubEnviando(true);
@@ -123,7 +132,7 @@ export default function Edificios() {
       await base44.entities.SuscriptoresSeguimiento.create({
         reporte_id: reporteId,
         tipo_reporte: 'dano',
-        email_notificacion: subEmail.trim(),
+        telefono_whatsapp: subEmail.trim(),
         activo: true,
       });
       setSubOk(true);
@@ -434,6 +443,31 @@ export default function Edificios() {
                   </button>
                 )}
               </>
+            )}
+
+            {/* ── SOLICITUDES PENDIENTES — ¿conoces estos edificios? ── */}
+            {!cargandoSols && solicitudes.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl p-3 mb-3">
+                  <span className="text-base">🧑‍🤝‍🧑</span>
+                  <div>
+                    <p className="text-xs font-bold text-purple-800">{es ? 'Vecinos están buscando información' : 'Neighbors are looking for information'}</p>
+                    <p className="text-[11px] text-purple-600">{es ? '¿Conoces alguno? Tu información ayuda a la comunidad.' : 'Do you know any of them? Your info helps the community.'}</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {solicitudes.slice(0, 5).map(s => (
+                    <Link key={s.id} to={`/edificio?id=${s.id}`}
+                      className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 no-underline hover:bg-amber-100 transition-colors gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">{s.nombre_lugar}</p>
+                        <p className="text-xs text-gray-500 truncate">📍 {s.direccion || (es ? 'Sin dirección' : 'No address')} · {s.ciudad}{s.estado_region ? `, ${s.estado_region}` : ''}</p>
+                      </div>
+                      <span className="text-xs font-semibold bg-purple-700 text-white px-3 py-1.5 rounded-lg flex-shrink-0">{es ? 'Tengo información →' : 'I have info →'}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* ── TABLA DE PERSONAS — siempre visible ── */}
