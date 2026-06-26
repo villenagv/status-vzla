@@ -45,7 +45,7 @@ export default function ReportarEncontrado() {
   const es = lang === 'es';
 
   const [busquedaNombre, setBusquedaNombre] = useState('');
-  const [personasEncontradas, setPersonasEncontradas] = useState([]);
+  const [posiblesCoincidencias, setPosiblesCoincidencias] = useState([]);
   const [buscando, setBuscando] = useState(false);
   const [personaVinculada, setPersonaVinculada] = useState(null);
 
@@ -86,7 +86,7 @@ export default function ReportarEncontrado() {
     try {
       const todas = await base44.entities.PersonasBuscadas.list();
       const q = busquedaNombre.toLowerCase();
-      setPersonasEncontradas(todas.filter(p =>
+      setPosiblesCoincidencias(todas.filter(p =>
         p.nombre_completo?.toLowerCase().includes(q) ||
         p.apodo?.toLowerCase().includes(q)
       ));
@@ -97,7 +97,7 @@ export default function ReportarEncontrado() {
   const vincular = (persona) => {
     setPersonaVinculada(persona);
     set('nombre_o_descripcion', persona.nombre_completo);
-    setPersonasEncontradas([]);
+    setPosiblesCoincidencias([]);
     setBusquedaNombre('');
   };
 
@@ -123,6 +123,17 @@ export default function ReportarEncontrado() {
 
         await base44.entities.PersonasBuscadas.update(personaVinculada.id, { estado_caso: nuevoEstado });
 
+        await base44.functions.invoke('notificarCoincidencia', {
+          tipo_notificacion: 'actualizacion_suscripcion',
+          entidad_id: personaVinculada.id,
+          datos: {
+            nombre: personaVinculada.nombre_completo,
+            estado: nuevoEstado,
+            notas: form.notas_publicas || 'Sin notas adicionales.',
+          },
+        });
+
+        // The original call is preserved in case other systems rely on it.
         await base44.functions.invoke('notificarActualizacion', {
           persona_id: personaVinculada.id,
           tipo_evento: 'persona_encontrada',
@@ -240,9 +251,9 @@ export default function ReportarEncontrado() {
               </div>
             )}
 
-            {personasEncontradas.length > 0 && (
+            {posiblesCoincidencias.length > 0 && (
               <div className="space-y-2">
-                {personasEncontradas.map(p => (
+                {posiblesCoincidencias.map(p => (
                   <div key={p.id} className="bg-white border-2 border-[#E6C195] rounded-2xl p-3 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -277,7 +288,7 @@ export default function ReportarEncontrado() {
                     </div>
                   </div>
                 ))}
-                <button type="button" onClick={() => setPersonasEncontradas([])} className="w-full text-xs text-gray-400 py-1 cursor-pointer hover:text-gray-600">
+                <button type="button" onClick={() => setPosiblesCoincidencias([])} className="w-full text-xs text-gray-400 py-1 cursor-pointer hover:text-gray-600">
                   {es ? 'No está en la lista — continuar sin vincular' : 'Not on list — continue without linking'}
                 </button>
               </div>

@@ -66,6 +66,7 @@ export default function BuscarPersona() {
   const [subEmail, setSubEmail] = useState('');
   const [suscribiendo, setSuscribiendo] = useState(false);
   const [subOk, setSubOk] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     base44.auth.me().then(u => { setUser(u); setSubEmail(u?.email || ''); }).catch(() => {});
@@ -91,20 +92,26 @@ export default function BuscarPersona() {
   };
 
   const suscribirseAExistente = async (persona) => {
+    if (!subEmail.trim()) {
+      setError(es ? 'Por favor, ingresa un email válido.' : 'Please enter a valid email.');
+      return;
+    }
+    setError('');
     setSuscribiendo(true);
     try {
-      const email = subEmail || form.contacto_email || form.email_persona;
-      if (!email) { alert(es ? 'Ingresa un email para recibir notificaciones.' : 'Enter an email to receive notifications.'); setSuscribiendo(false); return; }
       await base44.entities.Suscripciones.create({
         user_id: user?.id || 'anonimo',
         persona_id: persona.id,
-        email_notificacion: email,
+        email_notificacion: subEmail.trim(),
         activa: true,
         es_creador: false,
       });
       setSubOk(true);
-    } catch {}
-    setSuscribiendo(false);
+    } catch {
+      setError(es ? 'No se pudo procesar la suscripción. Intenta de nuevo.' : 'Could not process subscription. Please try again.');
+    } finally {
+      setSuscribiendo(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -130,6 +137,14 @@ export default function BuscarPersona() {
           activa: true,
           es_creador: true,
         });
+        await base44.functions.invoke('notificarCoincidencia', {
+          tipo_notificacion: 'nueva_busqueda', // This might need its own template
+          entidad_id: nueva.id,
+          datos: { nombre: nueva.nombre_completo },
+          lang: lang,
+        });
+        
+        // The original call is preserved in case other systems rely on it.
         await base44.functions.invoke('notificarActualizacion', {
           persona_id: nueva.id,
           tipo_evento: 'nueva_busqueda',
@@ -271,6 +286,7 @@ export default function BuscarPersona() {
             <div>
               <FieldLabel label={es ? 'Tu email' : 'Your email'} required />
               <input type="email" required value={subEmail} onChange={e => setSubEmail(e.target.value)} placeholder="correo@ejemplo.com" className={inputCls} />
+              {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
             </div>
             <button
               disabled={suscribiendo || !subEmail}
