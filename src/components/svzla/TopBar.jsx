@@ -73,14 +73,30 @@ export default function TopBar() {
             {es ? 'EN' : 'ES'}
           </button>
 
-          {user && (
-            <Link to="/mi-perfil" style={{
-              width: 28, height: 28, borderRadius: '50%', background: '#2471A3', color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 500, textDecoration: 'none', flexShrink: 0,
+          {user ? (
+          <Link to="/mi-perfil" style={{
+            width: 28, height: 28, borderRadius: '50%', background: '#2471A3', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 12, fontWeight: 500, textDecoration: 'none', flexShrink: 0,
+          }}>
+            {user.full_name?.[0]?.toUpperCase() || '?'}
+          </Link>
+          ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Link to="/login" style={{
+              fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 20,
+              color: '#fff', background: '#C0392B', textDecoration: 'none', whiteSpace: 'nowrap',
             }}>
-              {user.full_name?.[0]?.toUpperCase() || '?'}
+              {es ? 'Entrar' : 'Login'}
             </Link>
+            <Link to="/register" className="hidden sm:inline-block" style={{
+              fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 20,
+              color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.25)',
+              textDecoration: 'none', whiteSpace: 'nowrap',
+            }}>
+              {es ? 'Registro' : 'Sign up'}
+            </Link>
+            </div>
           )}
 
           <button onClick={() => setMenuOpen(v => !v)} className="md:hidden" style={{
@@ -95,6 +111,16 @@ export default function TopBar() {
 
       {menuOpen && (
         <div style={{ background: '#111318', borderTop: '0.5px solid rgba(255,255,255,0.08)', padding: '8px 16px 16px' }}>
+          {!user && (
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <Link to="/login" style={{ flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 500, color: '#fff', background: '#C0392B', textDecoration: 'none' }}>
+                {es ? 'Entrar' : 'Login'}
+              </Link>
+              <Link to="/register" style={{ flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.25)', textDecoration: 'none' }}>
+                {es ? 'Registro' : 'Sign up'}
+              </Link>
+            </div>
+          )}
           {NAV.map(item => {
             const active = isActive(item.to);
             return (
