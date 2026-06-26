@@ -114,7 +114,7 @@ export default function Entrada() {
               <span className="text-2xl flex-shrink-0">🔗</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold leading-tight">{es ? 'Regístrate para que te encuentren' : 'Register to be found'}</p>
-                <p className="text-xs mt-0.5 opacity-70 leading-snug">{es ? 'Búsqueda cruzada: te buscan o buscas a alguien — conéctense.' : 'Cross-search: looking for you or someone — get connected.'}</p>
+                <p className="text-xs mt-0.5 opacity-70 leading-snug">{es ? 'Búsqueda cruzada: si te buscan o buscas a alguien, conéctate.' : 'Cross-search: if someone is looking for you, or you are looking for someone, get connected.'}</p>
               </div>
               <span className="text-lg opacity-30 flex-shrink-0">›</span>
             </Link>

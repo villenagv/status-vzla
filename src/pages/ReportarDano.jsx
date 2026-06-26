@@ -26,7 +26,7 @@ const NIVEL_DANO = [
   { val: 'moderado', es: 'Moderado — paredes dañadas, riesgo visible',   en: 'Moderate — damaged walls, visible risk',   color: 'bg-orange-50 border-orange-300 text-orange-800' },
   { val: 'grave',    es: 'Grave — parte del edificio colapsó',           en: 'Severe — part of the building collapsed',  color: 'bg-red-50 border-red-300 text-red-800' },
   { val: 'critico',  es: 'Crítico — colapso total o personas atrapadas', en: 'Critical — total collapse or trapped people', color: 'bg-red-100 border-red-500 text-red-900' },
-  { val: 'no_sabe',  es: 'No sé evaluar',                               en: "I can't evaluate",                         color: 'bg-gray-50 border-gray-300 text-gray-700' },
+  { val: 'no_sabe',  es: 'No puedo evaluar',                             en: "I can't evaluate",                         color: 'bg-gray-50 border-gray-300 text-gray-700' },
 ];
 
 const ATRAPADOS = [
@@ -132,15 +132,15 @@ export default function ReportarDano() {
           <div className="bg-[#FDF1F0] border-2 border-[#E8B4B0] rounded-2xl p-4 w-full">
             <p className="text-sm font-bold text-[#B83A52]">
               {es
-                ? '⚠️ Este reporte fue marcado como CRÍTICO y notificado al equipo de respuesta.'
-                : '⚠️ This report was marked CRITICAL and notified to the response team.'}
+                ? '⚠️ Este reporte fue marcado como CRÍTICO y se notificó al equipo de respuesta.'
+                : '⚠️ This report was marked CRITICAL and the response team was notified.'}
             </p>
           </div>
         )}
         <div className="bg-white border-2 border-[#1A1F2E] rounded-2xl p-4 w-full">
           <p className="text-xs text-gray-500 mb-1">{es ? 'Tu código de seguimiento:' : 'Your tracking code:'}</p>
           <p className="text-3xl font-black text-[#1A1F2E] tracking-widest">{codigo}</p>
-          <p className="text-xs text-gray-400 mt-1">{es ? 'Guárdalo para consultar actualizaciones' : 'Save it to check updates'}</p>
+          <p className="text-xs text-gray-400 mt-1">{es ? 'Guárdalo para consultar actualizaciones.' : 'Save it to check updates.'}</p>
         </div>
         <p className="text-xs text-gray-500 leading-relaxed">
           {es

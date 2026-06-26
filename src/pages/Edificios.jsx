@@ -27,7 +27,7 @@ const DANO_CONFIG = {
   critico:    { color: '#922B21', bg: '#FDEDEC', border: '#E74C3C', label: { es: 'CRÍTICO',         en: 'CRITICAL' },        icon: '🚨', acceso: { es: 'NO ENTRAR — PELIGRO EXTREMO', en: 'DO NOT ENTER — EXTREME DANGER' } },
   no_evaluado:{ color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', label: { es: 'Sin evaluar',    en: 'Not evaluated' },   icon: '⚪', acceso: { es: 'Precaución — sin verificar', en: 'Caution — unverified' } },
   no_sabe:    { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', label: { es: 'Sin datos',      en: 'No data' },         icon: '⚪', acceso: { es: 'Sin información',         en: 'No information' } },
-  colapsado:  { color: '#4A0E0E', bg: '#FCECEC', border: '#DC3545', label: { es: 'COLABSADO',      en: 'COLLAPSED' },       icon: '💥', acceso: { es: 'NO ENTRAR — COLABSADO',     en: 'DO NOT ENTER — COLLAPSED' } },
+  colapsado:  { color: '#4A0E0E', bg: '#FCECEC', border: '#DC3545', label: { es: 'COLAPSADO',      en: 'COLLAPSED' },       icon: '💥', acceso: { es: 'NO ENTRAR — COLAPSADO',     en: 'DO NOT ENTER — COLLAPSED' } },
 };
 
 const TIPO_OPTS = [
@@ -60,10 +60,10 @@ const ATRAPADOS_OPTS = [
 const PERSONA_ESTADO = {
   buscando:             { es: 'Buscando',          en: 'Searching',        cls: 'bg-yellow-100 text-yellow-800' },
   informacion_recibida: { es: 'Info recibida',     en: 'Info received',    cls: 'bg-blue-100 text-blue-700' },
-  visto_no_confirmado:  { es: 'Visto s/confirm.',  en: 'Seen – unconf.',   cls: 'bg-orange-100 text-orange-700' },
+  visto_no_confirmado:  { es: 'Visto sin confirmar', en: 'Seen unconfirmed', cls: 'bg-orange-100 text-orange-700' },
   encontrado_con_vida:  { es: 'Encontrado ✅',     en: 'Found alive ✅',   cls: 'bg-green-100 text-green-800' },
-  en_hospital_refugio:  { es: 'Hospital/Refugio',  en: 'Hospital/Shelter', cls: 'bg-teal-100 text-teal-800' },
-  fallecido_reportado:  { es: 'Fall. reportado',   en: 'Death reported',   cls: 'bg-gray-200 text-gray-700' },
+  en_hospital_refugio:  { es: 'Hospital/refugio',  en: 'Hospital/Shelter', cls: 'bg-teal-100 text-teal-800' },
+  fallecido_reportado:  { es: 'Fallecimiento reportado', en: 'Death reported', cls: 'bg-gray-200 text-gray-700' },
 };
 
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 placeholder-gray-400";
@@ -270,7 +270,7 @@ export default function Edificios() {
           <Link to="/" className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700 mb-2">
             <ChevronLeft size={15} /> {es ? 'Inicio' : 'Home'}
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">🏗️ {es ? 'Edificios y Estructuras' : 'Buildings & Structures'}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">🏗️ {es ? 'Edificios y estructuras' : 'Buildings & structures'}</h1>
           <p className="text-sm text-gray-500 mt-1">{es ? 'Directorio de edificios reportados · Consulta y reporta daños.' : 'Directory of reported buildings · Check and report damage.'}</p>
         </div>
 
@@ -835,7 +835,7 @@ export default function Edificios() {
                       </div>
                       {(atrapados === 'si' || atrapados === 'voces') && (
                         <div className="mt-3 bg-red-50 border border-red-300 rounded-lg p-3">
-                          <p className="text-sm font-bold text-red-700">🚨 {es ? 'Llama AHORA a Protección Civil (171) o Bomberos.' : 'Call NOW Civil Protection (171) or Firefighters.'}</p>
+                          <p className="text-sm font-bold text-red-700">🚨 {es ? 'Llama ahora a Protección Civil (171) o Bomberos.' : 'Call Civil Protection (171) or Firefighters now.'}</p>
                         </div>
                       )}
                     </div>

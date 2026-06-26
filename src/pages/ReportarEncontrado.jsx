@@ -350,7 +350,7 @@ export default function ReportarEncontrado() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <FieldLabel label={es ? 'Cédula de identidad' : 'ID number'}
-                  hint={es ? 'Si la conoces o es legible' : 'If known or readable'} />
+                  hint={es ? 'Si la conoces o si es legible' : 'If known or readable'} />
                 <input
                   placeholder={es ? 'Ej: V-12345678' : 'E.g: V-12345678'}
                   value={form.cedula}
@@ -489,9 +489,9 @@ export default function ReportarEncontrado() {
 
 
 
-          {/* Sección 4: Quien reporta */}
+          {/* Sección 4: Quién reporta */}
           <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-3">
-            <h3 className="text-base font-black text-[#1A1F2E]">{es ? '4. Tu información (quien reporta)' : '4. Your information (reporter)'}</h3>
+            <h3 className="text-base font-black text-[#1A1F2E]">{es ? '4. Tu información (quién reporta)' : '4. Your information (reporter)'}</h3>
             <div className="bg-[#F0F4FD] rounded-xl px-3 py-2">
               <p className="text-xs text-blue-800 font-medium">
                 🔒 {es ? 'No se publicará. Solo para verificación.' : 'Not published. For verification only.'}
