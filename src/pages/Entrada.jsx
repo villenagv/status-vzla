@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useLang } from '@/lib/LangContext';
 import { Phone } from 'lucide-react';
+import ContadoresEntrada from '@/components/svzla/ContadoresEntrada';
+import DirectorioPersonasEntrada from '@/components/svzla/DirectorioPersonasEntrada';
 
 const MODOS = [
   {
@@ -108,77 +110,94 @@ export default function Entrada() {
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
 
         {/* Headline */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
             {es ? '¿Cuál es tu situación?' : 'What is your situation?'}
           </h1>
-          <p className="text-sm sm:text-base text-gray-500">
+          <p className="text-sm text-gray-500">
             {es ? 'Toca o haz clic en la opción que mejor te describe.' : 'Tap or click the option that best describes you.'}
           </p>
         </div>
 
-        {/* Grid de modos — 1 col móvil / 2-3 col PC */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-          {MODOS.map((m) => (
-            <Link
-              key={m.to}
-              to={m.to}
-              style={{ background: m.bg }}
-              className="group flex items-center gap-4 rounded-2xl p-5 text-white no-underline transition-all hover:scale-[1.01] hover:shadow-lg active:scale-[0.99]"
-            >
-              <span className="text-3xl flex-shrink-0">{m.icon}</span>
-              <div className="flex-1 min-w-0">
-                <span className="block text-[10px] font-bold tracking-widest mb-1 opacity-70">
-                  {es ? m.label.es : m.label.en}
-                </span>
-                <p className="text-base font-bold leading-tight">
-                  {es ? m.titulo.es : m.titulo.en}
-                </p>
-                <p className="text-xs mt-1 opacity-70 leading-relaxed">
-                  {es ? m.sub.es : m.sub.en}
-                </p>
-              </div>
-              <span className="text-xl opacity-40 flex-shrink-0">›</span>
-            </Link>
-          ))}
-        </div>
+        {/* Contadores de emergencia */}
+        <ContadoresEntrada />
 
-        {/* ── Sección inferior: teléfonos + advertencia ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Layout de dos columnas en PC */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Teléfonos de emergencia */}
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Phone size={14} className="text-gray-400" />
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                {es ? 'Líneas de emergencia' : 'Emergency lines'}
-              </p>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {TELS.map(({ num, op }) => (
-                <a key={num} href={`tel:${num}`}
-                  className="flex flex-col items-center bg-red-600 hover:bg-red-700 rounded-xl py-3 px-1 no-underline transition-colors">
-                  <span className="text-sm font-bold text-white">{num}</span>
-                  <span className="text-[9px] text-red-200 mt-0.5">{op}</span>
-                </a>
+          {/* Columna izquierda: modos de acción (2/3) */}
+          <div className="lg:col-span-2">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+              {es ? 'Acciones rápidas' : 'Quick actions'}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {MODOS.map((m) => (
+                <Link
+                  key={m.to}
+                  to={m.to}
+                  style={{ background: m.bg }}
+                  className="flex items-center gap-3 rounded-xl p-4 text-white no-underline hover:opacity-90 active:scale-[0.99] transition-all"
+                >
+                  <span className="text-2xl flex-shrink-0">{m.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-[10px] font-bold tracking-widest mb-0.5 opacity-60">
+                      {es ? m.label.es : m.label.en}
+                    </span>
+                    <p className="text-sm font-bold leading-tight">
+                      {es ? m.titulo.es : m.titulo.en}
+                    </p>
+                    <p className="text-xs mt-0.5 opacity-60 leading-snug hidden sm:block">
+                      {es ? m.sub.es : m.sub.en}
+                    </p>
+                  </div>
+                  <span className="text-lg opacity-30 flex-shrink-0">›</span>
+                </Link>
               ))}
             </div>
-          </div>
 
-          {/* Anti-extorsión */}
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-            <span className="text-lg flex-shrink-0 mt-0.5">⚠️</span>
-            <div>
-              <p className="text-xs font-bold text-amber-800 mb-1">
-                {es ? 'Alerta de seguridad' : 'Security alert'}
-              </p>
-              <p className="text-xs text-amber-700 leading-relaxed">
-                {es
-                  ? 'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados. Si alguien pide dinero, es una estafa.'
-                  : 'Never send money in exchange for information. This platform does not authorize payments or private rescue fees. If someone asks for money, it is a scam.'}
-              </p>
+            {/* Teléfonos + anti-extorsión */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Phone size={13} className="text-gray-400" />
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                    {es ? 'Emergencias' : 'Emergency'}
+                  </p>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {TELS.map(({ num, op }) => (
+                    <a key={num} href={`tel:${num}`}
+                      className="flex flex-col items-center bg-red-600 hover:bg-red-700 rounded-lg py-2.5 px-1 no-underline transition-colors">
+                      <span className="text-sm font-bold text-white">{num}</span>
+                      <span className="text-[9px] text-red-200 mt-0.5">{op}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+                <span className="text-base flex-shrink-0 mt-0.5">⚠️</span>
+                <div>
+                  <p className="text-xs font-bold text-amber-800 mb-1">
+                    {es ? 'Alerta de seguridad' : 'Security alert'}
+                  </p>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    {es
+                      ? 'Nunca envíes dinero a cambio de información. Es una estafa.'
+                      : 'Never send money in exchange for information. It is a scam.'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Columna derecha: directorio de personas (1/3) */}
+          <div className="lg:col-span-1">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+              {es ? 'Directorio de personas' : 'People directory'}
+            </p>
+            <DirectorioPersonasEntrada />
+          </div>
+
         </div>
 
         {/* Footer discreto */}
