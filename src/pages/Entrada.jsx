@@ -9,6 +9,15 @@ import DirectorioPersonasEntrada from '@/components/svzla/DirectorioPersonasEntr
 import DirectorioEdificiosEntrada from '@/components/svzla/DirectorioEdificiosEntrada';
 import Footer from '@/components/svzla/Footer';
 
+const DANO_BADGE = {
+  leve:       { es: '🟡 Daño leve',   en: '🟡 Minor',    cls: 'bg-yellow-100 text-yellow-800', border: 'border-yellow-200' },
+  moderado:   { es: '🟠 Moderado',    en: '🟠 Moderate', cls: 'bg-orange-100 text-orange-700', border: 'border-orange-200' },
+  grave:      { es: '🔴 GRAVE',       en: '🔴 SEVERE',   cls: 'bg-red-100 text-red-700',       border: 'border-red-300' },
+  critico:    { es: '🔴 CRÍTICO',     en: '🔴 CRITICAL', cls: 'bg-red-200 text-red-900',       border: 'border-red-400' },
+  colapsado:  { es: '💥 COLAPSADO',   en: '💥 COLLAPSED',cls: 'bg-gray-800 text-white',        border: 'border-gray-700' },
+  no_evaluado:{ es: '⚪ Sin evaluar', en: '⚪ Uneval.',   cls: 'bg-gray-100 text-gray-600',     border: 'border-gray-200' },
+};
+
 const MODOS = [
   { to: '/zona-afectada', icon: '🆘', bg: '#C0392B', label: { es: 'EMERGENCIA', en: 'EMERGENCY' }, titulo: { es: 'Estoy en zona afectada', en: 'I am in the affected area' }, sub: { es: 'Reporta daños · Pide ayuda · Informa refugio', en: 'Report damage · Ask for help · Shelter' } },
   { to: '/consultar', icon: '🔍', bg: '#1A5276', label: { es: 'CONSULTAR', en: 'SEARCH INFO' }, titulo: { es: 'Busco información de una zona', en: 'I need info about an area' }, sub: { es: 'Edificios · Refugios activos · Zonas', en: 'Buildings · Shelters · Areas' } },
@@ -30,8 +39,14 @@ export default function Entrada() {
   const { lowBw } = useLowBw();
   const es = lang === 'es';
   const [user, setUser] = useState(null);
+  const [edificiosGrid, setEdificiosGrid] = useState([]);
 
   useEffect(() => { base44.auth.me().then(u => setUser(u)).catch(() => setUser(null)); }, []);
+  useEffect(() => {
+    base44.entities.ReportesDano.list('-created_date', 15)
+      .then(d => setEdificiosGrid(d))
+      .catch(() => {});
+  }, []);
 
   const [modoDir, setModoDir] = useState('personas');
 
@@ -136,6 +151,50 @@ export default function Entrada() {
         </div>
 
         {/* Nota: el directorio ya aparece en el panel lateral al seleccionar "Edificios" */}
+
+        {/* ── GRID EDIFICIOS — 3 filas × 5 fichas ── */}
+        {edificiosGrid.length > 0 && (
+          <div className="mt-10">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">🏗️ {es ? 'Directorio de edificios' : 'Buildings directory'}</p>
+                <h2 className="text-base font-bold text-gray-900">{es ? 'Edificios reportados recientemente' : 'Recently reported buildings'}</h2>
+              </div>
+              <Link to="/edificios" className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg no-underline hover:bg-blue-100">
+                {es ? 'Ver todos →' : 'View all →'}
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {edificiosGrid.slice(0, 15).map(e => {
+                const st = DANO_BADGE[e.nivel_dano] || DANO_BADGE.no_evaluado;
+                const esCritico = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano);
+                return (
+                  <Link key={e.id} to={`/edificio?id=${e.id}`}
+                    className={`bg-white border rounded-xl p-3 no-underline hover:shadow-md transition-shadow flex flex-col gap-1.5 ${esCritico ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}>
+                    <div className="flex items-start justify-between gap-1">
+                      <p className="text-xs font-bold text-gray-900 leading-tight line-clamp-2 flex-1">
+                        {e.nombre_lugar || e.tipo_estructura || (es ? 'Edificio' : 'Building')}
+                      </p>
+                      {esCritico && <span className="text-sm flex-shrink-0">🚫</span>}
+                    </div>
+                    <p className="text-[10px] text-gray-400 leading-snug line-clamp-1">
+                      📍 {[e.direccion, e.ciudad].filter(Boolean).join(' · ') || '—'}
+                    </p>
+                    <span className={`self-start text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${st.cls} ${st.border}`}>
+                      {es ? st.es : st.en}
+                    </span>
+                    {e.personas_atrapadas === 'si' && (
+                      <span className="text-[9px] font-bold text-red-700 bg-red-100 border border-red-200 px-1.5 py-0.5 rounded-full self-start">🆘 {es ? 'Atrapados' : 'Trapped'}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+            <Link to="/reportar-dano" className="mt-3 flex items-center justify-center gap-2 w-full border border-dashed border-gray-300 rounded-xl py-2.5 text-xs font-semibold text-gray-500 no-underline hover:border-gray-500 hover:text-gray-700 transition-colors">
+              + {es ? 'Reportar edificio dañado' : 'Report damaged building'}
+            </Link>
+          </div>
+        )}
 
         <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-gray-300"><span className="font-semibold text-gray-400">Status Venezuela</span> · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}</p>
