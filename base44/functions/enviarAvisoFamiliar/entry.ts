@@ -85,7 +85,6 @@ StatusVzla · ${es ? 'Herramienta ciudadana y no partidista' : 'Citizen, non-par
 </table>
 </td></tr></table></body></html>`;
 
-    // Patch: si es un email reportante, avisar amablemente que usamos el correo
     await base44.asServiceRole.integrations.Core.SendEmail({
       to: email_destino,
       subject,

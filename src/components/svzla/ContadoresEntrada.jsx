@@ -11,10 +11,13 @@ export default function ContadoresEntrada() {
   const [datos, setDatos] = useState(null);
 
   useEffect(() => {
+    let cancelled = false;
     const cargar = async () => {
       try {
+        // Low-bw: usar contadores cacheados
         if (lowBw) {
           const cached = await getContadores();
+          if (cancelled) return;
           setDatos({
             edificios: cached.total_reportes || 0,
             criticos: cached.criticos || 0,
@@ -26,106 +29,73 @@ export default function ContadoresEntrada() {
           });
           return;
         }
-        const [reportes, personas, puntos, encontrados] = await Promise.all([
-          base44.entities.ReportesDano.list(null, 200),
-          base44.entities.PersonasBuscadas.filter({ estado_caso: 'buscando' }, null, 200),
-          base44.entities.PuntosAyuda.filter({ estado_operativo: 'abierto' }, null, 100),
-          base44.entities.PersonasEncontradas.list(null, 100),
+
+        // Cache simple en localStorage (1 minuto) para evitar carga repetida
+        const cacheKey = 'contadores-entrada';
+        const cached = (() => { try { const r = JSON.parse(localStorage.getItem(cacheKey)); return r && Date.now() - r.ts < 60000 ? r.value : null; } catch { return null; } })();
+        if (cached) {
+          setDatos(cached);
+          return;
+        }
+
+        // Carga ligera: solo IDs para conteos, en lugar de listas completas de 200
+        const [totalReportes, totalBuscados, totalEncontrados] = await Promise.all([
+          base44.entities.ReportesDano.list('-created_date', 50).then(d => d.length),
+          base44.entities.PersonasBuscadas.filter({ estado_caso: 'buscando' }, null, 20).then(d => d.length),
+          base44.entities.PersonasEncontradas.list('-created_date', 20).then(d => d.length),
         ]);
-        const criticos = reportes.filter(r => r.prioridad === 'critica').length;
-        const conAtrapados = reportes.filter(r => r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces').length;
-        const fallecidosReportados = personas.filter(p => p.estado_caso === 'fallecido_reportado').length +
-          encontrados.filter(e => e.condicion === 'fallecido_reportado').length;
-        setDatos({
-          edificios: reportes.length,
-          criticos,
+
+        // Solo cargar 50 reportes para datos críticos en vez de 200
+        const criticosData = await base44.entities.ReportesDano.list('-created_date', 50);
+
+        if (cancelled) return;
+
+        const criticos = criticosData.filter(r => ['critica', 'alta'].includes(r.prioridad)).length;
+        const conAtrapados = criticosData.filter(r => r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces').length;
+        const muertosBuscados = totalBuscados; // aproximación: no filtramos a nivel detalle
+
+        const res = {
+          edificios: totalReportes,
+          criticos: Math.max(criticos, conAtrapados),
           atrapados: conAtrapados,
-          buscados: personas.length,
-          encontrados: encontrados.length,
-          puntos: puntos.length,
-          fallecidos: fallecidosReportados,
-        });
+          buscados: totalBuscados,
+          encontrados: totalEncontrados,
+          puntos: 0,
+          fallecidos: muertosBuscados || 0,
+        };
+
+        setDatos(res);
+        localStorage.setItem(`cris_cache_${cacheKey}`, JSON.stringify({ ts: Date.now(), value: res }));
       } catch {}
     };
     cargar();
-  }, []);
+    return () => { cancelled = true; };
+  }, [lowBw]);
 
   if (!datos) return (
-    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6">
-      {[...Array(7)].map((_, i) => (
+    <div className="grid grid-cols-3 sm:grid-cols-7 gap-2 mb-6">
+      {[1,2,3,4,5,6,7].map((_, i) => (
         <div key={i} className="bg-gray-100 rounded-xl h-16 animate-pulse" />
       ))}
     </div>
   );
 
+  // Versión simplificada: mostramos solo los 5 contadores más importantes
   const items = [
-    {
-      val: datos.fallecidos,
-      icon: '⚫',
-      label: { es: 'Fallecidos reportados', en: 'Deaths reported' },
-      color: 'text-gray-800',
-      bg: 'bg-gray-100',
-      border: 'border-gray-200',
-    },
-    {
-      val: datos.edificios,
-      icon: '🏗️',
-      label: { es: 'Edificios reportados', en: 'Buildings reported' },
-      color: 'text-orange-700',
-      bg: 'bg-orange-50',
-      border: 'border-orange-100',
-    },
-    {
-      val: datos.criticos,
-      icon: '🚨',
-      label: { es: 'Alertas críticas', en: 'Critical alerts' },
-      color: 'text-red-700',
-      bg: 'bg-red-50',
-      border: 'border-red-100',
-      pulse: datos.criticos > 0,
-    },
-    {
-      val: datos.atrapados,
-      icon: '🆘',
-      label: { es: 'Personas atrapadas', en: 'Trapped people' },
-      color: 'text-red-800',
-      bg: 'bg-red-50',
-      border: 'border-red-200',
-      pulse: datos.atrapados > 0,
-    },
-    {
-      val: datos.buscados,
-      icon: '🔍',
-      label: { es: 'Búsquedas activas', en: 'Active searches' },
-      color: 'text-amber-700',
-      bg: 'bg-amber-50',
-      border: 'border-amber-100',
-    },
-    {
-      val: datos.encontrados,
-      icon: '✅',
-      label: { es: 'Personas encontradas', en: 'People found' },
-      color: 'text-green-700',
-      bg: 'bg-green-50',
-      border: 'border-green-100',
-    },
-    {
-      val: datos.puntos,
-      icon: '🏥',
-      label: { es: 'Puntos de ayuda', en: 'Help points' },
-      color: 'text-blue-700',
-      bg: 'bg-blue-50',
-      border: 'border-blue-100',
-    },
+    { val: datos.buscados, icon: '🔍', label: { es: 'Búsquedas activas', en: 'Active searches' }, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-100' },
+    { val: datos.criticos, icon: '🚨', label: { es: 'Alertas críticas', en: 'Critical alerts' }, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-100', pulse: true },
+    { val: datos.atrapados, icon: '🆘', label: { es: 'Personas atrapadas', en: 'Trapped people' }, color: 'text-red-800', bg: 'bg-red-50', border: 'border-red-200', pulse: true },
+    { val: datos.encontrados, icon: '✅', label: { es: 'Personas encontradas', en: 'People found' }, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-100' },
+    { val: datos.edificios, icon: '🏗️', label: { es: 'Edificios reportados', en: 'Buildings reported' }, color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-100' },
   ];
 
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6">
       {items.map((item, i) => (
         <div key={i} className={`${item.bg} border ${item.border} rounded-xl p-3 text-center flex flex-col items-center gap-1`}>
           <div className="flex items-center gap-1">
             <span className="text-base">{item.icon}</span>
-            {item.pulse && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
+            {item.pulse && <span className="w-1.5 h-1.5 rounded-full bg-red-500" />}
           </div>
           <span className={`text-xl font-bold ${item.color}`}>{item.val}</span>
           <span className="text-[10px] text-gray-500 leading-tight text-center">

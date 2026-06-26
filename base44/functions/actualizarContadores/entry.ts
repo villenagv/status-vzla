@@ -8,11 +8,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Carga ligera: límites reducidos para bajar consumo de recursos
     const [reportes, personasBuscadas, personasEncontradas, puntos] = await Promise.all([
-      base44.entities.ReportesDano.list(null, 500),
-      base44.entities.PersonasBuscadas.list(null, 500),
-      base44.entities.PersonasEncontradas.list(null, 500),
-      base44.entities.PuntosAyuda.list(null, 500),
+      base44.entities.ReportesDano.list(null, 200),
+      base44.entities.PersonasBuscadas.list(null, 200),
+      base44.entities.PersonasEncontradas.list(null, 200),
+      base44.entities.PuntosAyuda.list(null, 200),
     ]);
 
     const values = [

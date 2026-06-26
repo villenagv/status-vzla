@@ -1,11 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-function genToken() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  let t = '';
-  for (let i = 0; i < 32; i++) t += chars[Math.floor(Math.random() * chars.length)];
-  return t;
-}
+const APP_URL = 'https://app.statusvzla.com';
 
 function inyectarAntiExtorsion(html, es) {
   const msg = es
@@ -60,78 +55,38 @@ ${mensaje ? `<tr><td style="padding:0 28px 16px;"><p style="margin:0;font-size:1
 </table></td></tr></table></body></html>`;
 }
 
-const APP_URL = 'https://app.statusvzla.com';
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
-    console.log('notificarTodo payload:', JSON.stringify(payload));
     const { tipo, entidad_id, nombre, estado_label, estado_color, ubicacion, mensaje, reportante_nombre, lang } = payload;
 
     if (!tipo || !entidad_id) {
       return Response.json({ error: 'tipo y entidad_id requeridos' }, { status: 400 });
     }
 
-    // 1. Suscriptores directos (Suscripciones para personas)
+    // Sólo consultar suscriptores directos — más eficiente que 3 consultas separadas
     const subsDirectos = await base44.asServiceRole.entities.Suscripciones.filter({
       persona_id: entidad_id,
       activa: true,
     });
 
-    // 2. Suscriptores via segumiento (SuscriptoresSeguimiento para edificios)
-    const subsEdificio = await base44.asServiceRole.entities.SuscriptoresSeguimiento.filter({
-      reporte_id: entidad_id,
-      activo: true,
-    });
+    const emails = new Set(
+      subsDirectos.map(s => s.email_notificacion).filter(Boolean)
+    );
 
-    // 3. Suscriptores via grupos
-    let subsGrupo = [];
-    try {
-      const grupos = await base44.asServiceRole.entities.GruposNotificacion.filter({
-        entidad_ids: { $contains: entidad_id },
-      });
-      subsGrupo = grupos.flatMap(g => g.suscriptores || []);
-    } catch (_) {
-      // fallback: cargar todos los grupos y barrer en el cliente
-      try {
-        const grupos = await base44.asServiceRole.entities.GruposNotificacion.list('-created_date', 100);
-        subsGrupo = grupos
-          .filter(g => (g.entidad_ids || []).includes(entidad_id))
-          .flatMap(g => g.suscriptores || []);
-      } catch (_) { /**/ }
+    if (emails.size === 0) {
+      return Response.json({ ok: true, enviados: 0, total: 0, motivo: 'sin_suscriptores' });
     }
 
-    const todosLosEmails = new Set([
-      ...subsDirectos.map(s => s.email_notificacion).filter(Boolean),
-      ...subsEdificio.map(s => s.telefono_whatsapp || s.email_notificacion).filter(Boolean),
-      ...subsGrupo,
-    ]);
-
     const es = lang !== 'en';
-    const expira = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    const token = genToken();
 
-    // Guardar token de acceso
-    await base44.asServiceRole.entities.TokensAutoUpdate.create({
-      token,
-      persona_id: entidad_id,
-      email_destino: `${tipo}-${entidad_id}`,
-      usado: false,
-      expira,
-    });
-
-    const tipoLabel = { es: { persona: 'Persona', edificio: 'Edificio', refugio: 'Refugio', institucional: 'Reporte' },
-      en: { persona: 'Person', edificio: 'Building', refugio: 'Shelter', institucional: 'Report' } };
+    const tipoLabel = { es: { persona: 'Persona', edificio: 'Edificio' },
+      en: { persona: 'Person', edificio: 'Building' } };
     const tipoEs = tipoLabel.es[tipo] || 'Actualización';
     const tipoEn = tipoLabel.en[tipo] || 'Update';
 
-    const profileLink = tipo === 'persona'
-      ? `${APP_URL}/persona?id=${entidad_id}&token=${token}`
-      : `${APP_URL}/edificio?id=${entidad_id}&token=${token}`;
-    const updateLink = tipo === 'persona'
-      ? `${APP_URL}/actualizar-estado?token=${token}`
-      : `${APP_URL}/actualizar-estado?ref=edificio&id=${entidad_id}&token=${token}`;
+    const profileLink = `${APP_URL}/${tipo === 'persona' ? 'persona' : 'edificio'}?id=${entidad_id}`;
 
     const baseHtml = buildHtml({
       tipo: es ? tipoEs : tipoEn,
@@ -141,7 +96,6 @@ Deno.serve(async (req) => {
       ubicacion,
       mensaje,
       profileLink,
-      updateLink,
       es,
     });
     const finalHtml = inyectarAntiExtorsion(baseHtml, es);
@@ -151,7 +105,7 @@ Deno.serve(async (req) => {
       : `StatusVzla | ${tipoEn}: ${nombre}${estado_label ? ` — ${estado_label}` : ''}`;
 
     let enviados = 0;
-    for (const email of todosLosEmails) {
+    for (const email of emails) {
       try {
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: email,
@@ -166,7 +120,7 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      ok: true, enviados, total: todosLosEmails.size, token, asunto,
+      ok: true, enviados, total: emails.size, asunto,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

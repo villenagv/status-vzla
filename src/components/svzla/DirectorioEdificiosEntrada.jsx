@@ -26,7 +26,7 @@ export default function DirectorioEdificiosEntrada() {
   const [vista, setVista] = useState('lista');
 
   useEffect(() => {
-    base44.entities.ReportesDano.list('-created_date', 50)
+    base44.entities.ReportesDano.list('-created_date', 5)
       .then(d => setEdificios(d))
       .catch(() => {})
       .finally(() => setCargando(false));

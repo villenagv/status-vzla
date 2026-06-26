@@ -6,8 +6,16 @@ import { Phone } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ContadoresEntrada from '@/components/svzla/ContadoresEntrada';
 import DirectorioPersonasEntrada from '@/components/svzla/DirectorioPersonasEntrada';
-import BloqueSeguridadEdificios from '@/components/svzla/BloqueSeguridadEdificios';
-import AdvertenciaSeguridadEdificio from '@/components/svzla/AdvertenciaSeguridadEdificio';
+import DirectorioEdificiosEntrada from '@/components/svzla/DirectorioEdificiosEntrada';
+
+const MODOS = [
+  { to: '/zona-afectada', icon: '🆘', bg: '#C0392B', label: { es: 'EMERGENCIA', en: 'EMERGENCY' }, titulo: { es: 'Estoy en zona afectada', en: 'I am in the affected area' }, sub: { es: 'Reporta daños · Pide ayuda · Informa refugio', en: 'Report damage · Ask for help · Shelter' } },
+  { to: '/consultar', icon: '🔍', bg: '#1A5276', label: { es: 'CONSULTAR', en: 'SEARCH INFO' }, titulo: { es: 'Busco información de una zona', en: 'I need info about an area' }, sub: { es: 'Edificios · Refugios activos · Zonas', en: 'Buildings · Shelters · Areas' } },
+  { to: '/personas', icon: '👤', bg: '#6C3483', label: { es: 'PERSONAS', en: 'PEOPLE' }, titulo: { es: 'Busco o reporto a una persona', en: 'I search or report a person' }, sub: { es: 'Persona sin contacto · Alguien encontrado', en: 'Missing person · Someone found' } },
+  { to: '/edificios', icon: '🏗️', bg: '#784212', label: { es: 'EDIFICIOS', en: 'BUILDINGS' }, titulo: { es: '¿Es seguro este edificio?', en: 'Is this building safe?' }, sub: { es: 'Consulta daños · Reporta estructuras · Ver estado', en: 'Check damage · Report structures · View status' } },
+  { to: '/institucional', icon: '🏛️', bg: '#1A5C3A', label: { es: 'INSTITUCIÓN', en: 'INSTITUTION' }, titulo: { es: 'Soy institución o punto de ayuda', en: 'I am an institution or help point' }, sub: { es: 'Refugio · Hospital · Comedor · Donaciones', en: 'Shelter · Hospital · Food · Donations' } },
+  { to: '/voluntario', icon: '🤝', bg: '#7B3A9E', label: { es: 'VOLUNTARIO', en: 'VOLUNTEER' }, titulo: { es: 'Soy voluntario o personal de apoyo', en: 'I am a volunteer or support staff' }, sub: { es: 'Encontrados · Listados · Centros de apoyo', en: 'Found people · Lists · Support centers' } },
+];
 
 const TELS = [
   { num: '171', op: 'CANTV' },
@@ -24,9 +32,10 @@ export default function Entrada() {
 
   useEffect(() => { base44.auth.me().then(u => setUser(u)).catch(() => setUser(null)); }, []);
 
+  const [modoDir, setModoDir] = useState('personas');
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Top bar ligera */}
       <header className="border-b border-gray-100 bg-white sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div>
@@ -36,6 +45,10 @@ export default function Entrada() {
             <span className="hidden sm:inline ml-2 text-xs text-gray-400 font-medium tracking-widest uppercase">StatusVenezuela.com</span>
           </div>
           <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
+              <span className={`w-2 h-2 rounded-full bg-red-500 ${!lowBw ? 'animate-pulse' : ''} flex-shrink-0`} />
+              <p className="text-xs font-semibold text-red-700">{es ? 'Terremoto activo · La Guaira, Caracas, Yaracuy' : 'Active earthquake · La Guaira, Caracas, Yaracuy'}</p>
+            </div>
             {user ? (
               <Link to="/mi-perfil" className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center text-white text-xs font-bold no-underline">
                 {user.full_name?.[0]?.toUpperCase() || '?'}
@@ -53,126 +66,73 @@ export default function Entrada() {
 
       <div className="md:hidden bg-red-600 text-white px-4 py-2.5 flex items-center gap-2">
         <span className={`w-2 h-2 rounded-full bg-white ${!lowBw ? 'animate-pulse' : ''} flex-shrink-0`} />
-        <p className="text-xs font-semibold">{es ? 'Terremoto activo · La Guaira, Caracas, Yaracuy' : 'Active earthquake · La Guaira, Caracas, Yaracuy'}</p>
+        <p className="text-xs font-semibold">{es ? 'Terremoto activo · La Guaira, Caracas, Yaracuy · 24 junio 2026' : 'Active earthquake · La Guaira, Caracas, Yaracuy · June 24, 2026'}</p>
       </div>
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10 space-y-8">
-        {/* 📊 Contadores */}
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{es ? '¿Cuál es tu situación?' : 'What is your situation?'}</h1>
+          <p className="text-sm text-gray-500">{es ? 'Toca o haz clic en la opción que mejor te describe.' : 'Tap or click the option that best describes you.'}</p>
+        </div>
+
         <ContadoresEntrada />
 
-        {/* ============================= */}
-        {/* BLOQUE 1: EMERGENCIA (Prioridad máxima) */}
-        {/* ============================= */}
-        <section>
-          <span className="text-[11px] font-bold text-red-500 uppercase tracking-widest flex items-center gap-2 mb-3">
-            <span className={`w-2 h-2 rounded-full bg-red-500 ${!lowBw ? 'animate-pulse' : ''}`} />
-            🆘 {es ? 'NECESITO AYUDA' : 'I NEED HELP'}
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Link to="/zona-afectada" className="flex items-center gap-4 bg-red-700 rounded-2xl p-5 text-white no-underline hover:opacity-90 active:scale-[0.99] transition-all">
-              <span className="text-4xl flex-shrink-0">🆘</span>
-              <div>
-                <p className="text-base font-black leading-tight">{es ? 'Estoy en zona afectada' : 'I am in the affected area'}</p>
-                <p className="text-sm mt-1 opacity-70">{es ? 'Reporta tu estado, busca a tu familia y pide ayuda' : 'Report your status, find family and ask for help'}</p>
-              </div>
-            </Link>
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Phone size={13} className="text-gray-400" />
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{es ? 'Llama ahora' : 'Call now'}</span>
-              </div>
-              <div className="grid grid-cols-4 gap-1.5">
-                {TELS.map(({ num, op }) => (
-                  <a key={num} href={`tel:${num}`} className="flex flex-col items-center bg-red-600 hover:bg-red-700 rounded-lg py-2.5 px-1 no-underline transition-colors">
-                    <span className="text-sm font-bold text-white">{num}</span>
-                    <span className="text-[9px] text-red-200 mt-0.5">{op}</span>
-                  </a>
-                ))}
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{es ? 'Acciones rápidas' : 'Quick actions'}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {MODOS.map((m) => (
+                <Link key={m.to} to={m.to} style={{ background: m.bg }} className="flex items-center gap-3 rounded-xl p-4 text-white no-underline hover:opacity-90 active:scale-[0.99] transition-all">
+                  <span className="text-2xl flex-shrink-0">{m.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-[10px] font-bold tracking-widest mb-0.5 opacity-60">{es ? m.label.es : m.label.en}</span>
+                    <p className="text-sm font-bold leading-tight">{es ? m.titulo.es : m.titulo.en}</p>
+                    <p className="text-xs mt-0.5 opacity-60 leading-snug hidden sm:block">{es ? m.sub.es : m.sub.en}</p>
+                  </div>
+                  <span className="text-lg opacity-30 flex-shrink-0">›</span>
+                </Link>
+              ))}
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-              <span className="text-base flex-shrink-0 mt-0.5">⚠️</span>
-              <div>
-                <p className="text-xs font-bold text-amber-800 mb-1">{es ? 'Alerta de seguridad' : 'Security alert'}</p>
-                <p className="text-xs text-amber-700 leading-relaxed">{es ? 'Nunca envíes dinero a cambio de información. Es una estafa.' : 'Never send money in exchange for information. It is a scam.'}</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3"><Phone size={13} className="text-gray-400" /><p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{es ? 'Emergencias' : 'Emergency'}</p></div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {TELS.map(({ num, op }) => (
+                    <a key={num} href={`tel:${num}`} className="flex flex-col items-center bg-red-600 hover:bg-red-700 rounded-lg py-2.5 px-1 no-underline transition-colors"><span className="text-sm font-bold text-white">{num}</span><span className="text-[9px] text-red-200 mt-0.5">{op}</span></a>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex gap-3">
-              <span className="text-base flex-shrink-0 mt-0.5">🤝</span>
-              <div>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">{es ? 'Ayuda y voluntarios' : 'Help & volunteers'}</p>
-                <Link to="/institucional" className="text-xs text-blue-700 hover:underline font-semibold">{es ? 'Institución o punto de ayuda' : 'Institution or help point'} →</Link>
-                <br />
-                <Link to="/voluntario" className="text-xs text-blue-700 hover:underline font-semibold">{es ? 'Soy voluntario' : 'I am a volunteer'} →</Link>
-                <br />
-                <Link to="/centros-apoyo" className="text-xs text-blue-700 hover:underline font-semibold">{es ? 'Centros de apoyo activos' : 'Active support centers'} →</Link>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+                <span className="text-base flex-shrink-0 mt-0.5">⚠️</span>
+                <div><p className="text-xs font-bold text-amber-800 mb-1">{es ? 'Alerta de seguridad' : 'Security alert'}</p><p className="text-xs text-amber-700 leading-relaxed">{es ? 'Nunca envíes dinero a cambio de información. Es una estafa.' : 'Never send money in exchange for information. It is a scam.'}</p></div>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* ============================= */}
-        {/* BLOQUE 2: EDIFICIOS (Seguridad / Riesgo) */}
-        {/* ============================= */}
-        <section>
-          <span className="text-[11px] font-bold text-orange-600 uppercase tracking-widest flex items-center gap-2 mb-3">
-            🏗️ {es ? '¿ES SEGURO ESTE EDIFICIO?' : 'IS THIS BUILDING SAFE?'}
-          </span>
-          <AdvertenciaSeguridadEdificio compact />
-          <div className="flex flex-wrap gap-2 mb-3">
-            <Link to="/edificios" className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-400 bg-white no-underline cursor-pointer">
-              🔍 {es ? 'Consultar edificios' : 'Check buildings'}
-            </Link>
-            <Link to="/reportar-dano" className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-900 text-white bg-gray-900 no-underline cursor-pointer hover:bg-gray-800">
-              + {es ? 'Reportar daños' : 'Report damage'}
-            </Link>
-            <Link to="/solicitar-info-edificio" className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-400 bg-white no-underline cursor-pointer">
-              📋 {es ? 'Solicitar información' : 'Request info'}
-            </Link>
-          </div>
-          <BloqueSeguridadEdificios />
-        </section>
-
-        {/* ============================= */}
-        {/* BLOQUE 3: PERSONAS (Búsqueda y reporte) */}
-        {/* ============================= */}
-        <section>
-          <span className="text-[11px] font-bold text-purple-600 uppercase tracking-widest flex items-center gap-2 mb-3">
-            👤 {es ? 'PERSONAS' : 'PEOPLE'}
-          </span>
-          <div className="flex flex-wrap gap-2 mb-3">
-            <Link to="/personas" className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-400 bg-white no-underline cursor-pointer">
-              🔍 {es ? 'Ver búsquedas activas' : 'Active searches'}
-            </Link>
-            <Link to="/buscar-persona" className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-900 text-white bg-gray-900 no-underline cursor-pointer hover:bg-gray-800">
-              + {es ? 'Buscar a alguien' : 'Search someone'}
-            </Link>
-            <Link to="/reportar-encontrado" className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-400 bg-white no-underline cursor-pointer">
-              🙋 {es ? 'Vi o encontré a alguien' : 'I found someone'}
-            </Link>
-            <Link to="/directorio-encontrados" className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-green-200 text-green-700 hover:bg-green-50 bg-white no-underline cursor-pointer">
-              ✅ {es ? 'Encontrados' : 'Found'}
-            </Link>
-          </div>
-          <DirectorioPersonasEntrada standalone />
-        </section>
-      </main>
-
-      {/* Footer simplificado */}
-      <footer className="border-t border-gray-100 mt-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-gray-300">
-            <span className="font-semibold text-gray-400">Status Venezuela</span> · {es ? 'No partidista · Sin fines de lucro · Ordenado por prioridad' : 'Non-partisan · Non-profit · Sorted by priority'}
-          </p>
-          <div className="flex items-center gap-4">
-            {!user && <Link to="/login" className="text-xs text-gray-400 hover:text-gray-600 underline">{es ? 'Entrar' : 'Login'}</Link>}
-            {!user && <Link to="/register" className="text-xs text-gray-400 hover:text-gray-600 underline">{es ? 'Registrarme' : 'Sign up'}</Link>}
-            {user?.role === 'admin' && (
-              <Link to="/dashboard" className="text-xs text-gray-400 hover:text-gray-600 underline">{es ? 'Dashboard' : 'Dashboard'}</Link>
-            )}
+          <div className="lg:col-span-1">
+            <div className="flex gap-2 mb-3">
+              <button onClick={() => setModoDir('personas')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${modoDir === 'personas' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>
+                👤 {es ? 'Personas' : 'People'}
+              </button>
+              <button onClick={() => setModoDir('edificios')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${modoDir === 'edificios' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>
+                🏗️ {es ? 'Edificios' : 'Buildings'}
+              </button>
+            </div>
+            {modoDir === 'personas' ? <DirectorioPersonasEntrada /> : <DirectorioEdificiosEntrada />}
           </div>
         </div>
-      </footer>
+
+        <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="text-xs text-gray-300"><span className="font-semibold text-gray-400">Status Venezuela</span> · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}</p>
+          <div className="flex gap-3">
+            <Link to="/login" className="text-xs text-gray-400 hover:text-gray-600 underline">{es ? 'Entrar' : 'Login'}</Link>
+            <Link to="/register" className="text-xs text-gray-400 hover:text-gray-600 underline">{es ? 'Registrarme' : 'Sign up'}</Link>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
