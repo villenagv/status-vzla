@@ -12,6 +12,7 @@ export default function BusquedaCruzada() {
   const { lang } = useLang();
   const es = lang === 'es';
 
+  const [rol, setRol] = useState('buscado'); // buscado = me buscan | busco = busco a alguien
   const [form, setForm] = useState({
     nombre_creador: '', telefono: '', email: '', red_social: '',
     red_social_tipo: '', ciudad: '', estado_region: '',
@@ -19,6 +20,13 @@ export default function BusquedaCruzada() {
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [matches, setMatches] = useState([]);
+  const [codigoConexion, setCodigoConexion] = useState('');
+
+  const aceptarConexionPopup = (rol === 'buscado') && resultado === 'ok' && matches.length === 0
+    ? es
+      ? 'Tus datos quedaron guardados como reservados. Nadie puede ver tu teléfono ni tu email hasta que apruebes una conexión.'
+      : 'Your data is saved as reserved. No one can see your phone or email until you approve a connection.'
+    : null;
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -33,8 +41,10 @@ export default function BusquedaCruzada() {
         telefono: form.telefono,
         email: form.email,
         red_social: form.red_social,
+        red_social_tipo: form.red_social_tipo,
         ciudad: form.ciudad,
         estado_region: form.estado_region,
+        aceptar_conexion: rol === 'buscado', // si me buscan, admito que quiero conectarme
       });
       setResultado(res.data?.ok ? 'ok' : 'err');
       setMatches(res.data?.matches || []);
@@ -53,10 +63,32 @@ export default function BusquedaCruzada() {
         </Link>
 
         <h1 className="text-xl font-bold text-gray-900 mb-2">{es ? '🔗 Búsqueda cruzada' : '🔗 Cross search'}</h1>
-        <p className="text-sm text-gray-500 mb-5 leading-relaxed">
-          {es
-            ? 'Regístrate con tus datos: si alguien te busca, o si reconocemos tu nombre en la base de búsqueda, podremos conectarte.'
-            : 'Register your data: if someone is looking for you, or we find your name in the search database, we can connect you.'}
+
+        {/* Rol selector */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <button onClick={() => setRol('buscado')}
+            className={`rounded-xl p-3 text-center border-2 transition cursor-pointer ${rol === 'buscado' ? 'border-blue-600 bg-blue-50 text-blue-800' : 'border-gray-200 bg-white text-gray-500'}`}>
+            <div className="text-xl mb-1">🙋</div>
+            <p className="text-xs font-bold">{es ? 'Me buscan' : 'I am being sought'}</p>
+            <p className="text-[10px] text-gray-400">{es ? 'Alguien busca mi nombre' : 'Someone is looking for me'}</p>
+          </button>
+          <button onClick={() => setRol('busco')}
+            className={`rounded-xl p-3 text-center border-2 transition cursor-pointer ${rol === 'busco' ? 'border-blue-600 bg-blue-50 text-blue-800' : 'border-gray-200 bg-white text-gray-500'}`}>
+            <div className="text-xl mb-1">🔍</div>
+            <p className="text-xs font-bold">{es ? 'Busco a alguien' : 'I am searching'}</p>
+            <p className="text-[10px] text-gray-400">{es ? 'Voy a contactar' : 'Going to make contact'}</p>
+          </button>
+        </div>
+
+        <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+          {rol === 'buscado'
+            ? (es
+              ? 'Regístrate con tus datos reales. Si alguien te busca, ellos podrán solicitar una conexión, y tú decides si compartes tu contacto o no.'
+              : 'Register with your real data. If someone is looking for you, they can request a connection, and you decide whether to share your contact.')
+            : (es
+              ? 'Regístrate para buscar a alguien. Si una persona buscada tiene un nombre similar al tuyo, podrás ver su perfil y pedir contacto — pero tus datos no se compartirán hasta que la otra persona lo apruebe.'
+              : 'Register to search for someone. If a sought person has a similar name, you can see their profile and ask to connect — but your data won\'t be shared until the other person approves.')
+          }
         </p>
 
         {/* Anti-extorsión */}
@@ -134,9 +166,12 @@ export default function BusquedaCruzada() {
                   {es ? (matches.length > 0 ? 'Posibles coincidencias encontradas' : 'Registro guardado') : (matches.length > 0 ? 'Possible matches found' : 'Registration saved')}
                 </span>
               </div>
-              <p className="text-xs text-gray-600">{es
-                ? 'Tu registro quedó guardado en el sistema de búsqueda cruzada.'
-                : 'Your registration is saved in the cross-search system.'}</p>
+              <p className="text-xs text-gray-600">
+              {rol === 'buscado'
+                ? (es ? 'Tus datos quedaron guardados como PRIVADOS. Nadie ve tu teléfono ni tu email hasta que apruebes una conexión.' : 'Your data is saved as PRIVATE. No one can see your phone or email until you approve a connection.')
+                : (es ? 'Tu registro quedó guardado. Tus datos NO se compartirán hasta que la otra persona apruebe la conexión.' : 'Your registration is saved. Your data will NOT be shared until the other person approves the connection.')
+              }
+            </p>
             </div>
 
             {matches.length > 0 && (
@@ -152,7 +187,6 @@ export default function BusquedaCruzada() {
                     </div>
                     <p className="text-sm font-semibold text-gray-900">{m.nombre}</p>
                     <p className="text-xs text-gray-500">📍 {m.ultima_ubicacion_conocida || m.ubicacion_actual || ''} · {m.ciudad}</p>
-                    {m.contacto && <p className="text-xs text-blue-600 mt-1">📞 {m.contacto}</p>}
                     {m.tipo === 'buscada' && (
                       <Link to={`/persona?id=${m.id_origen}`} className="inline-block text-xs text-blue-700 underline mt-1">
                         {es ? 'Ver perfil de búsqueda →' : 'View search profile →'}
@@ -164,9 +198,14 @@ export default function BusquedaCruzada() {
             )}
 
             <p className="text-xs text-gray-400 text-center leading-relaxed">
-              {es
-                ? '💡 Si eres la persona buscada, contacta al familiar usando la información del perfil. Si alguien muestra tu nombre, revisa los detalles.'
-                : '💡 If you are the person being searched, contact the family using the profile info. If someone shows your name, check the details.'}
+              {rol === 'buscado'
+                ? (es
+                  ? '💡 Revisa el perfil de cada coincidencia. Si es tu familiar, abre el perfil desde el enlace para ver más detalles y ponerte en contacto.'
+                  : '💡 Check each match profile. If it\'s your family member, open the profile from the link to see more details and get in touch.')
+                : (es
+                  ? '💡 Revisa cada coincidencia. Si coincide con quien buscas, abre el perfil busca más detalles. Tus datos de contacto no se comparten hasta que la otra persona apruebe la conexión.'
+                  : '💡 Check each match. If it matches who you\'re looking for, open the search profile for details. Your contact data is not shared until the other person approves the connection.')
+              }
             </p>
           </div>
         )}
@@ -179,14 +218,17 @@ export default function BusquedaCruzada() {
                 ? '1. Registra tus datos aquí — teléfono, email y redes sociales.'
                 : '1. Register your data here — phone, email, and social media.'}<br />
               {es
-                ? '2. El sistema busca tu nombre en la base de personas buscadas.'
-                : '2. The system searches your name in the missing persons database.'}<br />
+                ? '2. El sistema busca tu nombre en la base de personas buscadas y encontradas.'
+                : '2. The system searches your name in the missing and found persons database.'}<br />
               {es
-                ? '3. Si hay coincidencias, te mostramos los datos para que puedas contactar a quienes te buscan.'
-                : '3. If there are matches, we show the info so you can contact those looking for you.'}<br />
+                ? '3. Tus datos de contacto quedan PRIVADOS por defecto — nadie puede ver tu teléfono ni email.'
+                : '3. Your contact data stays PRIVATE by default — no one can see your phone or email.'}<br />
               {es
-                ? '4. Tus datos quedan guardados para futuras búsquedas y notificaciones.'
-                : '4. Your data stays saved for future searches and notifications.'}
+                ? '4. Si alguien quiere contactarte, solicita una conexión, y tú decides si la apruebas.'
+                : '4. If someone wants to contact you, they request a connection, and you decide whether to approve it.'}<br />
+              {es
+                ? '5. Solo cuando tú apruebas se comparte tu información de contacto con esa persona.'
+                : '5. Your contact info is only shared once you approve the connection.'}
             </p>
           </div>
         )}

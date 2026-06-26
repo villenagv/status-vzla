@@ -4,12 +4,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 const TEMPLATES = {
   nueva_coincidencia_persona: {
     es: {
-      subject: '🚨 Posible coincidencia encontrada para tu búsqueda',
-      body: (nombre, enlace) => `Hola,\n\nSe ha reportado a una persona que podría coincidir con tu búsqueda de "${nombre}".\n\nPor favor, revisa la información en el siguiente enlace y confirma si se trata de la misma persona:\n${enlace}\n\nGracias por usar Status Venezuela.`,
+      subject: '🔍 Posible coincidencia para tu búsqueda',
+      body: (nombre, enlace, estado, notas) => `Hola,\n\nSe registró a una persona con un nombre similar a "${nombre}".\n\n${notas || ''}\n\nRevisa en el perfil e indica si crees que es la misma persona. Status Venezuela SOLO compartirá los datos de contacto de esta persona si ella acepta la conexión.\n\nVer más detalles en:\n${enlace}\n\nStatus Venezuela.`,
     },
     en: {
-      subject: '🚨 Possible match found for your search',
-      body: (nombre, enlace) => `Hello,\n\nA person has been reported who may match your search for "${nombre}".\n\nPlease review the information at the following link and confirm if it is the same person:\n${enlace}\n\nThank you for using Status Venezuela.`,
+      subject: '🔍 Possible match for your search',
+      body: (nombre, enlace, estado, notas) => `Hello,\n\nA person has been registered with a name similar to "${nombre}".\n\n${notas || ''}\n\nPlease check the profile and confirm if it is the same person. Status Venezuela will ONLY share this person's contact details if they accept the connection.\n\nSee more details at:\n${enlace}\n\nThank you for using Status Venezuela.`,
     },
   },
   actualizacion_suscripcion: {

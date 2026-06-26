@@ -18,7 +18,7 @@ function similitudNombre(a, b) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { nombre, telefono, email, red_social, ciudad, estado_region } = await req.json();
+    const { nombre, telefono, email, red_social, red_social_tipo, ciudad, estado_region, aceptar_conexion } = await req.json();
 
     if (!nombre) {
       return Response.json({ error: 'nombre es requerido' }, { status: 400 });
@@ -27,9 +27,6 @@ Deno.serve(async (req) => {
     const matches = [];
     const buscadas = await base44.asServiceRole.entities.PersonasBuscadas.filter({ estado_caso: 'buscando' });
     const encontradas = await base44.asServiceRole.entities.PersonasEncontradas.list();
-
-    // Nombres inversos para buscar apellidos separados
-    const nParts = normalizar(nombre).split(/\s+/).filter(Boolean);
 
     // Buscar coincidencias de nombre en buscadas
     for (const p of buscadas) {
@@ -44,7 +41,6 @@ Deno.serve(async (req) => {
           ultima_ubicacion_conocida: p.ultima_ubicacion_conocida || '',
           ciudad: p.ciudad || '',
           estado_region: p.estado_region || '',
-          contacto: p.contacto_telefono || '',
           estado_caso: p.estado_caso || 'buscando',
           nivel_similitud: Math.round(sim * 100),
           id_origen: p.id,
@@ -52,7 +48,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Buscar en encontradas
+    // Buscar en encontradas (sin contacto, porque es info del reportante)
     for (const p of encontradas) {
       const sim = similitudNombre(nombre, p.nombre_o_descripcion || p.nombre_completo || '');
       if (sim > 0.6) {
@@ -69,34 +65,36 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Si hay más de una coincidencia fuerte, también verificar zona/ubicación
     matches.sort((a, b) => b.nivel_similitud - a.nivel_similitud);
 
-    // Guardar el cruce en la base
-    await base44.asServiceRole.entities.CruceBusqueda.create({
+    // Guardar el cruce en la base — estado_privacidad = reservado por defecto
+    const cruce = await base44.asServiceRole.entities.CruceBusqueda.create({
       nombre_creador: nombre,
       telefono: telefono || '',
       email: email || '',
       red_social: red_social || '',
+      red_social_tipo: red_social_tipo || '',
       ciudad: ciudad || '',
       estado_region: estado_region || '',
       persona_resultados: matches,
       resultado_mensaje: matches.length > 0
-        ? `Encontramos ${matches.length} posible${matches.length > 1 ? 's' : ''} coincidencia${matches.length > 1 ? 's' : ''} en la base de búsqueda. Revisa los resultados y ponte en contacto.`
+        ? `Encontramos ${matches.length} posible${matches.length > 1 ? 's' : ''} coincidencia${matches.length > 1 ? 's' : ''} en la base de búsqueda.`
         : 'No encontramos coincidencias directas. Tu registro quedó guardado para futuros cruces.',
       fondo: 'ciudadano',
+      estado_privacidad: aceptar_conexion === true ? 'conexion_solicitada' : 'reservado',
     });
 
-    // Notificar a los buscadores/familiares cuando hay una alta coincidencia
+    // Notificar a buscadores — SOLO nombre y nivel de coincidencia, NO datos de contacto
     if (matches.length > 0 && matches[0].nivel_similitud > 75) {
-      // Intentar notificar vía notificarTodo usando un cruce como persona
       await base44.asServiceRole.functions.invoke('notificarCoincidencia', {
         tipo_notificacion: 'nueva_coincidencia_persona',
         entidad_id: matches[0].id_origen,
         datos: {
           nombre: nombre,
           estado: 'Posible coincidencia',
-          notas: `Una persona se registró con datos que coinciden con "${matches[0].nombre}". Contacto: ${telefono || email || red_social || 'sin datos de contacto'}`,
+          notas: `Alguien se registró con un nombre que coincide con "${matches[0].nombre}" (${matches[0].nivel_similitud}% coincidencia). Para contactar a esta persona, solicita una conexión desde el perfil y esta deberá aceptarla para compartir su contacto.`,
+          cruce_id: cruce.id,
+          aceptar_conexion: true,
         },
       }).catch(() => {});
     }

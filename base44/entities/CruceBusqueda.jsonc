@@ -35,6 +35,15 @@
     "fondo": {
       "type": "string",
       "default": "ciudadano"
+    },
+    "estado_privacidad": {
+      "type": "string",
+      "enum": [
+        "reservado",
+        "conexion_solicitada",
+        "conexion_aceptada"
+      ],
+      "default": "reservado"
     }
   },
   "required": []
