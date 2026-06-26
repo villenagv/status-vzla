@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Phone, MapPin, Clock, Search, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, Phone, MapPin, Clock, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+import { AlertTriangle } from 'lucide-react';
 
 const PAGE_SIZE = 12;
 
@@ -57,6 +58,9 @@ export default function CentrosApoyo() {
   const [filtro, setFiltro] = useState('todo');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [personasPorCentro, setPersonasPorCentro] = useState({});
+  const [expandidos, setExpandidos] = useState({});
+  const [cargandoPersonas, setCargandoPersonas] = useState({});
 
   useEffect(() => {
     base44.entities.PuntosAyuda.list('-updated_date', 200)
@@ -64,6 +68,26 @@ export default function CentrosApoyo() {
       .catch(() => {})
       .finally(() => setCargando(false));
   }, []);
+
+  const togglePersonas = async (centroId, nombreCentro) => {
+    const yaExpandido = expandidos[centroId];
+    setExpandidos(prev => ({ ...prev, [centroId]: !yaExpandido }));
+    if (!yaExpandido && !personasPorCentro[centroId]) {
+      setCargandoPersonas(prev => ({ ...prev, [centroId]: true }));
+      try {
+        // Buscar por centro_apoyo o por institucion_nombre
+        const porCentro = await base44.entities.PersonaRegistrada.filter({ centro_apoyo: centroId }, '-created_date', 100);
+        const porNombre = await base44.entities.PersonaRegistrada.filter({ institucion_nombre: nombreCentro }, '-created_date', 100);
+        // Unificar sin duplicados por id
+        const map = {};
+        [...porCentro, ...porNombre].forEach(p => { map[p.id] = p; });
+        setPersonasPorCentro(prev => ({ ...prev, [centroId]: Object.values(map) }));
+      } catch {
+        setPersonasPorCentro(prev => ({ ...prev, [centroId]: [] }));
+      }
+      setCargandoPersonas(prev => ({ ...prev, [centroId]: false }));
+    }
+  };
 
   const filtrados = centros.filter(c => {
     const matchFiltro = filtro === 'todo' || (TIPO_A_FILTRO[c.tipo_lugar] === filtro) || c.tipo_entidad?.toLowerCase().includes(filtro);
@@ -278,6 +302,92 @@ export default function CentrosApoyo() {
                     </a>
                   )}
                 </div>
+
+                {/* Botón ver personas */}
+                <button
+                  onClick={() => togglePersonas(c.id, c.nombre_lugar)}
+                  className="w-full mt-3 flex items-center justify-between border border-[#EDEBE8] rounded-lg px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Users size={12} />
+                    {es ? 'Ver personas registradas en este centro' : 'View people registered at this center'}
+                    {c.personas_actuales > 0 && (
+                      <span className="bg-[#2471A3] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                        {c.personas_actuales}
+                      </span>
+                    )}
+                  </span>
+                  {expandidos[c.id] ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                </button>
+
+                {/* Panel de personas */}
+                {expandidos[c.id] && (
+                  <div className="mt-2 border border-[#EDEBE8] rounded-xl overflow-hidden">
+                    {cargandoPersonas[c.id] ? (
+                      <div className="text-center py-4 text-xs text-gray-400">
+                        {es ? 'Cargando personas...' : 'Loading people...'}
+                      </div>
+                    ) : !personasPorCentro[c.id]?.length ? (
+                      <div className="text-center py-4 text-xs text-gray-400">
+                        <p>{es ? 'Aún no hay personas registradas en este centro.' : 'No people registered at this center yet.'}</p>
+                        <Link to="/registro-institucional" className="text-[#2471A3] underline mt-1 inline-block">
+                          {es ? '+ Registrar listado' : '+ Register list'}
+                        </Link>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="bg-gray-50 border-b border-[#EDEBE8] px-3 py-2">
+                          <p className="text-[11px] font-bold text-gray-600">
+                            👤 {personasPorCentro[c.id].length} {es ? 'personas registradas' : 'registered people'}
+                            {' · '}
+                            <span className="font-normal text-gray-400">
+                              {es ? '🔒 Datos privados no son visibles' : '🔒 Private data not visible'}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto">
+                          <table className="w-full text-xs">
+                            <thead className="bg-white border-b border-[#EDEBE8] sticky top-0">
+                              <tr>
+                                <th className="text-left px-3 py-1.5 text-gray-400 font-semibold">{es ? 'Nombre' : 'Name'}</th>
+                                <th className="text-left px-3 py-1.5 text-gray-400 font-semibold">{es ? 'Condición' : 'Condition'}</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#EDEBE8]">
+                              {personasPorCentro[c.id].slice(0, 50).map(p => {
+                                const COND = {
+                                  a_salvo: { label: { es: 'A salvo', en: 'Safe' }, cls: 'bg-green-100 text-green-700' },
+                                  herido_leve: { label: { es: 'Herido leve', en: 'Minor injury' }, cls: 'bg-yellow-100 text-yellow-700' },
+                                  herido_grave: { label: { es: 'Herido grave', en: 'Serious injury' }, cls: 'bg-orange-100 text-orange-700' },
+                                  fallecido_reportado: { label: { es: 'Fallecido', en: 'Death rep.' }, cls: 'bg-gray-200 text-gray-600' },
+                                  no_sabe: { label: { es: 'No se sabe', en: 'Unknown' }, cls: 'bg-gray-100 text-gray-500' },
+                                };
+                                const cond = COND[p.condicion] || COND.no_sabe;
+                                return (
+                                  <tr key={p.id} className="hover:bg-gray-50">
+                                    <td className="px-3 py-2 font-medium text-[#1A1F2E] truncate max-w-[150px]">{p.nombre_completo}</td>
+                                    <td className="px-3 py-2">
+                                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cond.cls}`}>
+                                        {es ? cond.label.es : cond.label.en}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                              {personasPorCentro[c.id].length > 50 && (
+                                <tr>
+                                  <td colSpan={2} className="text-center py-2 text-[10px] text-gray-400">
+                                    +{personasPorCentro[c.id].length - 50} {es ? 'más' : 'more'}
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

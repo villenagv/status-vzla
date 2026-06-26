@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload, CheckCircle, AlertCircle, Loader2, FileText, RotateCcw, Users } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Loader2, FileText, RotateCcw, Users, AlertTriangle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { base44 } from '@/api/base44Client';
 
@@ -48,7 +48,7 @@ function parseFile(file) {
           })
           .map((r, i) => ({
             _id: i,
-            _estado: 'pendiente', // pendiente | procesando | ok | error
+            _estado: 'pendiente',
             nombre_completo: findCol(r, 'nombre completo', 'nombre', 'full name', 'name', 'nombre_completo'),
             fecha_nacimiento: findCol(r, 'fecha de nacimiento', 'fecha nacimiento', 'nacimiento', 'date of birth', 'fecha_nacimiento'),
             telefono_contacto: findCol(r, 'teléfono de contacto', 'telefono de contacto', 'teléfono', 'telefono', 'phone', 'telefono_contacto'),
@@ -71,16 +71,64 @@ const CONDICION_LABEL = {
   herido_leve: { es: 'Herido leve', en: 'Minor injury', color: 'bg-yellow-100 text-yellow-700' },
   herido_grave: { es: 'Herido grave', en: 'Serious injury', color: 'bg-orange-100 text-orange-700' },
   fallecido_reportado: { es: 'Fallecido', en: 'Death rep.', color: 'bg-gray-200 text-gray-600' },
-  no_identificado: { es: 'No identificado', en: 'Unidentified', color: 'bg-purple-100 text-purple-700' },
+  no_identificado: { es: 'No identif.', en: 'Unidentified', color: 'bg-purple-100 text-purple-700' },
   no_sabe: { es: 'No se sabe', en: 'Unknown', color: 'bg-gray-100 text-gray-500' },
 };
 
-export default function ProcesadorProgresivo({ es, instId, instNombre, onPersonasGuardadas }) {
+// Busca o crea un PuntoAyuda para esta institución
+async function resolverCentroApoyo(instId, instNombre, instTipo, ciudad, estado, es, onDuplicado) {
+  // Buscar si ya existe un punto de ayuda vinculado a esta institución
+  const todos = await base44.entities.PuntosAyuda.filter({ nombre_lugar: instNombre });
+  const similares = todos.filter(p =>
+    p.nombre_lugar?.toLowerCase().trim() === instNombre.toLowerCase().trim() ||
+    p.fuente === instId
+  );
+
+  if (similares.length > 0) {
+    // Existe — preguntar si es duplicado
+    return new Promise((resolve) => {
+      onDuplicado(similares[0], (decision) => {
+        if (decision === 'actualizar') {
+          // Actualizar personas_actuales
+          base44.entities.PuntosAyuda.update(similares[0].id, {
+            ultima_actualizacion: new Date().toISOString(),
+            requiere_actualizacion: false,
+          }).catch(() => {});
+        }
+        resolve(similares[0].id);
+      });
+    });
+  }
+
+  // No existe — crear nuevo PuntoAyuda
+  const tipoMap = {
+    refugio: 'refugio', hospital: 'hospital', centro_acopio: 'centro_acopio',
+    comedor: 'comedor', otro: 'refugio',
+  };
+  const nuevo = await base44.entities.PuntosAyuda.create({
+    nombre_lugar: instNombre,
+    tipo_lugar: tipoMap[instTipo] || 'refugio',
+    tipo_entidad: instTipo,
+    estado_operativo: 'abierto',
+    ciudad: ciudad || '',
+    estado_region: estado || '',
+    fuente: instId,
+    nivel_verificacion: 'institucional',
+    ultima_actualizacion: new Date().toISOString(),
+  });
+  return nuevo.id;
+}
+
+export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo, ciudad, estado, onPersonasGuardadas }) {
   const [archivo, setArchivo] = useState(null);
-  const [filas, setFilas] = useState([]); // parsed rows with _estado
+  const [filas, setFilas] = useState([]);
   const [parseError, setParseError] = useState('');
   const [procesando, setProcesando] = useState(false);
   const [completado, setCompletado] = useState(false);
+
+  // Estado para diálogo de duplicado
+  const [duplicadoData, setDuplicadoData] = useState(null); // { centroExistente, resolve }
+
   const inputRef = useRef();
 
   const okCount = filas.filter(f => f._estado === 'ok').length;
@@ -114,10 +162,23 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
     setProcesando(true);
     setCompletado(false);
 
+    // Resolver centro de apoyo primero
+    let centroId = null;
+    try {
+      centroId = await resolverCentroApoyo(
+        instId, instNombre, instTipo, ciudad, estado, es,
+        (centroExistente, resolveFn) => {
+          setDuplicadoData({ centroExistente, resolveFn });
+        }
+      );
+    } catch {
+      centroId = null;
+    }
+
     const nuevas = [];
     for (let i = 0; i < filas.length; i++) {
       const fila = filas[i];
-      if (fila._estado === 'ok') continue; // ya guardada, skip
+      if (fila._estado === 'ok') continue;
 
       setFilas(prev => prev.map((f, idx) => idx === i ? { ...f, _estado: 'procesando' } : f));
 
@@ -131,6 +192,7 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
           observaciones: fila.observaciones,
           institucion_id: instId,
           institucion_nombre: instNombre,
+          centro_apoyo: centroId || '',
           nivel_verificacion: 'institucional',
           fuente: 'institucional',
         });
@@ -139,9 +201,15 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
       } catch {
         setFilas(prev => prev.map((f, idx) => idx === i ? { ...f, _estado: 'error' } : f));
       }
-
-      // pequeña pausa entre requests para no saturar en baja conectividad
       await new Promise(r => setTimeout(r, 150));
+    }
+
+    // Actualizar contador de personas en PuntoAyuda
+    if (centroId && nuevas.length > 0) {
+      base44.entities.PuntosAyuda.update(centroId, {
+        personas_actuales: nuevas.length,
+        ultima_actualizacion: new Date().toISOString(),
+      }).catch(() => {});
     }
 
     setProcesando(false);
@@ -151,7 +219,6 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
 
   const reintentarErrores = async () => {
     if (procesando) return;
-    // reset errores a pendiente
     setFilas(prev => prev.map(f => f._estado === 'error' ? { ...f, _estado: 'pendiente' } : f));
     await new Promise(r => setTimeout(r, 50));
     await procesarTodo();
@@ -167,19 +234,63 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
   };
 
   return (
-    <div className="bg-white border border-[#EDEBE8] rounded-xl p-4 space-y-4">
+    <div className="bg-white border border-[#2471A3] rounded-xl p-4 space-y-4">
+      {/* Diálogo duplicado */}
+      {duplicadoData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-xl">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={18} className="text-[#D48C2E] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-[#1A1F2E]">
+                  {es ? '⚠️ Ya existe un centro con este nombre' : '⚠️ A center with this name already exists'}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {es
+                    ? `"${duplicadoData.centroExistente.nombre_lugar}" ya está registrado en ${duplicadoData.centroExistente.ciudad || 'el sistema'}. ¿Qué deseas hacer?`
+                    : `"${duplicadoData.centroExistente.nombre_lugar}" is already registered in ${duplicadoData.centroExistente.ciudad || 'the system'}. What do you want to do?`}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => { const fn = duplicadoData.resolveFn; setDuplicadoData(null); fn('actualizar'); }}
+                className="w-full bg-[#2471A3] text-white font-bold py-3 rounded-xl text-sm"
+              >
+                {es ? '🔄 Actualizar el centro existente' : '🔄 Update existing center'}
+              </button>
+              <button
+                onClick={() => { const fn = duplicadoData.resolveFn; setDuplicadoData(null); fn('nuevo'); }}
+                className="w-full border border-[#EDEBE8] text-gray-700 font-semibold py-3 rounded-xl text-sm"
+              >
+                {es ? '+ Crear como centro nuevo' : '+ Create as new center'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-2">
         <Users size={16} className="text-[#2471A3]" />
         <h3 className="text-sm font-bold text-[#1A1F2E]">
-          {es ? '⚡ Modo bajo consumo — procesar persona por persona' : '⚡ Low-bandwidth mode — process one by one'}
+          {es ? 'Opción B — Procesar archivo persona por persona' : 'Option B — Process file person by person'}
         </h3>
       </div>
-      <p className="text-xs text-gray-500 leading-relaxed">
-        {es
-          ? 'Sube tu archivo Excel o CSV. Lo leemos aquí mismo (sin internet) y luego guardamos cada persona una a una. Si la conexión falla, puedes reintentar solo los que fallaron.'
-          : 'Upload your Excel or CSV file. We read it locally (no internet needed) and then save each person one by one. If the connection fails, you can retry only the failed ones.'}
-      </p>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 space-y-1">
+        <p className="text-[11px] text-blue-800 font-semibold">
+          ⚡ {es ? '¿Tienes mala conexión? Esta opción es para ti.' : 'Poor connection? This option is for you.'}
+        </p>
+        <p className="text-[11px] text-blue-700 leading-relaxed">
+          {es
+            ? 'Leemos el archivo aquí mismo (sin internet). Luego guardamos cada persona una a una. Si falla la conexión, puedes reintentar solo los que fallaron.'
+            : 'We read the file locally (no internet needed). Then save each person one by one. If the connection fails, retry only the failed ones.'}
+        </p>
+        <p className="text-[11px] text-blue-600">
+          {es ? '✅ El centro de apoyo se creará o actualizará automáticamente.' : '✅ The aid center will be created or updated automatically.'}
+        </p>
+      </div>
 
       {/* Upload zone */}
       {!filas.length && (
@@ -213,17 +324,16 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
         </div>
       )}
 
-      {/* Preview de filas parseadas */}
+      {/* Preview + procesamiento */}
       {filas.length > 0 && (
         <div className="space-y-3">
-          {/* Resumen del archivo */}
           <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
             <div>
               <p className="text-xs font-bold text-blue-800">📄 {archivo?.name}</p>
               <p className="text-[11px] text-blue-600">
                 {filas.length} {es ? 'personas detectadas' : 'people detected'}
-                {okCount > 0 && ` · ${okCount} ${es ? 'guardadas' : 'saved'}`}
-                {errorCount > 0 && ` · ${errorCount} ${es ? 'con error' : 'with error'}`}
+                {okCount > 0 && ` · ✅ ${okCount}`}
+                {errorCount > 0 && ` · ❌ ${errorCount}`}
               </p>
             </div>
             {!procesando && !completado && (
@@ -245,24 +355,15 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: `${progreso}%`,
-                    background: errorCount > 0 && completado ? '#d48c2e' : '#1A7A4A',
-                  }}
+                  style={{ width: `${progreso}%`, background: errorCount > 0 && completado ? '#d48c2e' : '#1A7A4A' }}
                 />
               </div>
-              {completado && (
-                <p className="text-[11px] text-gray-500">
-                  {okCount} {es ? 'guardadas correctamente' : 'saved successfully'}
-                  {errorCount > 0 && ` · ${errorCount} ${es ? 'con error (usa Reintentar)' : 'with error (use Retry)'}`}
-                </p>
-              )}
             </div>
           )}
 
           {/* Tabla de filas */}
           <div className="border border-[#EDEBE8] rounded-xl overflow-hidden">
-            <div className="max-h-64 overflow-y-auto">
+            <div className="max-h-60 overflow-y-auto">
               <table className="w-full text-xs">
                 <thead className="bg-gray-50 border-b border-[#EDEBE8] sticky top-0">
                   <tr>
@@ -276,9 +377,13 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
                   {filas.map((f, i) => {
                     const cond = CONDICION_LABEL[f.condicion] || CONDICION_LABEL.no_sabe;
                     return (
-                      <tr key={f._id} className={f._estado === 'procesando' ? 'bg-blue-50' : f._estado === 'ok' ? 'bg-green-50' : f._estado === 'error' ? 'bg-red-50' : ''}>
+                      <tr key={f._id} className={
+                        f._estado === 'procesando' ? 'bg-blue-50' :
+                        f._estado === 'ok' ? 'bg-green-50' :
+                        f._estado === 'error' ? 'bg-red-50' : ''
+                      }>
                         <td className="px-3 py-2 text-gray-400">{i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-[#1A1F2E] truncate max-w-[120px]">{f.nombre_completo}</td>
+                        <td className="px-3 py-2 font-medium text-[#1A1F2E] max-w-[120px] truncate">{f.nombre_completo}</td>
                         <td className="px-3 py-2">
                           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cond.color}`}>
                             {es ? cond.es : cond.en}
@@ -298,16 +403,11 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
             </div>
           </div>
 
-          {/* Acciones */}
+          {/* Botones de acción */}
           {!completado && !procesando && (
-            <button
-              onClick={procesarTodo}
-              className="w-full bg-[#2471A3] text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2"
-            >
+            <button onClick={procesarTodo} className="w-full bg-[#2471A3] text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2">
               <FileText size={15} />
-              {es
-                ? `Guardar ${filas.length} personas — una por una`
-                : `Save ${filas.length} people — one by one`}
+              {es ? `Guardar ${filas.length} personas al centro` : `Save ${filas.length} people to center`}
             </button>
           )}
 
@@ -321,31 +421,23 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, onPersona
           )}
 
           {completado && errorCount > 0 && (
-            <button
-              onClick={reintentarErrores}
-              className="w-full bg-[#D48C2E] text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2"
-            >
+            <button onClick={reintentarErrores} className="w-full bg-[#D48C2E] text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
               <RotateCcw size={14} />
               {es ? `Reintentar ${errorCount} con error` : `Retry ${errorCount} with error`}
             </button>
           )}
 
-          {/* Mensaje de agradecimiento */}
           {completado && errorCount === 0 && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center space-y-1">
               <p className="text-2xl">🙏</p>
-              <p className="text-sm font-bold text-green-800">
-                {es ? '¡Gracias por tu ayuda!' : 'Thank you for your help!'}
-              </p>
+              <p className="text-sm font-bold text-green-800">{es ? '¡Gracias por tu ayuda!' : 'Thank you for your help!'}</p>
               <p className="text-xs text-green-700 leading-relaxed">
                 {es
-                  ? `Registraste ${okCount} persona${okCount !== 1 ? 's' : ''} bajo "${instNombre}". Esta información ayuda a las familias a encontrar a sus seres queridos.`
-                  : `You registered ${okCount} person${okCount !== 1 ? 's' : ''} under "${instNombre}". This information helps families find their loved ones.`}
+                  ? `${okCount} personas registradas bajo "${instNombre}". El centro de apoyo fue actualizado con esta información.`
+                  : `${okCount} people registered under "${instNombre}". The aid center was updated with this information.`}
               </p>
               <p className="text-[11px] text-green-600">
-                {es
-                  ? 'Los teléfonos y datos privados no se publicarán. Solo nombre y condición son visibles.'
-                  : 'Phones and private data will not be published. Only name and condition are visible.'}
+                {es ? '🔒 Los teléfonos no se publicarán. Solo nombre y condición son visibles.' : '🔒 Phones will not be published. Only name and condition are visible.'}
               </p>
             </div>
           )}

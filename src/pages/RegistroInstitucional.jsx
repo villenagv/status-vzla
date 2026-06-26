@@ -9,6 +9,8 @@ import TablaPersonas from '@/components/institucional/TablaPersonas';
 import FormularioManual from '@/components/institucional/FormularioManual';
 import PromptCopiable from '@/components/institucional/PromptCopiable';
 import ProcesadorProgresivo from '@/components/institucional/ProcesadorProgresivo';
+import SubidorArchivo from '@/components/institucional/SubidorArchivo';
+import PegadorTexto from '@/components/institucional/PegadorTexto';
 
 const TIPOS = [
   { val: 'refugio', es: 'Refugio', en: 'Shelter' },
@@ -295,74 +297,65 @@ export default function RegistroInstitucional() {
               </p>
             </div>
 
-            {/* OPCIÓN A: Subir foto/archivo */}
-            <div className="bg-white border border-[#EDEBE8] rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Camera size={16} className="text-[#D48C2E]" />
-                <h3 className="text-sm font-bold text-[#1A1F2E]">
-                  {es ? 'Opción A — Subir foto o archivo de lista' : 'Option A — Upload photo or file list'}
-                </h3>
-              </div>
-              <p className="text-xs text-gray-500">
-                {es
-                  ? 'Toma una foto de tu lista escrita a mano, o sube un archivo CSV/Excel. El sistema intentará leerla automáticamente.'
-                  : 'Take a photo of your handwritten list, or upload a CSV/Excel file. The system will try to read it automatically.'}
+            {/* Instrucciones generales */}
+            <div className="bg-[#F0F4FD] border border-[#B0C4E8] rounded-xl p-4 space-y-2">
+              <p className="text-sm font-bold text-[#1A1F2E]">
+                📋 {es ? '¿Cómo quieres subir tu listado?' : 'How do you want to upload your list?'}
               </p>
-
-              <div className="border-2 border-dashed border-[#EDEBE8] rounded-xl p-4 text-center">
-                <input
-                  type="file"
-                  accept=".csv,.xlsx,.xls,.txt"
-                  id="file-upload"
-                  className="hidden"
-                  onChange={e => { setArchivo(e.target.files[0]); setIndexError(''); }}
-                />
-                <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
-                  <Upload size={24} className="text-gray-400" />
-                  <span className="text-sm text-gray-500">
-                    {archivo
-                      ? <span className="font-semibold text-[#1A1F2E]">📄 {archivo.name}</span>
-                      : (es ? 'Toca para seleccionar foto o archivo' : 'Tap to select photo or file')}
-                  </span>
-                  <span className="text-[10px] text-gray-400">Excel (.xlsx) · CSV · TXT</span>
-                </label>
-              </div>
-
-              {archivo && (
-                <button
-                  onClick={indexarArchivo}
-                  disabled={indexando}
-                  className="w-full bg-[#D48C2E] disabled:opacity-50 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2"
-                >
-                  {indexando
-                    ? <><Loader2 size={15} className="animate-spin" /> {es ? 'Procesando con IA...' : 'Processing with AI...'}</>
-                    : <><FileText size={15} /> {es ? 'Leer lista con IA' : 'Read list with AI'}</>}
-                </button>
-              )}
-
-              {indexError && (
-                <div className="flex gap-2 bg-[#FDF1F0] border border-[#E8B4B0] rounded-xl p-3">
-                  <AlertCircle size={14} className="text-[#B83A52] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#B83A52]">{indexError}</p>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                {es
+                  ? 'Usa la opción que mejor se adapte a tu situación. El sistema actualizará automáticamente el centro de apoyo con la información registrada.'
+                  : 'Use the option that best fits your situation. The system will automatically update the aid center with the registered information.'}
+              </p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white border border-[#EDEBE8] rounded-lg px-2 py-2">
+                  <p className="text-lg">📁</p>
+                  <p className="text-[10px] font-semibold text-[#D48C2E]">{es ? 'A: Guardar archivo' : 'A: Save file'}</p>
+                  <p className="text-[9px] text-gray-400">{es ? 'Sin procesar' : 'Without processing'}</p>
                 </div>
-              )}
+                <div className="bg-white border border-[#B0C4E8] rounded-lg px-2 py-2">
+                  <p className="text-lg">⚡</p>
+                  <p className="text-[10px] font-semibold text-[#2471A3]">{es ? 'B: Procesar Excel/CSV' : 'B: Process Excel/CSV'}</p>
+                  <p className="text-[9px] text-gray-400">{es ? 'Uno a uno' : 'One by one'}</p>
+                </div>
+                <div className="bg-white border border-[#EDEBE8] rounded-lg px-2 py-2">
+                  <p className="text-lg">📝</p>
+                  <p className="text-[10px] font-semibold text-[#6C3483]">{es ? 'C: Copiar y pegar' : 'C: Copy & paste'}</p>
+                  <p className="text-[9px] text-gray-400">{es ? 'Texto libre' : 'Free text'}</p>
+                </div>
+              </div>
             </div>
 
-            {/* OPCIÓN B: Bajo consumo — procesamiento progresivo */}
+            {/* OPCIÓN A: Solo guardar archivo sin procesar */}
+            <SubidorArchivo es={es} />
+
+            {/* OPCIÓN B: Procesamiento progresivo con centro de apoyo */}
             <ProcesadorProgresivo
               es={es}
               instId={instId}
               instNombre={inst.institucion_nombre}
+              instTipo={inst.institucion_tipo}
+              ciudad={inst.institucion_ciudad}
+              estado={inst.institucion_estado}
               onPersonasGuardadas={(n) => {
-                // Notifica cuántas se guardaron sin bloquear el flujo
                 if (n > 0) setPaso(PASO_CONFIRMACION);
               }}
             />
 
-            {/* OPCIÓN C: Prompt para ChatGPT */}
+            {/* OPCIÓN C: Copiar y pegar texto */}
+            <PegadorTexto
+              es={es}
+              instId={instId}
+              instNombre={inst.institucion_nombre}
+              onGuardado={(n) => {
+                if (n > 0) setPaso(PASO_CONFIRMACION);
+              }}
+            />
+
+            {/* Prompt IA */}
             <PromptCopiable es={es} />
 
-            {/* OPCIÓN C: Manual */}
+            {/* Manual */}
             <FormularioManual es={es} onAgregar={agregarPersona} />
 
             {/* Tabla borrador */}
