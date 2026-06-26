@@ -1,0 +1,102 @@
+{
+  "name": "PersonaCRIS",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string"
+    },
+    "apellido": {
+      "type": "string"
+    },
+    "apodo": {
+      "type": "string"
+    },
+    "edad_aproximada": {
+      "type": "string"
+    },
+    "sexo": {
+      "type": "string"
+    },
+    "ultimos_4_cedula": {
+      "type": "string"
+    },
+    "telefono_parcial": {
+      "type": "string"
+    },
+    "foto_url": {
+      "type": "string"
+    },
+    "descripcion_fisica": {
+      "type": "string"
+    },
+    "ropa_descripcion": {
+      "type": "string"
+    },
+    "estado_actual": {
+      "type": "string",
+      "enum": [
+        "estoy_aqui",
+        "a_salvo",
+        "necesita_ayuda",
+        "atencion_urgente",
+        "herido",
+        "encontrado",
+        "visto",
+        "trasladado",
+        "en_hospital",
+        "en_refugio",
+        "buscado_por_familiar",
+        "familiar_fuera_zona",
+        "no_identificado",
+        "informacion_incompleta",
+        "pendiente_identificacion",
+        "pendiente_confirmacion_familiar",
+        "pendiente_confirmacion_institucional",
+        "posible_fallecimiento",
+        "fallecido_no_confirmado",
+        "fallecido_confirmado_institucion",
+        "fallecido_confirmado_familiar"
+      ],
+      "default": "informacion_incompleta"
+    },
+    "nivel_verificacion": {
+      "type": "string",
+      "enum": [
+        "sin_verificar",
+        "comunidad",
+        "familiar",
+        "institucional"
+      ],
+      "default": "sin_verificar"
+    },
+    "codigo_cris": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "ubicacion_texto": {
+      "type": "string"
+    },
+    "ultima_ubicacion_conocida": {
+      "type": "string"
+    },
+    "es_menor": {
+      "type": "boolean",
+      "default": false
+    },
+    "condicion_especial": {
+      "type": "string"
+    },
+    "fuente_inicial": {
+      "type": "string"
+    },
+    "notas_publicas": {
+      "type": "string"
+    }
+  },
+  "required": []
+}

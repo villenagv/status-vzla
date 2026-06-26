@@ -1,0 +1,81 @@
+{
+  "name": "EventoHistorial",
+  "type": "object",
+  "properties": {
+    "persona_id": {
+      "type": "string"
+    },
+    "tipo_evento": {
+      "type": "string",
+      "enum": [
+        "reportado",
+        "visto",
+        "encontrado",
+        "atendido",
+        "trasladado",
+        "recibido_hospital",
+        "recibido_refugio",
+        "familiar_notificado",
+        "confirmado",
+        "posible_fallecimiento",
+        "fallecimiento_confirmado",
+        "actualizado",
+        "estoy_aqui",
+        "busqueda_familiar"
+      ]
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "ubicacion_texto": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "fuente": {
+      "type": "string",
+      "enum": [
+        "familiar",
+        "vecino",
+        "voluntario",
+        "institucion",
+        "anonimo",
+        "hospital",
+        "refugio",
+        "proteccion_civil",
+        "bomberos",
+        "no_verificado"
+      ]
+    },
+    "nivel_confianza": {
+      "type": "string",
+      "enum": [
+        "bajo",
+        "medio",
+        "alto",
+        "confirmado"
+      ],
+      "default": "bajo"
+    },
+    "es_sensible": {
+      "type": "boolean",
+      "default": false
+    },
+    "verificado_por": {
+      "type": "string"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "reportante_nombre": {
+      "type": "string"
+    },
+    "reportante_contacto": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tipo_evento"
+  ]
+}

@@ -21,6 +21,9 @@ import ReportarEncontrado from './pages/ReportarEncontrado';
 import ActualizarEstado from './pages/ActualizarEstado';
 import Dashboard from './pages/Dashboard';
 import RegistroInstitucional from './pages/RegistroInstitucional';
+import EstoyAqui from './pages/EstoyAqui';
+import ZonaAfectada from './pages/ZonaAfectada';
+import FueraZona from './pages/FueraZona';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -36,6 +39,9 @@ const PublicApp = () => (
     <Route path="/actualizar-estado" element={<ActualizarEstado />} />
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/registro-institucional" element={<RegistroInstitucional />} />
+    <Route path="/estoy-aqui" element={<EstoyAqui />} />
+    <Route path="/zona-afectada" element={<ZonaAfectada />} />
+    <Route path="/fuera-zona" element={<FueraZona />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );

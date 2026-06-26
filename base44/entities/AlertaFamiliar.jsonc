@@ -1,0 +1,90 @@
+{
+  "name": "AlertaFamiliar",
+  "type": "object",
+  "properties": {
+    "persona_buscada_nombre": {
+      "type": "string"
+    },
+    "persona_buscada_apellido": {
+      "type": "string"
+    },
+    "persona_buscada_apodo": {
+      "type": "string"
+    },
+    "persona_buscada_edad": {
+      "type": "string"
+    },
+    "persona_buscada_sexo": {
+      "type": "string"
+    },
+    "persona_buscada_descripcion": {
+      "type": "string"
+    },
+    "persona_buscada_ropa": {
+      "type": "string"
+    },
+    "ultima_ubicacion": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "fecha_ultimo_contacto": {
+      "type": "string"
+    },
+    "condicion_especial": {
+      "type": "string"
+    },
+    "foto_url": {
+      "type": "string"
+    },
+    "familiar_nombre": {
+      "type": "string"
+    },
+    "familiar_relacion": {
+      "type": "string"
+    },
+    "familiar_telefono": {
+      "type": "string"
+    },
+    "familiar_whatsapp": {
+      "type": "string"
+    },
+    "familiar_email": {
+      "type": "string"
+    },
+    "familiar_ciudad": {
+      "type": "string"
+    },
+    "familiar_pais": {
+      "type": "string"
+    },
+    "esta_fuera_zona": {
+      "type": "boolean",
+      "default": false
+    },
+    "mensaje_para_buscado": {
+      "type": "string"
+    },
+    "persona_cris_id": {
+      "type": "string"
+    },
+    "estado_alerta": {
+      "type": "string",
+      "enum": [
+        "activa",
+        "posible_coincidencia",
+        "encontrado",
+        "cerrada"
+      ],
+      "default": "activa"
+    }
+  },
+  "required": [
+    "persona_buscada_nombre",
+    "familiar_telefono"
+  ]
+}

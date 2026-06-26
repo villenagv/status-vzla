@@ -1,0 +1,73 @@
+{
+  "name": "TrasladoCRIS",
+  "type": "object",
+  "properties": {
+    "persona_id": {
+      "type": "string"
+    },
+    "lugar_origen": {
+      "type": "string"
+    },
+    "lugar_destino_tipo": {
+      "type": "string",
+      "enum": [
+        "hospital",
+        "cdi_ambulatorio",
+        "refugio",
+        "escuela",
+        "iglesia",
+        "proteccion_civil",
+        "bomberos",
+        "morgue_forense",
+        "otro",
+        "no_sabe"
+      ]
+    },
+    "lugar_destino_nombre": {
+      "type": "string"
+    },
+    "lugar_destino_referencia": {
+      "type": "string"
+    },
+    "hora_traslado": {
+      "type": "string"
+    },
+    "medio_traslado": {
+      "type": "string",
+      "enum": [
+        "ambulancia",
+        "bomberos",
+        "proteccion_civil",
+        "vecinos",
+        "moto",
+        "vehiculo_particular",
+        "caminando",
+        "no_sabe"
+      ]
+    },
+    "trasladado_por": {
+      "type": "string"
+    },
+    "recibido_por": {
+      "type": "string"
+    },
+    "observaciones": {
+      "type": "string"
+    },
+    "estado_verificacion": {
+      "type": "string",
+      "enum": [
+        "no_verificado",
+        "confirmado"
+      ],
+      "default": "no_verificado"
+    },
+    "es_sensible": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "persona_id"
+  ]
+}
