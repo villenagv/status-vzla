@@ -21,6 +21,7 @@ Deno.serve(async (req) => {
       { clave: 'personas_atrapadas', valor: reportes.filter(r => r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces' || r.personas_atrapadas === 'posible').length },
       { clave: 'busquedas_activas', valor: personasBuscadas.filter(p => p.estado_caso === 'buscando').length },
       { clave: 'personas_encontradas', valor: personasEncontradas.length },
+      { clave: 'fallecidos_reportados', valor: personasBuscadas.filter(p => p.estado_caso === 'fallecido_reportado').length },
       { clave: 'puntos_ayuda', valor: puntos.filter(p => p.estado_operativo === 'abierto').length },
     ];
 

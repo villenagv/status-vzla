@@ -18,6 +18,7 @@ export async function getContadores() {
   const puntosSaturados = puntos.filter(p => p.estado_operativo === 'saturado').length;
   const personasBuscando = personas.filter(p => p.estado_caso === 'buscando').length;
   const personasEncontradas = personas.filter(p => p.estado_caso === 'encontrado_con_vida').length;
+  const fallecidos = personas.filter(p => p.estado_caso === 'fallecido_reportado').length;
 
   const result = {
     total_reportes: reportes.length,
@@ -28,6 +29,7 @@ export async function getContadores() {
     puntos_saturados: puntosSaturados,
     personas_buscando: personasBuscando,
     personas_encontradas: personasEncontradas,
+    fallecidos,
   };
 
   setCached('contadores_globales', result);

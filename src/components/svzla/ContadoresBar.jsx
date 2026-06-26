@@ -62,6 +62,16 @@ export default function ContadoresBar() {
 
           <span className="text-gray-700">·</span>
 
+          {data.fallecidos > 0 && (
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-gray-500" />
+              <strong className="text-gray-400">{data.fallecidos}</strong>
+              <span className="text-gray-500">{es ? 'fallecimientos reportados' : 'deaths reported'}</span>
+            </span>
+          )}
+
+          <span className="text-gray-700">·</span>
+
           <span className="flex items-center gap-1.5">
             <Heart size={11} className="text-green-400" />
             <strong className="text-green-300">{data.puntos_abiertos}</strong>

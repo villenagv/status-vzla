@@ -18,6 +18,8 @@ export default function ContadoresEntrada() {
         ]);
         const criticos = reportes.filter(r => r.prioridad === 'critica').length;
         const conAtrapados = reportes.filter(r => r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces').length;
+        const fallecidosReportados = personas.filter(p => p.estado_caso === 'fallecido_reportado').length +
+          encontrados.filter(e => e.condicion === 'fallecido_reportado').length;
         setDatos({
           edificios: reportes.length,
           criticos,
@@ -25,6 +27,7 @@ export default function ContadoresEntrada() {
           buscados: personas.length,
           encontrados: encontrados.length,
           puntos: puntos.length,
+          fallecidos: fallecidosReportados,
         });
       } catch {}
     };
@@ -33,13 +36,21 @@ export default function ContadoresEntrada() {
 
   if (!datos) return (
     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6">
-      {[...Array(6)].map((_, i) => (
+      {[...Array(7)].map((_, i) => (
         <div key={i} className="bg-gray-100 rounded-xl h-16 animate-pulse" />
       ))}
     </div>
   );
 
   const items = [
+    {
+      val: datos.fallecidos,
+      icon: '⚫',
+      label: { es: 'Fallecidos reportados', en: 'Deaths reported' },
+      color: 'text-gray-800',
+      bg: 'bg-gray-100',
+      border: 'border-gray-200',
+    },
     {
       val: datos.edificios,
       icon: '🏗️',
