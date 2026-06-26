@@ -41,6 +41,7 @@ export default function Institucional() {
     servicios_disponibles: [], necesidades_urgentes: '',
     direccion: '', ciudad: '', estado_region: '',
     telefono_publico: '', whatsapp: '',
+    instagram: '', facebook: '', telegram: '', sitio_web: '',
     descripcion_como_llegar: '',
     opera_24h: false,
     horario_apertura: '', horario_cierre: '',
@@ -261,6 +262,54 @@ export default function Institucional() {
               onChange={e => set('whatsapp', e.target.value)}
               className="w-full border border-[#EDEBE8] rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
             />
+          </div>
+
+          {/* Redes sociales */}
+          <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-3">
+            <h3 className="text-base font-black text-[#1A1F2E]">
+              🌐 {lang === 'es' ? 'Redes sociales y contacto digital' : 'Social media & online contact'}
+            </h3>
+            <p className="text-xs text-gray-400">
+              {lang === 'es' ? 'Opcional. Ayuda a que la gente te encuentre y verifique.' : 'Optional. Helps people find and verify you.'}
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-base w-6 text-center">📸</span>
+                <input
+                  placeholder="Instagram: @nombre_del_sitio"
+                  value={form.instagram}
+                  onChange={e => set('instagram', e.target.value)}
+                  className="flex-1 border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-base w-6 text-center">📘</span>
+                <input
+                  placeholder="Facebook: facebook.com/pagina"
+                  value={form.facebook}
+                  onChange={e => set('facebook', e.target.value)}
+                  className="flex-1 border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-base w-6 text-center">✈️</span>
+                <input
+                  placeholder="Telegram: t.me/canal o @usuario"
+                  value={form.telegram}
+                  onChange={e => set('telegram', e.target.value)}
+                  className="flex-1 border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-base w-6 text-center">🔗</span>
+                <input
+                  placeholder={lang === 'es' ? 'Sitio web: https://...' : 'Website: https://...'}
+                  value={form.sitio_web}
+                  onChange={e => set('sitio_web', e.target.value)}
+                  className="flex-1 border border-[#EDEBE8] rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Horarios */}
