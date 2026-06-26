@@ -2,9 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const ALLOWED_EMAIL = 'villenagv@gmail.com';
 const ALLOWED_ENTITIES = [
-  'PersonaCRIS', 'PersonasBuscadas', 'PersonasEncontradas', 'PersonaRegistrada',
-  'RegistroInstitucional', 'ReportesDano', 'InfraestructuraSos', 'PuntosAyuda',
-  'EstadoOperativoEdificio', 'ActualizacionesSitios', 'PistasPersonas',
+  'ReportesDano', 'InfraestructuraSos', 'EstadoOperativoEdificio', 'PuntosAyuda',
+  'PersonasBuscadas', 'PersonasEncontradas', 'PersonaRegistrada', 'PersonaCRIS',
+  'RegistroInstitucional', 'ActualizacionesSitios', 'PistasPersonas',
   'SolicitudesInfoEdificio', 'CruceBusqueda', 'Coincidencia', 'Necesidades',
   'OfertasAyuda', 'Suscripciones', 'NotificacionesUsuario',
 ];
@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     if (user.email !== ALLOWED_EMAIL) return Response.json({ error: 'Only super admin can manage data' }, { status: 403 });
 
     const body = await req.json();
-    const { action, entity_name, record_id, ids } = body;
+    const { action, entity_name, record_id, ids, data } = body;
 
     if (action === 'list_entities') {
       return Response.json({ entities: ALLOWED_ENTITIES });
@@ -56,6 +56,17 @@ Deno.serve(async (req) => {
         } catch (_error) {}
       }
       return Response.json({ ok: true, deleted });
+    }
+
+    if (action === 'update_record' && record_id && data && typeof data === 'object') {
+      const cleanData = { ...data };
+      delete cleanData.id;
+      delete cleanData.created_date;
+      delete cleanData.updated_date;
+      delete cleanData.created_by;
+      delete cleanData.created_by_id;
+      await entityApi.update(record_id, cleanData);
+      return Response.json({ ok: true, updated: record_id });
     }
 
     if (action === 'clear_photos' && record_id) {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Loader2, Trash2, AlertTriangle, Search, RefreshCw, ImageOff } from 'lucide-react';
+import { Loader2, Trash2, AlertTriangle, Search, RefreshCw, ImageOff, Edit3, Save, X } from 'lucide-react';
 
 const ENTITY_LABELS = {
   PersonaCRIS: 'Personas CRIS',
@@ -25,6 +25,17 @@ const ENTITY_LABELS = {
 
 const PHOTO_FIELDS = ['foto_url', 'foto_url_2', 'foto_principal_url', 'foto_urls', 'foto_adicional_url', 'fotos_adicionales_urls', 'archivo_url', 'file_url', 'video_url'];
 
+const EDIT_FIELDS = {
+  PersonasBuscadas: ['nombre_completo', 'estado_caso', 'ciudad', 'estado_region', 'ultima_ubicacion_conocida', 'descripcion_fisica', 'notas_publicas'],
+  PersonasEncontradas: ['nombre_o_descripcion', 'condicion', 'nombre_lugar', 'ciudad', 'estado_region', 'descripcion_fisica'],
+  PersonaRegistrada: ['nombre_completo', 'condicion', 'institucion_nombre', 'ciudad', 'estado_region', 'observaciones'],
+  PersonaCRIS: ['nombre', 'apellido', 'estado_actual', 'nivel_verificacion', 'ciudad', 'estado_region', 'ubicacion_texto', 'notas_publicas'],
+  ReportesDano: ['nombre_lugar', 'tipo_estructura', 'nivel_dano', 'estado_acceso', 'personas_atrapadas', 'direccion', 'ciudad', 'estado_region', 'descripcion'],
+  InfraestructuraSos: ['tipo_reporte', 'categoria', 'nivel_dano', 'personas_atrapadas', 'direccion', 'ciudad', 'estado_region', 'descripcion', 'prioridad'],
+  PuntosAyuda: ['nombre_lugar', 'tipo_lugar', 'estado_operativo', 'direccion', 'ciudad', 'estado_region', 'servicios_disponibles', 'necesidades_urgentes'],
+  EstadoOperativoEdificio: ['tipo_dano', 'acceso_calle', 'acceso_vehiculos', 'electricidad', 'agua', 'gas', 'notas_acceso', 'nivel_verificacion'],
+};
+
 function recordTitle(record) {
   const fields = ['nombre_completo', 'nombre_o_descripcion', 'nombre_lugar', 'nombre', 'institucion_nombre', 'tipo_reporte', 'tipo_estructura', 'ciudad', 'email_contacto'];
   for (const field of fields) {
@@ -40,6 +51,11 @@ function hasPhotos(record) {
   });
 }
 
+function editableFieldsFor(entity, record) {
+  if (EDIT_FIELDS[entity]) return EDIT_FIELDS[entity].filter(field => field in record || !field.includes('_id'));
+  return Object.keys(record || {}).filter(key => !['id', 'created_date', 'updated_date', 'created_by', 'created_by_id', 'app_id'].includes(key)).slice(0, 10);
+}
+
 export default function AdminDataPanel({ es = true }) {
   const [entities, setEntities] = useState([]);
   const [selectedEntity, setSelectedEntity] = useState('');
@@ -51,6 +67,8 @@ export default function AdminDataPanel({ es = true }) {
   const [working, setWorking] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState('');
+  const [editRecord, setEditRecord] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
   useEffect(() => {
     base44.functions.invoke('adminDelete', { action: 'list_entities' })
@@ -69,7 +87,7 @@ export default function AdminDataPanel({ es = true }) {
     setLoading(true);
     setSelectedIds(new Set());
     try {
-      const res = await base44.functions.invoke('adminDelete', { action: 'list_records', entity_name: entity, limit: 75 });
+      const res = await base44.functions.invoke('adminDelete', { action: 'list_records', entity_name: entity, limit: 100 });
       setRecords(res.data?.records || []);
       setMessage('');
     } catch {
@@ -125,6 +143,38 @@ export default function AdminDataPanel({ es = true }) {
     setWorking(false);
   };
 
+  const startEdit = (record) => {
+    const fields = editableFieldsFor(selectedEntity, record);
+    const initial = {};
+    fields.forEach(field => {
+      const value = record[field];
+      initial[field] = Array.isArray(value) ? value.join(', ') : (value ?? '');
+    });
+    setEditForm(initial);
+    setEditRecord(record);
+  };
+
+  const runUpdate = async () => {
+    if (!editRecord) return;
+    setWorking(true);
+    const data = {};
+    Object.entries(editForm).forEach(([key, value]) => {
+      data[key] = ['servicios_disponibles', 'necesidades_urgentes'].includes(key)
+        ? String(value).split(',').map(v => v.trim()).filter(Boolean)
+        : value;
+    });
+    try {
+      await base44.functions.invoke('adminDelete', { action: 'update_record', entity_name: selectedEntity, record_id: editRecord.id, data });
+      setMessage(es ? 'Registro actualizado.' : 'Record updated.');
+      setEditRecord(null);
+      setEditForm({});
+      await loadRecords(selectedEntity);
+    } catch {
+      setMessage(es ? 'No se pudo actualizar el registro.' : 'Could not update record.');
+    }
+    setWorking(false);
+  };
+
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
@@ -175,6 +225,9 @@ export default function AdminDataPanel({ es = true }) {
               {hasPhotos(record) && <p className="text-[10px] text-amber-700 font-bold mt-0.5">📷 {es ? 'Tiene fotos/archivos visibles' : 'Has visible photos/files'}</p>}
             </div>
             <div className="flex flex-col gap-1 flex-shrink-0">
+              <button onClick={() => startEdit(record)} className="text-[10px] font-bold text-blue-700 border border-blue-200 bg-blue-50 rounded-lg px-2 py-1 flex items-center gap-1">
+                <Edit3 size={12} /> {es ? 'Editar' : 'Edit'}
+              </button>
               {hasPhotos(record) && (
                 <button onClick={() => setConfirmPhoto(record.id)} className="text-[10px] font-bold text-amber-700 border border-amber-200 bg-amber-50 rounded-lg px-2 py-1 flex items-center gap-1">
                   <ImageOff size={12} /> {es ? 'Quitar fotos' : 'Remove photos'}
@@ -187,6 +240,39 @@ export default function AdminDataPanel({ es = true }) {
           </div>
         ))}
       </div>
+
+      {editRecord && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditRecord(null)}>
+          <div className="bg-white rounded-2xl p-5 max-w-lg w-full max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h3 className="text-lg font-black text-gray-900">{es ? 'Editar publicación' : 'Edit post'}</h3>
+                <p className="text-xs text-gray-500 truncate">{recordTitle(editRecord)}</p>
+              </div>
+              <button onClick={() => setEditRecord(null)} className="text-gray-400 hover:text-gray-700"><X size={18} /></button>
+            </div>
+            <div className="space-y-3">
+              {Object.keys(editForm).map(field => (
+                <div key={field}>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">{field.replaceAll('_', ' ')}</label>
+                  {String(editForm[field]).length > 80 || ['descripcion', 'observaciones', 'notas_publicas', 'descripcion_fisica'].includes(field) ? (
+                    <textarea value={editForm[field]} onChange={e => setEditForm(prev => ({ ...prev, [field]: e.target.value }))} rows={3} className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-600" />
+                  ) : (
+                    <input value={editForm[field]} onChange={e => setEditForm(prev => ({ ...prev, [field]: e.target.value }))} className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-600" />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setEditRecord(null)} disabled={working} className="flex-1 py-3 rounded-xl border border-gray-300 text-sm font-bold text-gray-700">{es ? 'Cancelar' : 'Cancel'}</button>
+              <button onClick={runUpdate} disabled={working} className="flex-1 py-3 rounded-xl bg-blue-700 text-white text-sm font-bold flex items-center justify-center gap-2">
+                {working ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                {working ? (es ? 'Guardando...' : 'Saving...') : (es ? 'Guardar cambios' : 'Save changes')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {(confirmDelete || confirmPhoto) && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setConfirmDelete(null); setConfirmPhoto(null); }}>
