@@ -171,7 +171,11 @@ export default function Edificios() {
   const [ciudad, setCiudad] = useState('');
   const [estado, setEstado] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  const [contacto, setContacto] = useState('');
+  // Contacto del reportante
+  const [repNombre, setRepNombre] = useState('');
+  const [repTelefono, setRepTelefono] = useState('');
+  const [repEmail, setRepEmail] = useState('');
+  const [repRedSocial, setRepRedSocial] = useState('');
   const [fotos, setFotos] = useState([]); // [{url, uploading, error}]
 
   const [posiblesDups, setPosiblesDups] = useState([]);
@@ -217,7 +221,8 @@ export default function Edificios() {
   const resetForm = () => {
     setTipo(''); setNombreLugar(''); setNivel(''); setAtrapados('');
     setRiesgoGas(false); setRiesgoElec(false); setRiesgoIncendio(false);
-    setDireccion(''); setCiudad(''); setEstado(''); setDescripcion(''); setContacto('');
+    setDireccion(''); setCiudad(''); setEstado(''); setDescripcion('');
+    setRepNombre(''); setRepTelefono(''); setRepEmail(''); setRepRedSocial('');
     setFotos([]); setCheckDup(false); setDecisionDup(null); setPosiblesDups([]);
   };
 
@@ -232,6 +237,8 @@ export default function Edificios() {
         riesgo_gas: riesgoGas, riesgo_electrico: riesgoElec, riesgo_incendio: riesgoIncendio,
         direccion, ciudad, estado_region: estado, descripcion,
         foto_urls, prioridad,
+        reportante_nombre: repNombre,
+        reportante_telefono: repTelefono,
         estado_verificacion: 'recibido', nivel_verificacion: 'sin_verificar', fuente: 'ciudadano',
       });
       setTodos(prev => [nuevo, ...prev]);
@@ -741,37 +748,52 @@ export default function Edificios() {
                   </div>
                 </div>
 
-                {/* Duplicados */}
+                {/* ── DUPLICADOS ── */}
                 {checkDup && posiblesDups.length > 0 && decisionDup === null && (
-                  <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 space-y-3">
+                  <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 space-y-3">
                     <div className="flex gap-2 items-start">
                       <AlertTriangle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-sm font-bold text-amber-800">{es ? '¡Ya existe un reporte similar!' : 'A similar report already exists!'}</p>
-                        <p className="text-xs text-amber-700 mt-0.5">{es ? '¿Es el mismo lugar?' : 'Is it the same place?'}</p>
+                        <p className="text-sm font-bold text-amber-800">
+                          {es ? `⚠️ Encontramos ${posiblesDups.length} reporte(s) similar(es). ¿Es el mismo lugar?` : `⚠️ We found ${posiblesDups.length} similar report(s). Is it the same place?`}
+                        </p>
+                        <p className="text-xs text-amber-700 mt-0.5">
+                          {es ? 'Antes de crear uno nuevo, revisa si ya existe. Agrega una actualización en vez de duplicar.' : 'Before creating a new one, check if it already exists. Add an update instead of duplicating.'}
+                        </p>
                       </div>
                     </div>
-                    {posiblesDups.slice(0, 2).map(d => {
+                    {posiblesDups.slice(0, 3).map(d => {
                       const c = cfg(d.nivel_dano);
                       return (
-                        <div key={d.id} className="bg-white border border-amber-200 rounded-lg p-3 flex justify-between items-start">
-                          <div>
-                            <p className="text-xs font-bold text-gray-800">{d.nombre_lugar || d.tipo_estructura}</p>
-                            <p className="text-xs text-gray-500">{d.direccion} · {d.ciudad}</p>
-                            <span className="text-xs font-semibold" style={{ color: c.color }}>{c.icon} {es ? c.label.es : c.label.en}</span>
+                        <div key={d.id} className="bg-white border border-amber-300 rounded-xl p-3">
+                          <div className="flex justify-between items-start gap-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-gray-800 truncate">{d.nombre_lugar || d.tipo_estructura}</p>
+                              <p className="text-xs text-gray-500 truncate">📍 {d.direccion} · {d.ciudad}</p>
+                              <span className="text-xs font-semibold" style={{ color: c.color }}>{c.icon} {es ? c.label.es : c.label.en}</span>
+                            </div>
                           </div>
-                          <button onClick={() => setDecisionDup('actualizar')} className="text-xs bg-amber-100 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-lg font-semibold cursor-pointer">{es ? 'Es este ↗' : 'This one ↗'}</button>
+                          <div className="flex gap-2">
+                            <Link to={`/edificio?id=${d.id}`}
+                              className="flex-1 text-center text-xs bg-blue-600 text-white px-3 py-2 rounded-lg font-bold no-underline hover:bg-blue-700">
+                              👁️ {es ? 'Ver ficha →' : 'View record →'}
+                            </Link>
+                            <Link to={`/edificio?id=${d.id}`}
+                              className="flex-1 text-center text-xs bg-amber-100 border border-amber-300 text-amber-800 px-3 py-2 rounded-lg font-bold no-underline hover:bg-amber-200">
+                              🔄 {es ? 'Agregar actualización' : 'Add update'}
+                            </Link>
+                          </div>
                         </div>
                       );
                     })}
-                    <button onClick={() => setDecisionDup('nuevo')} className="w-full text-sm text-gray-600 border border-gray-200 bg-white py-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
-                      {es ? 'No, es diferente — crear nuevo' : 'No, different place — create new'}
+                    <button onClick={() => setDecisionDup('nuevo')} className="w-full text-sm text-gray-500 border border-gray-200 bg-white py-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
+                      {es ? 'No, es un lugar diferente — crear nuevo reporte' : 'No, different place — create new report'}
                     </button>
                   </div>
                 )}
                 {decisionDup === 'actualizar' && (
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center space-y-2">
-                    <p className="text-sm font-semibold text-blue-800">{es ? 'Para actualizar, usa el Directorio.' : 'To update, use the Directory.'}</p>
+                    <p className="text-sm font-semibold text-blue-800">{es ? 'Usa el directorio para ver y actualizar la ficha existente.' : 'Use the directory to view and update the existing record.'}</p>
                     <button onClick={() => setTab('directorio')} className="text-sm bg-blue-700 text-white px-4 py-2 rounded-lg cursor-pointer">{es ? 'Ir al Directorio →' : 'Go to Directory →'}</button>
                     <button onClick={() => setDecisionDup('nuevo')} className="block w-full text-xs text-gray-400 mt-1 cursor-pointer">{es ? 'Crear nuevo de todas formas' : 'Create new anyway'}</button>
                   </div>
@@ -881,7 +903,7 @@ export default function Edificios() {
                       )}
                     </div>
 
-                    {/* 7. Descripción */}
+                    {/* 7. Descripción y datos del reportante */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
                       <h3 className="text-sm font-semibold text-gray-800">7. {es ? 'Descripción y tus datos' : 'Description and your info'}</h3>
                       <div>
@@ -891,11 +913,23 @@ export default function Edificios() {
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-500 resize-none placeholder-gray-400" />
                         <p className="text-right text-xs text-gray-400">{descripcion.length}/200</p>
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">🔒 {es ? 'Tu contacto (privado, no se publica)' : 'Your contact (private, not published)'}</label>
-                        <input value={contacto} onChange={e => setContacto(e.target.value)}
-                          placeholder={es ? 'Teléfono, WhatsApp o email...' : 'Phone, WhatsApp or email...'}
+                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-2">
+                        <p className="text-xs font-bold text-gray-500">🔒 {es ? 'Tus datos de contacto (privados — para que te puedan ubicar si hay seguimiento)' : 'Your contact info (private — so you can be reached for follow-up)'}</p>
+                        <input value={repNombre} onChange={e => setRepNombre(e.target.value)}
+                          placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'}
                           className={inputCls} />
+                        <input value={repTelefono} onChange={e => setRepTelefono(e.target.value)}
+                          placeholder={es ? 'Teléfono / WhatsApp (opcional)' : 'Phone / WhatsApp (optional)'}
+                          className={inputCls} />
+                        <input value={repEmail} onChange={e => setRepEmail(e.target.value)}
+                          placeholder={es ? 'Email (opcional)' : 'Email (optional)'}
+                          className={inputCls} />
+                        <input value={repRedSocial} onChange={e => setRepRedSocial(e.target.value)}
+                          placeholder={es ? 'Red social: @usuario (opcional, para ubicarte)' : 'Social media: @handle (optional, to reach you)'}
+                          className={inputCls} />
+                        <p className="text-[10px] text-gray-400 leading-relaxed">
+                          {es ? '✅ Tus datos no se muestran públicamente. Son usados solo si una institución necesita verificar el reporte.' : '✅ Your data is not displayed publicly. It is used only if an institution needs to verify the report.'}
+                        </p>
                       </div>
                     </div>
 
