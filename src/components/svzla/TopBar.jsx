@@ -8,6 +8,7 @@ const NAV = [
   { to: '/',              es: 'Inicio',    en: 'Home' },
   { to: '/consultar',     es: 'Consultar', en: 'Search' },
   { to: '/personas',      es: 'Personas',  en: 'People' },
+  { to: '/edificios',     es: 'Edificios', en: 'Buildings' },
   { to: '/centros-apoyo', es: 'Centros',   en: 'Centers' },
 ];
 
