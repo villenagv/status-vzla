@@ -116,6 +116,11 @@ export default function BuscarPersona() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    if (form.contacto_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contacto_email)) {
+      setError(es ? 'El email no es válido. Revísalo antes de continuar.' : 'The email is not valid. Please check it before continuing.');
+      return;
+    }
     if (!dupCheck && form.nombre_completo.trim().length >= 3) {
       await checkDuplicados();
       return;

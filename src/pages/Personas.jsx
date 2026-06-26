@@ -72,15 +72,17 @@ export default function Personas() {
   const conPistas = todos.filter(p => p.estado_caso === 'informacion_recibida' || p.estado_caso === 'visto_no_confirmado').length;
   const localizados = todos.filter(p => p.estado_caso === 'encontrado_con_vida' || p.estado_caso === 'en_hospital_refugio').length;
 
+  const [compartidoId, setCompartidoId] = useState(null);
   const compartir = (p) => {
     const texto = es
       ? `🔴 BÚSQUEDA: ${p.nombre_completo} · ${p.edad_aprox ? p.edad_aprox + ' años · ' : ''}${p.ultima_ubicacion_conocida}, ${p.ciudad}. Comparte si lo/la reconoces. Ver más en el directorio.`
       : `🔴 SEARCHING: ${p.nombre_completo} · ${p.edad_aprox ? p.edad_aprox + ' yrs · ' : ''}${p.ultima_ubicacion_conocida}, ${p.ciudad}. Share if you recognize them. See the directory for details.`;
     if (navigator.share) {
-      navigator.share({ title: `CRIS · ${p.nombre_completo}`, text: texto });
+      navigator.share({ title: `StatusVzla · ${p.nombre_completo}`, text: texto });
     } else {
       navigator.clipboard.writeText(texto);
-      alert(es ? 'Texto copiado para compartir por WhatsApp' : 'Text copied to share on WhatsApp');
+      setCompartidoId(p.id);
+      setTimeout(() => setCompartidoId(null), 2500);
     }
   };
 
@@ -175,10 +177,19 @@ export default function Personas() {
         )}
 
         {!cargando && filtrados.length === 0 && (
-          <div className="text-center py-8 text-sm text-gray-400">
-            <p className="mb-3">{es ? 'No hay resultados.' : 'No results.'}</p>
-            <Link to="/buscar-persona" className="text-[#D48C2E] underline">
-              {es ? '→ Registrar búsqueda' : '→ Register search'}
+          <div className="text-center py-8 space-y-2">
+            <p className="text-3xl">👤</p>
+            <p className="text-sm font-semibold text-gray-500">
+              {es ? 'No hay resultados para esta búsqueda.' : 'No results for this search.'}
+            </p>
+            {(query || filtroEstado || filtroZona) && (
+              <button onClick={() => { setQuery(''); setFiltroEstado(''); setFiltroZona(''); setPage(1); }}
+                className="text-sm text-blue-600 underline cursor-pointer block mx-auto">
+                {es ? '← Borrar filtros' : '← Clear filters'}
+              </button>
+            )}
+            <Link to="/buscar-persona" className="inline-block mt-2 text-sm font-bold text-[#D48C2E] underline">
+              {es ? '→ Registrar persona desaparecida' : '→ Register missing person'}
             </Link>
           </div>
         )}
@@ -241,9 +252,9 @@ export default function Personas() {
                     </a>
                   )}
                   <button onClick={() => compartir(p)}
-                    className="flex items-center justify-center gap-1.5 bg-[#1A1F2E] text-white text-xs font-bold py-2.5 rounded-xl">
+                    className={`flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 rounded-xl transition-colors ${compartidoId === p.id ? 'bg-green-600 text-white' : 'bg-[#1A1F2E] text-white'}`}>
                     <Share2 size={12} />
-                    {es ? 'Compartir' : 'Share'}
+                    {compartidoId === p.id ? (es ? '✅ Copiado' : '✅ Copied') : (es ? 'Compartir' : 'Share')}
                   </button>
                 </div>
 

@@ -162,8 +162,23 @@ export default function CentrosApoyo() {
         )}
 
         {!cargando && filtrados.length === 0 && (
-          <div className="text-center py-10 text-sm text-gray-400">
-            {es ? 'No se encontraron resultados.' : 'No results found.'}
+          <div className="text-center py-10 space-y-3">
+            <p className="text-3xl">🏕️</p>
+            <p className="text-sm font-semibold text-gray-500">
+              {es ? 'No hay resultados para esta búsqueda.' : 'No results for this search.'}
+            </p>
+            {(filtro !== 'todo' || query) && (
+              <button onClick={() => { setFiltro('todo'); setQuery(''); setPage(1); }}
+                className="text-sm text-blue-600 underline cursor-pointer">
+                {es ? '← Ver todos los centros' : '← View all centers'}
+              </button>
+            )}
+            <p className="text-xs text-gray-400 max-w-xs mx-auto">
+              {es ? '¿Conoces un centro que falta? Agrégalo para que otros lo encuentren.' : 'Know a missing center? Add it so others can find it.'}
+            </p>
+            <Link to="/institucional" className="inline-block bg-gray-900 text-white text-sm font-bold px-5 py-2.5 rounded-xl no-underline">
+              + {es ? 'Agregar centro' : 'Add center'}
+            </Link>
           </div>
         )}
 

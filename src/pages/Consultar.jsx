@@ -71,13 +71,13 @@ export default function Consultar() {
       const includeAyuda = modo === 'todo' || modo === 'ayuda';
       const includePersonas = modo === 'todo' || modo === 'personas';
 
-      if (includeDanos) promises.push(base44.entities.InfraestructuraSos.list());
+      if (includeDanos) promises.push(base44.entities.InfraestructuraSos.list('-created_date', 200));
       else promises.push(Promise.resolve([]));
 
-      if (includeAyuda) promises.push(base44.entities.PuntosAyuda.list());
+      if (includeAyuda) promises.push(base44.entities.PuntosAyuda.list('-updated_date', 200));
       else promises.push(Promise.resolve([]));
 
-      if (includePersonas) promises.push(base44.entities.PersonasBuscadas.list());
+      if (includePersonas) promises.push(base44.entities.PersonasBuscadas.list('-updated_date', 300));
       else promises.push(Promise.resolve([]));
 
       const [r, p, per] = await Promise.all(promises);
@@ -126,7 +126,17 @@ export default function Consultar() {
         </Link>
 
         <h1 className="text-xl font-bold text-[#1A1F2E] mb-1">{t.consult_title}</h1>
-        <p className="text-sm text-gray-500 mb-4">{t.consult_desc}</p>
+        <p className="text-sm text-gray-500 mb-3 leading-relaxed">{t.consult_desc}</p>
+
+        {/* Instrucción contextual */}
+        <div className="flex gap-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5 mb-4">
+          <span className="text-sm flex-shrink-0">💡</span>
+          <p className="text-xs text-blue-800 leading-relaxed">
+            {es
+              ? 'Escribe el nombre de una ciudad, barrio, municipio o persona. Filtra por tipo antes de buscar para resultados más rápidos.'
+              : 'Type a city, neighborhood, municipality or person name. Filter by type before searching for faster results.'}
+          </p>
+        </div>
 
         {/* Filtro de modo */}
         <div className="flex gap-1.5 mb-3 flex-wrap">
@@ -162,14 +172,25 @@ export default function Consultar() {
         {buscando && <p className="text-center text-sm text-gray-400 py-8">{t.counters_loading}</p>}
 
         {buscado && !buscando && totalResultados === 0 && (
-          <div className="text-center py-8">
-            <p className="text-sm text-gray-400 mb-3">{t.sin_resultados}</p>
-            <div className="flex flex-col gap-2 items-center">
-              <Link to="/buscar-persona" className="text-sm text-[#D48C2E] underline underline-offset-2">
+          <div className="text-center py-8 space-y-3">
+            <p className="text-3xl">🔍</p>
+            <p className="text-sm font-semibold text-gray-600">
+              {es ? `Sin resultados para "${query}"` : `No results for "${query}"`}
+            </p>
+            <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+              {es
+                ? 'Intenta con otro término. Puedes buscar por ciudad, barrio, nombre de persona o zona.'
+                : 'Try a different term. You can search by city, neighborhood, person name or area.'}
+            </p>
+            <div className="flex flex-col gap-2 items-center pt-2">
+              <Link to="/buscar-persona" className="text-sm text-[#D48C2E] font-semibold underline underline-offset-2">
                 {es ? '→ Registrar búsqueda de persona' : '→ Register missing person search'}
               </Link>
-              <Link to="/reportar" className="text-sm text-[#B83A52] underline underline-offset-2">
-                {es ? '→ Reportar emergencia' : '→ Report emergency'}
+              <Link to="/reportar" className="text-sm text-[#B83A52] font-semibold underline underline-offset-2">
+                {es ? '→ Reportar emergencia en esta zona' : '→ Report emergency in this area'}
+              </Link>
+              <Link to="/institucional" className="text-sm text-blue-600 font-semibold underline underline-offset-2">
+                {es ? '→ Registrar un centro de apoyo' : '→ Register a support center'}
               </Link>
             </div>
           </div>
