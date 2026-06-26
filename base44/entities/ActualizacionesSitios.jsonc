@@ -23,6 +23,8 @@
         "reportar_urgencia",
         "nuevo_nivel_dano",
         "personas_atrapadas",
+        "persona_herida_recuperada",
+        "persona_fallecida_recuperada",
         "riesgo_marcado",
         "estado_cambiado",
         "verificado"

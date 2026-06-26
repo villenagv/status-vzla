@@ -25,6 +25,8 @@ const ACCION_ESTILOS = {
   reportar_urgencia:     { icon: '🚨', color: '#C0392B' },
   nuevo_nivel_dano:      { icon: '📍', color: '#2471A3' },
   personas_atrapadas:    { icon: '🆘', color: '#C0392B' },
+  persona_herida_recuperada: { icon: '🩹', color: '#B45309' },
+  persona_fallecida_recuperada: { icon: '⚫', color: '#4B5563' },
   riesgo_marcado:        { icon: '💨', color: '#D4621A' },
   estado_cambiado:       { icon: '📋', color: '#555555' },
   verificado:            { icon: '🏛️', color: '#00838F' },
@@ -36,6 +38,8 @@ const ACCION_LABELS = {
   reportar_urgencia:     { es: 'Urgencia reportada',         en: 'Urgency reported'       },
   nuevo_nivel_dano:      { es: 'Nivel de daño actualizado',  en: 'Damage level updated'   },
   personas_atrapadas:    { es: 'Personas atrapadas',         en: 'Trapped people'         },
+  persona_herida_recuperada: { es: 'Persona herida recuperada', en: 'Injured person recovered' },
+  persona_fallecida_recuperada: { es: 'Persona fallecida recuperada', en: 'Deceased person recovered' },
   riesgo_marcado:        { es: 'Riesgo marcado',             en: 'Hazard marked'          },
   estado_cambiado:       { es: 'Estado cambiado',            en: 'Status changed'         },
   verificado:            { es: 'Verificado por institución', en: 'Verified by institution'},
@@ -172,6 +176,7 @@ export default function EdificioDetalle() {
         nivel_dano_anterior: edificio.nivel_dano, nivel_dano_nuevo: updateForm.nivel || undefined,
         personas_atrapadas_anterior: edificio.personas_atrapadas, personas_atrapadas_nuevo: updateForm.atrapados || undefined,
         reportante_nombre: updateForm.nombre, reportante_contacto: updateForm.contacto || updateForm.telefono,
+        es_sensible: ['persona_herida_recuperada', 'persona_fallecida_recuperada'].includes(updateForm.tipo),
         fuente: 'ciudadano',
       });
       const updateData = {};
@@ -187,7 +192,18 @@ export default function EdificioDetalle() {
       const updated = await base44.entities.ReportesDano.update(id, updateData);
       setEdificio(updated);
       setActualizaciones(prev => [{ id: Date.now(), tipo_accion: updateForm.tipo, descripcion: updateForm.desc, nivel_dano_anterior: edificio.nivel_dano, nivel_dano_nuevo: updateForm.nivel, created_date: new Date().toISOString() }, ...prev]);
-      await base44.functions.invoke('notificarActualizacionEdificio', { edificio_id: id, nivel_dano: updateForm.nivel || edificio.nivel_dano, direccion: edificio.direccion, nombre_lugar: edificio.nombre_lugar, reportante_nombre: updateForm.nombre || '', lang }).catch(() => {});
+      await base44.functions.invoke('notificarActualizacionEdificio', {
+        edificio_id: id,
+        tipo_accion: updateForm.tipo,
+        nivel_dano: updateForm.nivel || edificio.nivel_dano,
+        direccion: edificio.direccion,
+        nombre_lugar: edificio.nombre_lugar,
+        descripcion: updateForm.desc,
+        reportante_nombre: updateForm.nombre || '',
+        reportante_telefono: updateForm.telefono || '',
+        telefono_contacto: updateForm.contacto || '',
+        lang,
+      }).catch(() => {});
       setEditando(false);
       setUpdateForm({ tipo: '', nivel: '', atrapados: '', gas: false, elect: false, inc: false, desc: '', nombre: '', contacto: '', telefono: '', red_social: '' });
       setUpdateFotos([]);
@@ -357,6 +373,8 @@ export default function EdificioDetalle() {
                 { val: 'tengo_actualizacion', es: '🔄 Tengo info nueva', en: '🔄 New info' },
                 { val: 'reportar_urgencia',   es: '🚨 Urgencia',         en: '🚨 Emergency' },
                 { val: 'personas_atrapadas',  es: '🆘 Hay atrapados',    en: '🆘 Trapped'   },
+                { val: 'persona_herida_recuperada', es: '🩹 Recuperaron herido', en: '🩹 Injured recovered' },
+                { val: 'persona_fallecida_recuperada', es: '⚫ Recuperaron fallecido', en: '⚫ Deceased recovered' },
                 { val: 'riesgo_marcado',      es: '💨 Nuevo riesgo',     en: '💨 New hazard' },
               ].map(t => (
                 <button key={t.val} onClick={() => setUpdateForm(f => ({ ...f, tipo: t.val }))}
@@ -404,7 +422,7 @@ export default function EdificioDetalle() {
 
             {/* Descripción */}
             <textarea rows={2} value={updateForm.desc} onChange={e => setUpdateForm(f => ({ ...f, desc: e.target.value }))}
-              placeholder={es ? 'Describe lo que viste o sabes...' : 'Describe what you saw or know...'}
+              placeholder={['persona_herida_recuperada', 'persona_fallecida_recuperada'].includes(updateForm.tipo) ? (es ? 'Describe sin datos sensibles: cuántas personas, quién las recuperó y a dónde fueron llevadas...' : 'Describe without sensitive details: how many people, who recovered them, and where they were taken...') : (es ? 'Describe lo que viste o sabes...' : 'Describe what you saw or know...')}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none placeholder-gray-400 focus:outline-none focus:border-blue-400" />
 
             {/* Datos de contacto del reportante */}
@@ -486,7 +504,7 @@ export default function EdificioDetalle() {
             <Bell size={14} className="text-blue-600" />
             <h2 className="text-sm font-bold text-gray-800">{es ? 'Recibir actualizaciones por email' : 'Get email updates'}</h2>
           </div>
-          <p className="text-xs text-gray-400 mb-3">{es ? 'Te avisamos si cambia el estado o hay nueva información. Sin cuenta necesaria.' : 'We notify you if the status changes or there is new info. No account needed.'}</p>
+          <p className="text-xs text-gray-400 mb-3">{es ? 'Te avisamos si cambia el estado, hay nueva información o reportan recuperación de personas heridas o fallecidas. Sin cuenta necesaria.' : 'We notify you if the status changes, there is new info, or injured/deceased people are reported recovered. No account needed.'}</p>
           {suscrito ? (
             <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
               <p className="text-sm font-bold text-green-700">✅ {es ? '¡Suscrito! Te avisaremos por email.' : 'Subscribed! We will notify you by email.'}</p>

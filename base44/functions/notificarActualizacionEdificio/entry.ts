@@ -7,6 +7,21 @@ const NIVEL_LABELS = {
   en: { leve: 'Minor damage', moderado: 'Moderate damage', grave: 'Severe damage — DO NOT ENTER', critico: 'CRITICAL — DO NOT ENTER', colapsado: 'COLLAPSED — EVACUATED', no_evaluado: 'Not evaluated' },
 };
 
+const ACCION_LABELS = {
+  es: {
+    persona_herida_recuperada: 'Persona herida recuperada',
+    persona_fallecida_recuperada: 'Persona fallecida recuperada',
+    personas_atrapadas: 'Personas atrapadas reportadas',
+    reportar_urgencia: 'Urgencia reportada',
+  },
+  en: {
+    persona_herida_recuperada: 'Injured person recovered',
+    persona_fallecida_recuperada: 'Deceased person recovered',
+    personas_atrapadas: 'Trapped people reported',
+    reportar_urgencia: 'Emergency reported',
+  },
+};
+
 function escapeHtml(value) {
   return String(value || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 }
@@ -39,13 +54,13 @@ function buildHtml({ nombre, estadoLabel, direccion, mensaje, contactos, profile
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { edificio_id, nivel_dano, direccion, nombre_lugar, descripcion, notas, reportante_nombre, reportante_telefono, telefono_contacto, lang = 'es' } = await req.json();
+    const { edificio_id, tipo_accion, nivel_dano, direccion, nombre_lugar, descripcion, notas, reportante_nombre, reportante_telefono, telefono_contacto, lang = 'es' } = await req.json();
     if (!edificio_id) return Response.json({ error: 'edificio_id requerido' }, { status: 400 });
 
     const es = lang !== 'en';
-    const nivelDesc = NIVEL_LABELS[lang]?.[nivel_dano] || nivel_dano || (es ? 'Actualización' : 'Update');
+    const nivelDesc = ACCION_LABELS[lang]?.[tipo_accion] || NIVEL_LABELS[lang]?.[nivel_dano] || nivel_dano || (es ? 'Actualización' : 'Update');
     const telefono = reportante_telefono || telefono_contacto || '';
-    const mensaje = reportante_nombre ? `Reportado por ${reportante_nombre}${telefono ? ` · ${telefono}` : ''}` : (descripcion || notas || '');
+    const mensaje = descripcion || notas || (reportante_nombre ? `Reportado por ${reportante_nombre}${telefono ? ` · ${telefono}` : ''}` : '');
     const contactosDirectos = reportante_nombre || telefono ? [{ nombre: reportante_nombre || '', telefono }] : [];
     const contactos = contactosDirectos.length ? contactosDirectos : extraerContactos([descripcion, notas].filter(Boolean).join('\n'), reportante_nombre || '');
 
