@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, AlertTriangle, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
+import FotosDragDrop from '@/components/svzla/FotosDragDrop';
 
 const TIPOS = ['Edificio dañado', 'Personas atrapadas', 'Riesgo de gas', 'Riesgo eléctrico', 'Incendio', 'Inundación', 'Derrumbe', 'Otro'];
 const TIPOS_EN = ['Damaged building', 'Trapped people', 'Gas hazard', 'Electrical hazard', 'Fire', 'Flood', 'Collapse', 'Other'];
@@ -35,6 +36,8 @@ export default function Reportar() {
   });
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
+  const [fotoUrls, setFotoUrls] = useState([]);
+  const [reporteId] = useState(() => `emergencia-${Date.now()}`);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -54,6 +57,7 @@ export default function Reportar() {
         estado_reporte: 'no_verificado',
         nivel_verificacion: 'comunidad',
         fuente: 'web_publica',
+        foto_url: fotoUrls[0] || '',
       });
       setResultado('ok');
     } catch {
@@ -254,6 +258,23 @@ export default function Reportar() {
                   className="w-full border border-[#EDEBE8] rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
                 />
               </div>
+            </div>
+          )}
+
+          {/* Fotos — Drive */}
+          {!lowBw && (
+            <div>
+              <label className="block text-sm font-semibold text-[#1A1F2E] mb-1">
+                {lang === 'es' ? 'Fotos del lugar (máx. 5)' : 'Photos of the site (max 5)'}
+              </label>
+              <FotosDragDrop
+                category="emergencias"
+                caseId={reporteId}
+                caseLabel={`Emergencia-${form.ciudad || 'nuevo'}`}
+                maxFiles={5}
+                onUploaded={setFotoUrls}
+                disabled={enviando}
+              />
             </div>
           )}
 

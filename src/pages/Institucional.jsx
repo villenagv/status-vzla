@@ -4,6 +4,7 @@ import { ChevronLeft, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
+import FotosDragDrop from '@/components/svzla/FotosDragDrop';
 
 const TIPOS_LUGAR = [
   { es: 'Refugio', en: 'Shelter' },
@@ -36,6 +37,8 @@ export default function Institucional() {
   });
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
+  const [fotoUrls, setFotoUrls] = useState([]);
+  const [sitioId] = useState(() => `punto-${Date.now()}`);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -58,6 +61,8 @@ export default function Institucional() {
         fuente: 'registro_institucional',
         nivel_verificacion: 'no_verificado',
         ultima_actualizacion: new Date().toISOString(),
+        foto_principal_url: fotoUrls[0] || '',
+        fotos_adicionales_urls: fotoUrls.slice(1),
       });
       setResultado('ok');
     } catch {
@@ -243,6 +248,21 @@ export default function Institucional() {
               value={form.descripcion_como_llegar}
               onChange={e => set('descripcion_como_llegar', e.target.value)}
               className="w-full border border-[#EDEBE8] rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E] resize-none"
+            />
+          </div>
+
+          {/* Fotos — Drive */}
+          <div>
+            <label className="block text-sm font-semibold text-[#1A1F2E] mb-1">
+              {lang === 'es' ? 'Fotos del sitio (máx. 3, opcional)' : 'Site photos (max 3, optional)'}
+            </label>
+            <FotosDragDrop
+              category="puntos-ayuda"
+              caseId={sitioId}
+              caseLabel={form.nombre_lugar || 'punto-nuevo'}
+              maxFiles={3}
+              onUploaded={setFotoUrls}
+              disabled={enviando}
             />
           </div>
 
