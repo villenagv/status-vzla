@@ -6,6 +6,7 @@ import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import GaleriaFotos from '@/components/svzla/GaleriaFotos';
+import EstadoOperativo from '@/components/edificio/EstadoOperativo';
 
 // ─── Configs ────────────────────────────────────────────────────────────────
 const DANO_CONFIG = {
@@ -299,6 +300,9 @@ export default function EdificioDetalle() {
           </div>
           {edificio.descripcion && <p className="text-sm text-gray-700 pt-2 border-t border-gray-100">{edificio.descripcion}</p>}
         </div>
+
+        {/* ── ESTADO OPERATIVO ── */}
+        <EstadoOperativo edificioId={id} es={es} />
 
         {/* ── RIESGOS ── */}
         {(edificio.riesgo_gas || edificio.riesgo_electrico || edificio.riesgo_incendio || edificio.riesgo_colapso) && (

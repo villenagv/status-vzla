@@ -1,0 +1,124 @@
+{
+  "name": "EstadoOperativoEdificio",
+  "type": "object",
+  "properties": {
+    "edificio_id": {
+      "type": "string"
+    },
+    "tipo_dano": {
+      "type": "string",
+      "enum": [
+        "sin_danos",
+        "esteticos",
+        "estructurales",
+        "ambos",
+        "no_confirmado"
+      ],
+      "default": "no_confirmado"
+    },
+    "acceso_calle": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "dificultad",
+        "solo_peatonal",
+        "bloqueada",
+        "insegura",
+        "no_confirmado"
+      ],
+      "default": "no_confirmado"
+    },
+    "acceso_vehiculos": {
+      "type": "string",
+      "enum": [
+        "carros",
+        "ambulancias",
+        "camiones",
+        "solo_motos",
+        "bloqueado",
+        "no_confirmado"
+      ],
+      "default": "no_confirmado"
+    },
+    "electricidad": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "no_disponible",
+        "intermitente",
+        "no_confirmado"
+      ],
+      "default": "no_confirmado"
+    },
+    "agua": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "no_disponible",
+        "intermitente",
+        "no_confirmado"
+      ],
+      "default": "no_confirmado"
+    },
+    "gas": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "no_disponible",
+        "suspendido",
+        "fuga_reportada",
+        "no_confirmado"
+      ],
+      "default": "no_confirmado"
+    },
+    "racionamiento_agua": {
+      "type": "boolean",
+      "default": false
+    },
+    "racionamiento_electricidad": {
+      "type": "boolean",
+      "default": false
+    },
+    "racionamiento_gas": {
+      "type": "boolean",
+      "default": false
+    },
+    "horario_agua": {
+      "type": "string"
+    },
+    "horario_electricidad": {
+      "type": "string"
+    },
+    "horario_gas": {
+      "type": "string"
+    },
+    "notas_racionamiento": {
+      "type": "string"
+    },
+    "notas_acceso": {
+      "type": "string"
+    },
+    "reportante_nombre": {
+      "type": "string"
+    },
+    "reportante_contacto": {
+      "type": "string"
+    },
+    "nivel_verificacion": {
+      "type": "string",
+      "enum": [
+        "sin_verificar",
+        "comunidad",
+        "institucional"
+      ],
+      "default": "sin_verificar"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "ciudadano"
+    }
+  },
+  "required": [
+    "edificio_id"
+  ]
+}
