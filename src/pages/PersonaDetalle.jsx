@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+import FichaPersonaDescargable from '@/components/svzla/FichaPersonaDescargable';
 
 const ESTADO_CONFIG = {
   buscando:             { es: '🔴 Sin contacto',           en: '🔴 Missing',               cls: 'bg-red-100 text-red-800 border-red-200' },
@@ -246,6 +247,7 @@ export default function PersonaDetalle() {
               {copiado ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
               {copiado ? (es ? 'Copiado' : 'Copied') : (es ? 'Copiar enlace' : 'Copy link')}
             </button>
+            <FichaPersonaDescargable persona={persona} es={es} />
           </div>
         </div>
 

@@ -127,6 +127,7 @@ export default function BuscarPersona() {
       const nueva = await base44.entities.PersonasBuscadas.create({
         ...form,
         foto_url: fotoUrls[0] || '',
+        foto_url_2: fotoUrls[1] || '',
         fuente: 'web_publica',
         estado_caso: 'buscando',
       });
@@ -328,6 +329,12 @@ export default function BuscarPersona() {
             </div>
             <input required placeholder={es ? 'Tu teléfono o WhatsApp' : 'Your phone or WhatsApp'} value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
             <input type="email" placeholder={es ? 'Email para avisarte (opcional)' : 'Email for updates (optional)'} value={form.contacto_email} onChange={e => set('contacto_email', e.target.value)} className={inputCls} />
+            {!lowBw && (
+              <div>
+                <p className="text-xs font-bold text-[#1A1F2E] mb-1">📷 {es ? 'Foto opcional (máx. 2)' : 'Optional photo (max 2)'}</p>
+                <FotosDragDrop category="personas" caseId={personaId} caseLabel={form.nombre_completo || 'persona-nueva'} maxFiles={2} onUploaded={setFotoUrls} disabled={enviando} />
+              </div>
+            )}
             <button type="submit" disabled={enviando || !form.nombre_completo || !form.ultima_ubicacion_conocida || !form.contacto_telefono} className="w-full bg-[#1A1F2E] disabled:opacity-40 text-white font-black py-4 rounded-xl text-base transition-colors flex items-center justify-center gap-2 cursor-pointer">
               {enviando ? <Loader2 size={18} className="animate-spin" /> : '🔎'} {es ? 'Registrar búsqueda' : 'Register search'}
             </button>

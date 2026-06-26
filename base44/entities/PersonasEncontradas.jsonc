@@ -59,6 +59,9 @@
     "foto_url": {
       "type": "string"
     },
+    "foto_url_2": {
+      "type": "string"
+    },
     "persona_buscada_id": {
       "type": "string"
     },

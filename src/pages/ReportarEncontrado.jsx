@@ -110,6 +110,7 @@ export default function ReportarEncontrado() {
       await base44.entities.PersonasEncontradas.create({
         ...form,
         foto_url: fotoUrls[0] || '',
+        foto_url_2: fotoUrls[1] || '',
         persona_buscada_id: personaVinculada?.id || '',
         fuente: 'web_publica',
         nivel_verificacion: 'comunidad',
@@ -248,6 +249,12 @@ export default function ReportarEncontrado() {
               </div>
               <input value={form.reportado_por_telefono} onChange={e => set('reportado_por_telefono', e.target.value)}
                 placeholder={es ? 'Tu teléfono, email o WhatsApp (opcional)' : 'Your phone, email or WhatsApp (optional)'} className={inputCls} />
+              {!lowBw && (
+                <div>
+                  <p className="text-xs font-bold text-[#1A1F2E] mb-1">📷 {es ? 'Foto opcional (máx. 2)' : 'Optional photo (max 2)'}</p>
+                  <FotosDragDrop category="encontrados" caseId={fotoId} caseLabel={form.nombre_o_descripcion || 'encontrado'} maxFiles={2} onUploaded={setFotoUrls} disabled={enviando} />
+                </div>
+              )}
             </div>
           )}
 
