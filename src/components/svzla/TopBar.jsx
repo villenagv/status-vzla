@@ -34,9 +34,8 @@ export default function TopBar() {
         {/* Brand */}
         <Link to="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
           <span style={{ fontSize: 16, fontWeight: 500, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
-            Status<span style={{ color: '#c09a1a' }}>Vzla</span>
+            Status<span style={{ color: '#c09a1a' }}> Venezuela</span>
           </span>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.28)', marginLeft: 5 }}>CRIS</span>
         </Link>
 
         {/* Desktop nav */}

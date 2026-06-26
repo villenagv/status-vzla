@@ -42,8 +42,7 @@ export default function Login() {
       {/* Brand bar */}
       <div className="bg-[#1A1F2E] px-5 py-4">
         <Link to="/" className="inline-flex flex-col leading-tight">
-          <span className="font-black text-lg text-white tracking-tight">STATUS<span className="text-[#D48C2E]">VZLA</span><span className="text-[#D48C2E] text-sm">.com</span></span>
-          <span className="text-[10px] text-gray-400">Sistema de respuesta a emergencias · Venezuela</span>
+          <span className="font-bold text-lg text-white">Status<span className="text-[#D48C2E]">Venezuela</span></span>
         </Link>
       </div>
 

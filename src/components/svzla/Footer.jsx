@@ -62,7 +62,7 @@ export default function Footer() {
         {/* Bottom */}
         <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 8, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.20)' }}>
-            <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.28)' }}>StatusVzla</span> · CRIS · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}
+            <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.28)' }}>Status Venezuela</span> · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}
           </p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)' }}>
             {es ? 'Hecho por venezolanos ♥' : 'Made by Venezuelans ♥'}

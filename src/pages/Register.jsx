@@ -84,18 +84,18 @@ export default function Register() {
       <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
         <div className="bg-[#1A1F2E] px-5 py-4">
           <Link to="/" className="inline-flex flex-col leading-tight">
-            <span className="font-black text-lg text-white tracking-tight">STATUS<span className="text-[#D48C2E]">VZLA</span><span className="text-[#D48C2E] text-sm">.com</span></span>
+            <span className="font-bold text-lg text-white">Status<span className="text-[#D48C2E]">Venezuela</span></span>
           </Link>
         </div>
         <div className="flex-1 flex flex-col justify-center px-5 py-8 max-w-md mx-auto w-full">
           <div className="mb-7 text-center">
             <div className="text-4xl mb-3">📧</div>
-            <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">Confirma tu email</h1>
+            <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">Verifica tu correo</h1>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Enviamos un código de 6 dígitos a<br />
+              Te enviamos un código de 6 dígitos a<br />
               <span className="font-bold text-[#1A1F2E]">{email}</span>
             </p>
-            <p className="text-xs text-gray-400 mt-2">Revisa también tu carpeta de spam</p>
+            <p className="text-xs text-gray-400 mt-2">El código llega en español. Revisa también tu carpeta de spam o correo no deseado.</p>
           </div>
 
           {error && (
@@ -113,12 +113,12 @@ export default function Register() {
           <div className="flex justify-center mb-6">
             <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoFocus autoComplete="one-time-code">
               <InputOTPGroup>
-                <InputOTPSlot index={0} className="w-12 h-14 text-xl" />
-                <InputOTPSlot index={1} className="w-12 h-14 text-xl" />
-                <InputOTPSlot index={2} className="w-12 h-14 text-xl" />
-                <InputOTPSlot index={3} className="w-12 h-14 text-xl" />
-                <InputOTPSlot index={4} className="w-12 h-14 text-xl" />
-                <InputOTPSlot index={5} className="w-12 h-14 text-xl" />
+                <InputOTPSlot index={0} className="w-14 h-16 text-2xl font-bold" />
+                <InputOTPSlot index={1} className="w-14 h-16 text-2xl font-bold" />
+                <InputOTPSlot index={2} className="w-14 h-16 text-2xl font-bold" />
+                <InputOTPSlot index={3} className="w-14 h-16 text-2xl font-bold" />
+                <InputOTPSlot index={4} className="w-14 h-16 text-2xl font-bold" />
+                <InputOTPSlot index={5} className="w-14 h-16 text-2xl font-bold" />
               </InputOTPGroup>
             </InputOTP>
           </div>
@@ -126,18 +126,19 @@ export default function Register() {
           <button
             onClick={handleVerify}
             disabled={loading || otpCode.length < 6}
-            className="w-full bg-[#1A1F2E] hover:bg-[#2d3549] disabled:opacity-50 text-white font-bold py-4 rounded-xl text-base transition-colors flex items-center justify-center gap-2 mb-4"
+            className="w-full bg-[#1A1F2E] hover:bg-[#2d3549] disabled:opacity-50 text-white font-bold py-5 rounded-xl text-lg transition-colors flex items-center justify-center gap-2 mb-4"
           >
-            {loading ? <Loader2 size={18} className="animate-spin" /> : null}
-            {loading ? 'Verificando...' : 'Verificar código'}
+            {loading ? <Loader2 size={20} className="animate-spin" /> : null}
+            {loading ? 'Verificando...' : '✓ Confirmar y entrar'}
           </button>
 
-          <p className="text-center text-sm text-gray-500">
-            ¿No llegó el código?{" "}
-            <button onClick={handleResend} className="text-[#D48C2E] font-bold hover:underline">
-              Reenviar
+          <p className="text-center text-sm text-gray-500 flex items-center justify-center gap-2">
+            ¿No llegó?{" "}
+            <button onClick={handleResend} className="text-[#D48C2E] font-bold hover:underline text-base py-2 px-4">
+              Reenviar código
             </button>
           </p>
+          <p className="text-center text-xs text-gray-400 mt-3">También puede llegar como "tu código es 847895". Escribe los 6 dígitos.</p>
           <p className="text-center text-xs text-gray-400 mt-3">
             <button onClick={() => { setShowOtp(false); setOtpCode(''); setError(''); }} className="hover:text-[#1A1F2E]">
               ← Volver y cambiar email
@@ -153,8 +154,7 @@ export default function Register() {
     <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
       <div className="bg-[#1A1F2E] px-5 py-4">
         <Link to="/" className="inline-flex flex-col leading-tight">
-          <span className="font-black text-lg text-white tracking-tight">STATUS<span className="text-[#D48C2E]">VZLA</span><span className="text-[#D48C2E] text-sm">.com</span></span>
-          <span className="text-[10px] text-gray-400">Sistema de respuesta a emergencias · Venezuela</span>
+          <span className="font-bold text-lg text-white">Status<span className="text-[#D48C2E]">Venezuela</span></span>
         </Link>
       </div>
 
