@@ -22,19 +22,51 @@ const PRIORIDAD_COLOR = {
   normal: 'bg-gray-100 text-gray-600',
 };
 
-function PersonaCard({ persona: p, es, onUnsub, subActiva }) {
-  const st = ESTADO_LABEL[p.estado_caso] || { es: p.estado_caso, en: p.estado_caso, color: 'bg-gray-100 text-gray-600' };
+const CONDICION_LABEL = {
+  a_salvo: { es: 'A salvo ✅', en: 'Safe ✅', color: 'bg-green-100 text-green-800' },
+  herido_leve: { es: 'Herido leve', en: 'Minor injury', color: 'bg-yellow-100 text-yellow-800' },
+  herido_grave: { es: 'Herido grave', en: 'Serious injury', color: 'bg-orange-100 text-orange-800' },
+  fallecido_reportado: { es: 'Fallecido reportado', en: 'Death reported', color: 'bg-gray-200 text-gray-700' },
+  no_identificado: { es: 'No identificado', en: 'Unidentified', color: 'bg-purple-100 text-purple-700' },
+  no_sabe: { es: 'No se sabe', en: 'Unknown', color: 'bg-gray-100 text-gray-600' },
+};
+
+const ESTADOS_BUSQUEDA = Object.keys(ESTADO_LABEL);
+const CONDICIONES_ENCONTRADA = ['a_salvo', 'herido_leve', 'herido_grave', 'fallecido_reportado', 'no_identificado'];
+const CONDICIONES_REGISTRADA = [...CONDICIONES_ENCONTRADA, 'no_sabe'];
+
+function PersonaCard({ persona: p, es, onUnsub, subActiva, editable, tipo = 'busqueda', onUpdateStatus }) {
+  const [editando, setEditando] = useState(false);
+  const [cambiando, setCambiando] = useState(false);
+  const esEncontrada = tipo === 'encontrada' || tipo === 'registrada';
+  const estadoActual = esEncontrada ? p.condicion : p.estado_caso;
+  const st = esEncontrada
+    ? (CONDICION_LABEL[estadoActual] || { es: estadoActual, en: estadoActual, color: 'bg-gray-100 text-gray-600' })
+    : (ESTADO_LABEL[estadoActual] || { es: estadoActual, en: estadoActual, color: 'bg-gray-100 text-gray-600' });
+  const opciones = tipo === 'registrada' ? CONDICIONES_REGISTRADA : esEncontrada ? CONDICIONES_ENCONTRADA : ESTADOS_BUSQUEDA;
+  const labels = esEncontrada ? CONDICION_LABEL : ESTADO_LABEL;
+  const titulo = p.nombre_completo || p.nombre_o_descripcion || (es ? 'Persona reportada' : 'Reported person');
+  const ubicacion = esEncontrada ? [p.ubicacion_actual || p.nombre_lugar || p.institucion_nombre, p.ciudad].filter(Boolean).join(' · ') : [p.ultima_ubicacion_conocida, p.ciudad].filter(Boolean).join(' · ');
+
+  const cambiarEstado = async (nuevoEstado) => {
+    setCambiando(true);
+    await onUpdateStatus(tipo, p.id, nuevoEstado);
+    setCambiando(false);
+    setEditando(false);
+  };
+
   return (
     <div className="bg-white rounded-xl border border-[#EDEBE8] px-4 py-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-[#1A1F2E] truncate">{p.nombre_completo}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{p.ultima_ubicacion_conocida} · {p.ciudad}</p>
+          <p className="font-semibold text-sm text-[#1A1F2E] truncate">{titulo}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{ubicacion || (es ? 'Sin ubicación' : 'No location')}</p>
+          {esEncontrada && <p className="text-[10px] text-green-700 font-bold mt-0.5">{tipo === 'registrada' ? (es ? 'Ficha de listado institucional' : 'Institutional list record') : (es ? 'Persona encontrada reportada' : 'Found person report')}</p>}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.color}`}>
+          <button onClick={() => editable && setEditando(v => !v)} className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.color}`}>
             {es ? st.es : st.en}
-          </span>
+          </button>
           {subActiva && onUnsub && (
             <button onClick={() => onUnsub(p.id)} title={es ? 'Dejar de seguir' : 'Unfollow'} className="text-gray-300 hover:text-[#B83A52] transition-colors">
               <BellOff size={14} />
@@ -42,6 +74,18 @@ function PersonaCard({ persona: p, es, onUnsub, subActiva }) {
           )}
         </div>
       </div>
+      {editable && editando && (
+        <div className="mt-3 pt-3 border-t border-[#EDEBE8] flex flex-wrap gap-1.5">
+          {opciones.map(op => {
+            const lbl = labels[op] || { es: op, en: op };
+            return (
+              <button key={op} onClick={() => cambiarEstado(op)} disabled={cambiando || estadoActual === op} className={`text-[10px] font-bold px-2 py-1 rounded-full border disabled:opacity-40 ${estadoActual === op ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-600'}`}>
+                {es ? lbl.es : lbl.en}
+              </button>
+            );
+          })}
+        </div>
+      )}
       {p.contacto_telefono && (
         <p className="text-xs text-gray-400 mt-1">📞 {es ? 'Contacto:' : 'Contact:'} {p.contacto_telefono}</p>
       )}
@@ -56,6 +100,8 @@ export default function MiPerfil() {
   const [cargando, setCargando] = useState(true);
   const [tab, setTab] = useState('busquedas');
   const [busquedas, setBusquedas] = useState([]);
+  const [encontradas, setEncontradas] = useState([]);
+  const [registradas, setRegistradas] = useState([]);
   const [notificaciones, setNotificaciones] = useState([]);
   const [reportes, setReportes] = useState([]);
   const [subs, setSubs] = useState([]);
@@ -72,16 +118,20 @@ export default function MiPerfil() {
         const u = await base44.auth.me();
         setUser(u);
         setNombreEdit(u.full_name || '');
-        const [nots, mySubs, allPersonas, allReportes, historialItems] = await Promise.all([
+        const [nots, mySubs, allPersonas, personasEncontradas, personasRegistradas, allReportes, historialItems] = await Promise.all([
           base44.entities.NotificacionesUsuario.filter({ user_id: u.id }),
           base44.entities.Suscripciones.filter({ user_id: u.id }),
           base44.entities.PersonasBuscadas.filter({ created_by_id: u.id }),
+          base44.entities.PersonasEncontradas.filter({ created_by_id: u.id }),
+          base44.entities.PersonaRegistrada.filter({ created_by_id: u.id }),
           base44.entities.InfraestructuraSos.filter({ created_by_id: u.id }),
           base44.entities.HistorialUsuario.filter({ user_id: u.id }),
         ]);
         setNotificaciones(nots.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
         setSubs(mySubs);
         setBusquedas(allPersonas);
+        setEncontradas(personasEncontradas);
+        setRegistradas(personasRegistradas);
         setReportes(allReportes);
         setHistorial(historialItems.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
 
@@ -131,6 +181,27 @@ export default function MiPerfil() {
     setSubs(prev => prev.filter(s => s.id !== sub.id));
     setPersonasSub(prev => prev.filter(p => p.id !== personaId));
     showMsg(es ? 'Dejaste de seguir esta búsqueda.' : 'You unfollowed this search.');
+  };
+
+  const actualizarEstadoPersona = async (tipo, personaId, nuevoEstado) => {
+    if (tipo === 'registrada') {
+      await base44.entities.PersonaRegistrada.update(personaId, { condicion: nuevoEstado });
+      setRegistradas(prev => prev.map(p => p.id === personaId ? { ...p, condicion: nuevoEstado } : p));
+    } else if (tipo === 'encontrada') {
+      await base44.entities.PersonasEncontradas.update(personaId, { condicion: nuevoEstado });
+      setEncontradas(prev => prev.map(p => p.id === personaId ? { ...p, condicion: nuevoEstado } : p));
+    } else {
+      await base44.entities.PersonasBuscadas.update(personaId, { estado_caso: nuevoEstado });
+      setBusquedas(prev => prev.map(p => p.id === personaId ? { ...p, estado_caso: nuevoEstado } : p));
+    }
+    await base44.entities.HistorialUsuario.create({
+      user_id: user.id,
+      tipo_accion: 'actualizacion_realizada',
+      entidad_id: personaId,
+      entidad_nombre: tipo === 'registrada' ? (es ? 'Ficha institucional' : 'Institutional record') : tipo === 'encontrada' ? (es ? 'Persona encontrada' : 'Found person') : (es ? 'Búsqueda de persona' : 'Person search'),
+      metadata: nuevoEstado,
+    }).catch(() => {});
+    showMsg(es ? 'Estado actualizado.' : 'Status updated.');
   };
 
   const showMsg = (m) => { setMsg(m); setTimeout(() => setMsg(''), 3000); };
@@ -213,7 +284,7 @@ export default function MiPerfil() {
         {/* Stats strip */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           {[
-            { n: busquedas.length, label: es ? 'Búsquedas' : 'Searches', color: 'text-[#D48C2E]' },
+            { n: busquedas.length + encontradas.length + registradas.length, label: es ? 'Personas' : 'People', color: 'text-[#D48C2E]' },
             { n: reportes.length, label: es ? 'Reportes' : 'Reports', color: 'text-[#B83A52]' },
             { n: personasSub.length, label: es ? 'Seguidos' : 'Following', color: 'text-[#2E7D32]' },
           ].map(s => (
@@ -227,7 +298,7 @@ export default function MiPerfil() {
         {/* Tabs */}
         <div className="flex rounded-xl overflow-hidden border border-[#EDEBE8] mb-4 bg-white text-sm">
           {[
-            { key: 'busquedas', icon: '🔎', es: 'Búsquedas', en: 'Searches' },
+            { key: 'busquedas', icon: '🔎', es: 'Personas', en: 'People' },
             { key: 'reportes', icon: '🚨', es: 'Reportes', en: 'Reports' },
             { key: 'suscripciones', icon: '⭐', es: 'Seguidos', en: 'Following' },
             { key: 'notificaciones', icon: '🔔', es: noLeidas > 0 ? `Avisos (${noLeidas})` : 'Avisos', en: noLeidas > 0 ? `Alerts (${noLeidas})` : 'Alerts' },
@@ -250,10 +321,15 @@ export default function MiPerfil() {
             <Link to="/buscar-persona" className="flex items-center gap-2 justify-center w-full border-2 border-dashed border-[#EDEBE8] rounded-xl py-3 text-sm text-gray-400 hover:border-[#1A1F2E] hover:text-[#1A1F2E] transition-colors">
               + {es ? 'Nueva búsqueda' : 'New search'}
             </Link>
-            {busquedas.length === 0 ? (
-              <p className="text-center text-sm text-gray-400 py-6">{es ? 'No tienes búsquedas registradas.' : 'No searches registered.'}</p>
+            <p className="text-xs text-gray-400 text-center">{es ? 'Toca el estado de una persona para actualizarlo.' : 'Tap a person status to update it.'}</p>
+            {busquedas.length === 0 && encontradas.length === 0 && registradas.length === 0 ? (
+              <p className="text-center text-sm text-gray-400 py-6">{es ? 'No tienes personas registradas.' : 'No people registered.'}</p>
             ) : (
-              busquedas.map(p => <PersonaCard key={p.id} persona={p} es={es} />)
+              <>
+                {busquedas.map(p => <PersonaCard key={p.id} persona={p} es={es} editable onUpdateStatus={actualizarEstadoPersona} />)}
+                {encontradas.map(p => <PersonaCard key={p.id} persona={p} es={es} tipo="encontrada" editable onUpdateStatus={actualizarEstadoPersona} />)}
+                {registradas.map(p => <PersonaCard key={p.id} persona={p} es={es} tipo="registrada" editable onUpdateStatus={actualizarEstadoPersona} />)}
+              </>
             )}
           </div>
         )}
