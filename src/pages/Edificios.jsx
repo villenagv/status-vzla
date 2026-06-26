@@ -333,7 +333,7 @@ export default function Edificios() {
                 {/* Vista Tabla */}
                 {vistaDir === 'tabla' && (
                   <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
-                  <table className="w-full text-sm">
+                    <table className="w-full text-sm">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{es ? 'Lugar' : 'Place'}</th>
@@ -385,10 +385,11 @@ export default function Edificios() {
                       })}
                     </tbody>
                   </table>
-                </div>
+                  </div>
+                )}
 
-                {/* Vista Grid (cards con fotos, mobile) */}
-                {vistaDir !== 'lista' && vistaDir !== 'tabla' && !cargandoDir && (
+                {/* Vista Grid (cards con fotos) */}
+                {vistaDir === 'grid' && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
                     {dirFiltrados.slice(0, pageDir).map(r => {
                       const c = cfg(r.nivel_dano);
@@ -427,7 +428,6 @@ export default function Edificios() {
                     })}
                   </div>
                 )}
-
                 {dirFiltrados.length > pageDir && (
                   <button onClick={() => setPageDir(v => v + 8)} className="w-full py-2.5 text-sm text-blue-700 border border-blue-200 bg-white rounded-xl cursor-pointer hover:bg-blue-50">
                     {es ? `Ver ${Math.min(8, dirFiltrados.length - pageDir)} más` : `Load ${Math.min(8, dirFiltrados.length - pageDir)} more`}
