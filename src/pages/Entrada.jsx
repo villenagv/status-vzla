@@ -1,165 +1,159 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield } from 'lucide-react';
 import { useLang } from '@/lib/LangContext';
-import { useLowBw } from '@/lib/LowBwContext';
-import TopBar from '@/components/svzla/TopBar';
-import Footer from '@/components/svzla/Footer';
 
-const ACCIONES = [
-  {
-    emoji: '📍',
-    to: '/estoy-aqui',
-    es_titulo: 'Estoy aquí',
-    en_titulo: 'I am here',
-    es_desc: 'Estoy vivo/a. Quiero avisar dónde estoy.',
-    en_desc: "I'm alive. I want to say where I am.",
-    variant: 'danger',
-  },
-  {
-    emoji: '🌍',
-    to: '/zona-afectada',
-    es_titulo: 'Estoy en zona afectada',
-    en_titulo: 'I am in the affected area',
-    es_desc: 'Necesito ayuda o quiero reportar mi situación.',
-    en_desc: 'I need help or want to report my situation.',
-    variant: 'danger',
-  },
-  {
-    emoji: '🙋',
-    to: '/reportar-encontrado',
-    es_titulo: 'Encontré a alguien',
-    en_titulo: 'I found someone',
-    es_desc: 'Vi, encontré o tengo información de una persona.',
-    en_desc: 'I saw, found or have info about someone.',
-    variant: 'amber',
-  },
-  {
-    emoji: '🔎',
-    to: '/buscar-persona',
-    es_titulo: 'Busco a alguien',
-    en_titulo: "I'm looking for someone",
-    es_desc: 'Buscar por nombre, zona o crear alerta familiar.',
-    en_desc: 'Search by name, zone or create a family alert.',
-    variant: 'dark',
-  },
-  {
-    emoji: '✈️',
-    to: '/fuera-zona',
-    es_titulo: 'Estoy fuera de la zona',
-    en_titulo: "I'm outside the affected area",
-    es_desc: 'Estoy a salvo y busco a alguien o dejo un mensaje.',
-    en_desc: "I'm safe and I'm looking for someone or leaving a message.",
-    variant: 'dark',
-  },
-  {
-    emoji: '📋',
-    to: '/directorio-encontrados',
-    es_titulo: 'Directorio de personas encontradas',
-    en_titulo: 'Directory of found people',
-    es_desc: 'Ver y compartir tarjetas de personas vistas o encontradas.',
-    en_desc: 'View and share cards of people seen or found.',
-    variant: 'amber',
-  },
-  {
-    emoji: '🏥',
-    to: '/centros-apoyo',
-    es_titulo: 'Centros de apoyo activos',
-    en_titulo: 'Active help centers',
-    es_desc: '36 centros: hospitales, refugios, acopios y ONGs.',
-    en_desc: '36 centers: hospitals, shelters, supply & NGOs.',
-    variant: 'green',
-  },
-  {
-    emoji: '🏛️',
-    to: '/portal-institucional',
-    es_titulo: 'Portal institucional',
-    en_titulo: 'Institutional portal',
-    es_desc: 'Registrar personas, traslados y actualizaciones.',
-    en_desc: 'Register people, transfers and updates.',
-    variant: 'outline',
-  },
-];
-
-const COLORS = {
-  danger:  'bg-[#B83A52] text-white shadow-lg active:bg-[#9e3046]',
-  amber:   'bg-[#D48C2E] text-white shadow-md active:bg-[#b87724]',
-  dark:    'bg-[#1A1F2E] text-white shadow-md active:bg-[#2d3549]',
-  green:   'bg-[#2E7D32] text-white shadow-md active:bg-[#236027]',
-  outline: 'bg-white border-2 border-[#1A1F2E] text-[#1A1F2E] shadow-sm active:bg-gray-50',
-};
-
+// Sin TopBar, sin Footer — pantalla de triage puro, carga instantánea
 export default function Entrada() {
-  const { lang } = useLang();
+  const { lang, toggle: toggleLang } = useLang();
   const es = lang === 'es';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4F4F8]">
-      <TopBar />
+    <div className="min-h-screen flex flex-col bg-[#0D1117]">
 
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-5 space-y-4">
-
-        {/* Cabecera */}
-        <div className="bg-[#1A1F2E] rounded-2xl px-5 py-4 text-white">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">CRIS · STATUSVZLA.com</p>
-          <h1 className="text-xl font-black leading-tight mb-1">
-            {es ? 'Sistema de ubicación y reunificación familiar' : 'Location and family reunification system'}
-          </h1>
-          <p className="text-xs text-gray-300 leading-relaxed">
-            {es
-              ? 'Reporta dónde estás, busca familiares, avisa si encontraste a alguien o consulta traslados a hospitales y refugios.'
-              : 'Report where you are, find family, report if you found someone, or check transfers to hospitals and shelters.'}
+      {/* Header mínimo */}
+      <div className="flex items-center justify-between px-4 py-3 bg-[#0D1117]">
+        <div>
+          <span className="font-black text-lg text-white tracking-tight">
+            CRIS<span className="text-[#D48C2E]">·</span>VZLA
+          </span>
+          <p className="text-[9px] text-gray-500 uppercase tracking-widest leading-none">
+            {es ? 'Emergencia · Venezuela 2026' : 'Emergency · Venezuela 2026'}
           </p>
         </div>
+        <button
+          onClick={toggleLang}
+          className="text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500"
+        >
+          {es ? 'EN' : 'ES'}
+        </button>
+      </div>
 
-        {/* Aviso de emergencia */}
-        <div className="flex gap-3 bg-[#FDF1F0] border-2 border-[#E8B4B0] rounded-2xl px-4 py-3">
-          <Shield size={16} className="text-[#B83A52] flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-[#B83A52] leading-relaxed font-medium">
-            {es
-              ? 'Si hay peligro inmediato, llama a Protección Civil, Bomberos o emergencias de tu zona. CRIS organiza información, pero no reemplaza a los organismos de rescate.'
-              : 'If there is immediate danger, call Civil Protection, firefighters or emergency services in your area. CRIS organizes information but does not replace rescue services.'}
+      {/* Alerta banner */}
+      <div className="bg-[#B83A52] px-4 py-2.5 text-center">
+        <p className="text-xs text-white font-bold">
+          🔴 {es
+            ? 'TERREMOTO ACTIVO · La Guaira, Caracas, Yaracuy · 24 junio 2026'
+            : 'ACTIVE EARTHQUAKE · La Guaira, Caracas, Yaracuy · June 24 2026'}
+        </p>
+      </div>
+
+      {/* Las 4 tarjetas — ocupan toda la pantalla sin scroll */}
+      <main className="flex-1 flex flex-col p-3 gap-3">
+
+        {/* TARJETA 1 — ROJA: Emergencia */}
+        <Link
+          to="/zona-afectada"
+          className="flex-1 flex items-center gap-4 bg-[#B83A52] rounded-2xl px-5 py-4 min-h-[80px] active:bg-[#9e3046] no-underline"
+          style={{ minHeight: '80px' }}
+        >
+          <span className="text-4xl flex-shrink-0">🆘</span>
+          <div className="flex-1">
+            <p className="font-black text-white text-lg leading-tight">
+              {es ? 'Estoy en zona afectada' : 'I am in the affected area'}
+            </p>
+            <p className="text-sm text-red-100 mt-0.5 leading-snug">
+              {es
+                ? 'Reporta daños, pide ayuda o informa un refugio cercano'
+                : 'Report damage, ask for help or report a nearby shelter'}
+            </p>
+          </div>
+          <span className="text-white opacity-50 text-2xl">›</span>
+        </Link>
+
+        {/* TARJETA 2 — AZUL: Consultar */}
+        <Link
+          to="/consultar"
+          className="flex-1 flex items-center gap-4 bg-[#1A4A8A] rounded-2xl px-5 py-4 min-h-[80px] active:bg-[#153a6e] no-underline"
+          style={{ minHeight: '80px' }}
+        >
+          <span className="text-4xl flex-shrink-0">🔍</span>
+          <div className="flex-1">
+            <p className="font-black text-white text-lg leading-tight">
+              {es ? 'Busco información de una zona' : 'I need info about an area'}
+            </p>
+            <p className="text-sm text-blue-200 mt-0.5 leading-snug">
+              {es
+                ? 'Estado de edificios, refugios activos y zonas reportadas'
+                : 'Building status, active shelters and reported areas'}
+            </p>
+          </div>
+          <span className="text-white opacity-50 text-2xl">›</span>
+        </Link>
+
+        {/* TARJETA 3 — VERDE: Institución */}
+        <Link
+          to="/institucional"
+          className="flex-1 flex items-center gap-4 bg-[#1B5E20] rounded-2xl px-5 py-4 min-h-[80px] active:bg-[#154a19] no-underline"
+          style={{ minHeight: '80px' }}
+        >
+          <span className="text-4xl flex-shrink-0">🏛️</span>
+          <div className="flex-1">
+            <p className="font-black text-white text-lg leading-tight">
+              {es ? 'Soy institución o punto de ayuda' : 'I am an institution or help point'}
+            </p>
+            <p className="text-sm text-green-200 mt-0.5 leading-snug">
+              {es
+                ? 'Registra tu refugio, hospital, comedor o centro de donaciones'
+                : 'Register your shelter, hospital, food center or donation point'}
+            </p>
+          </div>
+          <span className="text-white opacity-50 text-2xl">›</span>
+        </Link>
+
+        {/* TARJETA 4 — MORADO: Personas */}
+        <Link
+          to="/personas"
+          className="flex-1 flex items-center gap-4 bg-[#4A1A8A] rounded-2xl px-5 py-4 min-h-[80px] active:bg-[#38156e] no-underline"
+          style={{ minHeight: '80px' }}
+        >
+          <span className="text-4xl flex-shrink-0">👤</span>
+          <div className="flex-1">
+            <p className="font-black text-white text-lg leading-tight">
+              {es ? 'Busco o reporto a una persona' : 'I search or report a person'}
+            </p>
+            <p className="text-sm text-purple-200 mt-0.5 leading-snug">
+              {es
+                ? 'Reporta a alguien sin contacto o avisa que fue encontrado'
+                : 'Report someone missing or notify they were found'}
+            </p>
+          </div>
+          <span className="text-white opacity-50 text-2xl">›</span>
+        </Link>
+      </main>
+
+      {/* Footer mínimo — emergencias y anti-extorsión */}
+      <div className="px-4 pb-4 space-y-2">
+        {/* Teléfonos de emergencia */}
+        <div className="bg-[#1A1F2E] rounded-xl px-4 py-3">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+            📞 {es ? 'Emergencias Venezuela' : 'Venezuela Emergency Lines'}
           </p>
-        </div>
-
-        {/* Botones principales */}
-        <div className="space-y-2.5">
-          {ACCIONES.map((a) => (
-            <Link
-              key={a.to}
-              to={a.to}
-              className={`flex items-center gap-4 rounded-2xl px-5 py-4 transition-colors no-underline ${COLORS[a.variant]}`}
-            >
-              <span className="text-3xl flex-shrink-0 leading-none">{a.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-base leading-tight">{es ? a.es_titulo : a.en_titulo}</p>
-                <p className={`text-xs mt-0.5 leading-snug ${a.variant === 'outline' ? 'text-gray-500' : 'opacity-80'}`}>
-                  {es ? a.es_desc : a.en_desc}
-                </p>
-              </div>
-              <ArrowRight size={18} className="flex-shrink-0 opacity-60" />
-            </Link>
-          ))}
+          <div className="grid grid-cols-4 gap-1">
+            {[['171','CANTV'],['*1','Movilnet'],['112','Digitel'],['911','Movistar']].map(([num, op]) => (
+              <a key={num} href={`tel:${num}`}
+                className="flex flex-col items-center bg-[#B83A52] text-white rounded-xl py-2 px-1 text-center">
+                <span className="font-black text-sm">{num}</span>
+                <span className="text-[9px] opacity-80">{op}</span>
+              </a>
+            ))}
+          </div>
         </div>
 
         {/* Anti-extorsión */}
-        <div className="bg-[#2A1A20] border border-[#6B2D3E] rounded-2xl px-4 py-3">
-          <p className="text-xs text-[#F4A4B8] font-semibold leading-relaxed">
+        <div className="bg-[#2A1A20] border border-[#6B2D3E] rounded-xl px-3 py-2">
+          <p className="text-[10px] text-[#F4A4B8] font-semibold leading-relaxed text-center">
             ⚠️ {es
-              ? 'Nunca envíes dinero a cambio de información. No autorizamos pagos, rescates privados ni intermediarios anónimos.'
-              : "Never send money in exchange for information. We do not authorize payments, private rescue fees, or anonymous intermediaries."}
+              ? 'Nunca envíes dinero a cambio de información. Si alguien pide dinero, es una estafa.'
+              : "Never send money for information. Anyone asking for money is a scammer."}
           </p>
         </div>
 
-        {/* Acceso / login */}
-        <div className="text-center pb-2">
-          <Link to="/login" className="text-xs text-gray-400 underline underline-offset-2">
-            {es ? 'Acceso institucional / Iniciar sesión' : 'Institutional access / Log in'}
+        {/* Acceso institucional */}
+        <div className="text-center">
+          <Link to="/login" className="text-[10px] text-gray-600 underline underline-offset-2">
+            {es ? 'Acceso institucional / Administrador' : 'Institutional access / Admin'}
           </Link>
         </div>
-
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }

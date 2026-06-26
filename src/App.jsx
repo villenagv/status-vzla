@@ -26,6 +26,8 @@ import ZonaAfectada from './pages/ZonaAfectada';
 import FueraZona from './pages/FueraZona';
 import DirectorioEncontrados from './pages/DirectorioEncontrados';
 import CentrosApoyo from './pages/CentrosApoyo';
+import Personas from './pages/Personas';
+import ReportarDano from './pages/ReportarDano';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -46,6 +48,8 @@ const PublicApp = () => (
     <Route path="/fuera-zona" element={<FueraZona />} />
     <Route path="/directorio-encontrados" element={<DirectorioEncontrados />} />
     <Route path="/centros-apoyo" element={<CentrosApoyo />} />
+    <Route path="/personas" element={<Personas />} />
+    <Route path="/reportar-dano" element={<ReportarDano />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );

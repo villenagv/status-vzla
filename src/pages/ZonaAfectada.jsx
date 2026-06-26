@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Loader2, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, Loader2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -35,6 +35,7 @@ export default function ZonaAfectada() {
   const { lang } = useLang();
   const es = lang === 'es';
 
+  const [subModo, setSubModo] = useState(''); // '' | 'reportar' | 'ayuda' | 'refugio'
   const [situacion, setSituacion] = useState('');
   const [necesidades, setNecesidades] = useState([]);
   const [form, setForm] = useState({ ciudad: '', estado_region: '', ubicacion_texto: '', nombre: '', mensaje: '' });
@@ -92,6 +93,12 @@ export default function ZonaAfectada() {
     </div>
   );
 
+  // Sub-menú: redirige a página de reporte de daños
+  if (subModo === 'reportar') {
+    window.location.href = '/reportar-dano';
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
       <TopBar />
@@ -101,14 +108,87 @@ export default function ZonaAfectada() {
         </Link>
 
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
-          🌍 {es ? 'Estoy en zona afectada' : 'I am in the affected area'}
+          🆘 {es ? 'Estoy en zona afectada' : 'I am in the affected area'}
         </h1>
         <p className="text-sm text-gray-500 mb-4 leading-relaxed">
           {es
-            ? 'Reporta tu situación, necesidades o la de personas a tu alrededor. Puedes dejar campos en blanco.'
-            : 'Report your situation, needs or those of people around you. You can leave fields blank.'}
+            ? 'Elige qué necesitas hacer ahora mismo:'
+            : 'Choose what you need to do right now:'}
         </p>
 
+        {/* Sub-menú 3 opciones grandes */}
+        {!subModo && (
+          <div className="space-y-3 mb-6">
+            <Link to="/reportar-dano"
+              className="flex items-center gap-4 bg-[#B83A52] text-white rounded-2xl px-5 py-5 no-underline">
+              <span className="text-3xl flex-shrink-0">🏚️</span>
+              <div className="flex-1">
+                <p className="font-black text-base leading-tight">{es ? 'Reportar daño o riesgo' : 'Report damage or risk'}</p>
+                <p className="text-sm opacity-80 mt-0.5">{es ? 'Edificio, calle, gas, electricidad, personas atrapadas' : 'Building, street, gas, electricity, trapped people'}</p>
+              </div>
+              <ArrowRight size={20} className="opacity-60 flex-shrink-0" />
+            </Link>
+
+            <button onClick={() => setSubModo('ayuda')}
+              className="flex items-center gap-4 bg-[#D48C2E] text-white rounded-2xl px-5 py-5 w-full text-left cursor-pointer">
+              <span className="text-3xl flex-shrink-0">🏥</span>
+              <div className="flex-1">
+                <p className="font-black text-base leading-tight">{es ? 'Necesito ayuda o refugio' : 'I need help or shelter'}</p>
+                <p className="text-sm opacity-80 mt-0.5">{es ? 'Agua, comida, médicos, rescate, transporte' : 'Water, food, doctors, rescue, transport'}</p>
+              </div>
+              <ArrowRight size={20} className="opacity-60 flex-shrink-0" />
+            </button>
+
+            <button onClick={() => setSubModo('refugio')}
+              className="flex items-center gap-4 bg-[#1B5E20] text-white rounded-2xl px-5 py-5 w-full text-left cursor-pointer">
+              <span className="text-3xl flex-shrink-0">🏕️</span>
+              <div className="flex-1">
+                <p className="font-black text-base leading-tight">{es ? 'Hay un refugio activo aquí cerca' : 'There is an active shelter nearby'}</p>
+                <p className="text-sm opacity-80 mt-0.5">{es ? 'Informa a otros sobre este punto de ayuda' : 'Let others know about this help point'}</p>
+              </div>
+              <ArrowRight size={20} className="opacity-60 flex-shrink-0" />
+            </button>
+          </div>
+        )}
+
+        {/* Ayuda: mostrar lista de centros */}
+        {subModo === 'ayuda' && (
+          <div className="mb-6 space-y-3">
+            <button onClick={() => setSubModo('')} className="flex items-center gap-1 text-sm text-gray-500 mb-2 cursor-pointer hover:text-[#1A1F2E]">
+              <ChevronLeft size={14} /> {es ? 'Volver' : 'Back'}
+            </button>
+            <div className="bg-[#FFF8EE] border border-[#E6C195] rounded-2xl px-4 py-3 mb-3">
+              <p className="text-sm font-bold text-[#7A5000]">
+                ⚠️ {es
+                  ? 'Verifica que el centro esté activo antes de desplazarte.'
+                  : 'Verify the center is active before traveling.'}
+              </p>
+            </div>
+            <Link to="/centros-apoyo"
+              className="flex items-center justify-center gap-2 bg-[#D48C2E] text-white font-black py-5 rounded-2xl text-base no-underline">
+              🏥 {es ? 'Ver centros de apoyo activos' : 'View active help centers'}
+            </Link>
+            <Link to="/estoy-aqui"
+              className="flex items-center justify-center gap-2 bg-[#1A1F2E] text-white font-bold py-4 rounded-2xl text-sm no-underline">
+              📍 {es ? 'Registrar mi ubicación actual' : 'Register my current location'}
+            </Link>
+          </div>
+        )}
+
+        {/* Refugio: formulario rápido o ir a institucional */}
+        {subModo === 'refugio' && (
+          <div className="mb-6 space-y-3">
+            <button onClick={() => setSubModo('')} className="flex items-center gap-1 text-sm text-gray-500 mb-2 cursor-pointer hover:text-[#1A1F2E]">
+              <ChevronLeft size={14} /> {es ? 'Volver' : 'Back'}
+            </button>
+            <Link to="/institucional"
+              className="flex items-center justify-center gap-2 bg-[#1B5E20] text-white font-black py-5 rounded-2xl text-base no-underline">
+              🏕️ {es ? 'Registrar refugio o punto de ayuda' : 'Register shelter or help point'}
+            </Link>
+          </div>
+        )}
+
+        {/* Formulario de mi situación (debajo del sub-menú o directo) */}
         {esCritico && (
           <div className="flex gap-3 bg-[#FDF1F0] border-2 border-[#E8B4B0] rounded-2xl p-4 mb-4">
             <AlertTriangle size={18} className="text-[#B83A52] flex-shrink-0 mt-0.5" />
@@ -119,6 +199,8 @@ export default function ZonaAfectada() {
             </p>
           </div>
         )}
+
+        {!subModo && <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 border-t border-[#EDEBE8] pt-4">{es ? 'O reporta tu situación personal:' : 'Or report your personal situation:'}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Situación */}
