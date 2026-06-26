@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Loader2, ShieldAlert, Search } from 'lucide-react';
+import { ChevronLeft, Loader2, ShieldAlert, Search, Phone, Mail } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import PostReporteLogin from '@/components/svzla/PostReporteLogin';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -53,9 +54,12 @@ export default function ReportarEncontrado() {
     reportado_por_email: '',
   });
 
+  const [fechaVisto, setFechaVisto] = useState('');
+  const [horaVisto, setHoraVisto] = useState('');
   const [fotoUrls, setFotoUrls] = useState([]);
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
+  const [mostrarLogin, setMostrarLogin] = useState(false);
   const [fotoId] = useState(() => `encontrado-${Date.now()}`);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -119,6 +123,7 @@ export default function ReportarEncontrado() {
       }
 
       setResultado('ok');
+      setMostrarLogin(true);
     } catch {
       setResultado('err');
     } finally {
@@ -129,17 +134,20 @@ export default function ReportarEncontrado() {
   if (resultado === 'ok') return (
     <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
       <TopBar />
-      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-        <div className="text-5xl mb-4">✅</div>
-        <h2 className="text-xl font-bold text-[#1A1F2E] mb-2">
-          {es ? 'Reporte enviado. Gracias.' : 'Report submitted. Thank you.'}
-        </h2>
-        <p className="text-sm text-gray-500 mb-6 max-w-xs">
-          {es
-            ? 'Si esta persona estaba en lista de búsqueda, sus familiares serán notificados por email.'
-            : 'If this person was on a missing list, their family will be notified by email.'}
-        </p>
-        <Link to="/" className="bg-[#1A1F2E] text-white px-6 py-3 rounded-xl font-semibold text-sm">
+      <div className="max-w-lg mx-auto w-full px-4 py-8 space-y-5">
+        <div className="text-center space-y-2">
+          <div className="text-5xl">✅</div>
+          <h2 className="text-xl font-bold text-[#1A1F2E]">{es ? 'Gracias. Tu reporte fue enviado.' : 'Thank you. Your report was submitted.'}</h2>
+          <p className="text-sm text-gray-500 max-w-xs mx-auto">
+            {personaVinculada
+              ? (es ? `Los familiares de ${personaVinculada.nombre_completo} serán notificados por email.` : `${personaVinculada.nombre_completo}'s family will be notified by email.`)
+              : (es ? 'Tu información está registrada y ayudará a alguien a encontrar a su familiar.' : 'Your information is registered and will help someone find their loved one.')}
+          </p>
+        </div>
+        {mostrarLogin && (
+          <PostReporteLogin es={es} onSkip={() => setMostrarLogin(false)} />
+        )}
+        <Link to="/" className="block text-center bg-[#1A1F2E] text-white px-6 py-3 rounded-xl font-semibold text-sm">
           {es ? 'Volver al inicio' : 'Back to home'}
         </Link>
       </div>
@@ -214,14 +222,37 @@ export default function ReportarEncontrado() {
             {personasEncontradas.length > 0 && (
               <div className="space-y-2">
                 {personasEncontradas.map(p => (
-                  <div key={p.id} className="bg-white border border-[#EDEBE8] rounded-xl p-3 flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-semibold text-[#1A1F2E]">{p.nombre_completo}</p>
-                      <p className="text-xs text-gray-500">{p.ultima_ubicacion_conocida} · {p.ciudad}{p.edad_aprox ? ` · ${p.edad_aprox}` : ''}</p>
+                  <div key={p.id} className="bg-white border-2 border-[#E6C195] rounded-xl p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-bold text-[#1A1F2E]">{p.nombre_completo}</p>
+                        <p className="text-xs text-gray-500">{p.ultima_ubicacion_conocida} · {p.ciudad}{p.edad_aprox ? ` · ${p.edad_aprox}` : ''}</p>
+                      </div>
+                      <button type="button" onClick={() => vincular(p)} className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold flex-shrink-0">
+                        {es ? 'Esta persona' : 'This person'}
+                      </button>
                     </div>
-                    <button type="button" onClick={() => vincular(p)} className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold flex-shrink-0">
-                      {es ? 'Esta persona' : 'This person'}
-                    </button>
+                    {/* Alert: family is looking */}
+                    <div className="bg-[#FFF8EE] border border-[#E6C195] rounded-lg p-2.5">
+                      <p className="text-xs font-bold text-[#7A5000] mb-1">
+                        🔔 {es ? 'Esta persona está siendo buscada activamente' : 'This person is actively being searched for'}
+                      </p>
+                      {p.contacto_nombre && (
+                        <p className="text-xs text-gray-600">{es ? 'Busca:' : 'Searching:'} <span className="font-semibold">{p.contacto_nombre}</span></p>
+                      )}
+                      <div className="flex flex-wrap gap-2 mt-1.5">
+                        {p.contacto_telefono && (
+                          <a href={`tel:${p.contacto_telefono}`} className="flex items-center gap-1 text-xs bg-white border border-[#E6C195] text-[#7A5000] px-2 py-1 rounded-lg font-semibold">
+                            <Phone size={11} /> {p.contacto_telefono}
+                          </a>
+                        )}
+                        {p.contacto_whatsapp && (
+                          <a href={`https://wa.me/${p.contacto_whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs bg-green-50 border border-green-200 text-green-800 px-2 py-1 rounded-lg font-semibold">
+                            📱 WhatsApp
+                          </a>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
                 <button type="button" onClick={() => setPersonasEncontradas([])} className="w-full text-xs text-gray-400 py-1">
@@ -272,6 +303,28 @@ export default function ReportarEncontrado() {
               </label>
               <textarea rows={2} placeholder={es ? 'Ropa, cabello, señas particulares...' : 'Clothing, hair, distinguishing marks...'} value={form.descripcion_fisica} onChange={e => set('descripcion_fisica', e.target.value)} className="w-full border border-[#EDEBE8] rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E] resize-none" />
             </div>
+          </div>
+
+          {/* ── Cuándo fue visto ── */}
+          <div className="bg-white rounded-xl border border-[#EDEBE8] p-4 space-y-2">
+            <h3 className="text-sm font-bold text-[#1A1F2E]">
+              {es ? '¿Cuándo lo/la viste?' : 'When did you see them?'}
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="date"
+                value={fechaVisto}
+                onChange={e => setFechaVisto(e.target.value)}
+                className="w-full border border-[#EDEBE8] rounded-xl px-3 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
+              />
+              <input
+                type="time"
+                value={horaVisto}
+                onChange={e => setHoraVisto(e.target.value)}
+                className="w-full border border-[#EDEBE8] rounded-xl px-3 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
+              />
+            </div>
+            <p className="text-xs text-gray-400">{es ? 'Aproximado está bien. Si no recuerdas, déjalo en blanco.' : "Approximate is fine. Leave blank if unsure."}</p>
           </div>
 
           {/* ── Sección 2: Condición ── */}

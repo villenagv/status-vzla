@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Loader2, ShieldAlert, Bell, BellOff } from 'lucide-react';
+import { ChevronLeft, Loader2, ShieldAlert, Bell } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import PostReporteLogin from '@/components/svzla/PostReporteLogin';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -29,10 +30,12 @@ export default function BuscarPersona() {
   const es = lang === 'es';
 
   const [user, setUser] = useState(null);
+  const [mostrarLogin, setMostrarLogin] = useState(false);
   const [form, setForm] = useState({
     nombre_completo: '', apodo: '', edad_aprox: '', sexo: '',
     descripcion_fisica: '', ultima_ubicacion_conocida: '', ciudad: '',
-    estado_region: '', fecha_ultima_vez: '', telefono_persona: '',
+    estado_region: '', fecha_ultima_vez: '', hora_ultima_vez: '',
+    telefono_persona: '',
     email_persona: '', contacto_nombre: '', contacto_telefono: '',
     contacto_email: '', contacto_whatsapp: '', notas_publicas: '',
   });
@@ -127,6 +130,7 @@ export default function BuscarPersona() {
         });
       }
       setResultado('ok');
+      setMostrarLogin(true);
     } catch {
       setResultado('err');
     } finally {
@@ -138,13 +142,20 @@ export default function BuscarPersona() {
   if (resultado === 'ok') return (
     <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
       <TopBar />
-      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-        <div className="text-5xl mb-4">✅</div>
-        <h2 className="text-xl font-bold text-[#1A1F2E] mb-2">{es ? 'Búsqueda registrada.' : 'Search registered.'}</h2>
-        <p className="text-sm text-gray-500 mb-6 max-w-xs">
-          {es ? 'Si alguien actualiza esta ficha, te avisaremos al email registrado.' : 'If anyone updates this record, we will notify you at the registered email.'}
-        </p>
-        <Link to="/" className="bg-[#1A1F2E] text-white px-6 py-3 rounded-xl font-semibold text-sm">{es ? 'Volver al inicio' : 'Back to home'}</Link>
+      <div className="max-w-lg mx-auto w-full px-4 py-8 space-y-5">
+        <div className="text-center space-y-2">
+          <div className="text-5xl">✅</div>
+          <h2 className="text-xl font-bold text-[#1A1F2E]">{es ? 'Búsqueda registrada.' : 'Search registered.'}</h2>
+          <p className="text-sm text-gray-500 max-w-xs mx-auto">
+            {es ? 'Si alguien actualiza esta ficha, te avisaremos al email registrado.' : 'If anyone updates this record, we will notify you at the registered email.'}
+          </p>
+        </div>
+        {!user && mostrarLogin && (
+          <PostReporteLogin es={es} onSkip={() => setMostrarLogin(false)} />
+        )}
+        <Link to="/" className="block text-center bg-[#1A1F2E] text-white px-6 py-3 rounded-xl font-semibold text-sm">
+          {es ? 'Volver al inicio' : 'Back to home'}
+        </Link>
       </div>
     </div>
   );
@@ -315,8 +326,25 @@ export default function BuscarPersona() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#1A1F2E] mb-1">{es ? 'Fecha / hora aproximada' : 'Approximate date / time'}</label>
-                <input type="datetime-local" value={form.fecha_ultima_vez} onChange={e => set('fecha_ultima_vez', e.target.value)} className="w-full border border-[#EDEBE8] rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]" />
+                <label className="block text-sm font-semibold text-[#1A1F2E] mb-1">
+                  {es ? '¿Cuándo lo/la viste por última vez?' : 'When did you last see them?'}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="date"
+                    value={form.fecha_ultima_vez}
+                    onChange={e => set('fecha_ultima_vez', e.target.value)}
+                    className="w-full border border-[#EDEBE8] rounded-xl px-3 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
+                  />
+                  <input
+                    type="time"
+                    value={form.hora_ultima_vez}
+                    onChange={e => set('hora_ultima_vez', e.target.value)}
+                    placeholder={es ? 'Hora aprox.' : 'Approx. time'}
+                    className="w-full border border-[#EDEBE8] rounded-xl px-3 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{es ? 'Si no recuerdas la hora exacta, déjalo en blanco.' : "If you don't remember the exact time, leave it blank."}</p>
               </div>
             </div>
 
