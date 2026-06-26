@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+import HerramientasCarga from '@/components/voluntario/HerramientasCarga';
 
 const ACCIONES = [
   {
@@ -105,6 +106,32 @@ export default function Voluntario() {
               <span className="text-xl flex-shrink-0 mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>›</span>
             </Link>
           ))}
+        </div>
+
+        {/* Instrucciones claras antes de actuar */}
+        <div className="rounded-2xl p-4 mb-5 space-y-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.30)' }}>
+            {es ? 'Antes de empezar — Lee esto:' : 'Before you start — Read this:'}
+          </p>
+          {[
+            { icon: '✅', text: es ? 'Solo reporta lo que sabes con certeza. Si no estás seguro, escribe "No sé" o "No disponible".' : 'Only report what you know for certain. If unsure, write "Unknown" or "Not available".' },
+            { icon: '🔒', text: es ? 'No escribas teléfonos ni correos de personas en campos públicos. La plataforma los protege automáticamente.' : 'Do not write personal phones or emails in public fields. The platform protects them automatically.' },
+            { icon: '🚫', text: es ? 'Nunca aceptes ni pidas dinero a cambio de información. Si alguien lo hace, repórtalo.' : 'Never accept or ask for money in exchange for information. If someone does, report it.' },
+            { icon: '📱', text: es ? 'Si tienes mala señal, usa el modo bajo consumo (botón ⚡ arriba). El formulario se guarda automáticamente.' : 'If you have a bad signal, use low-bandwidth mode (⚡ button above). The form auto-saves.' },
+          ].map((item, i) => (
+            <div key={i} className="flex gap-2.5 items-start">
+              <span className="text-sm flex-shrink-0">{item.icon}</span>
+              <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>{item.text}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Herramientas de carga rápida */}
+        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.30)' }}>
+          {es ? '🛠️ Tienes una lista desordenada?' : '🛠️ Have a disorganized list?'}
+        </p>
+        <div className="mb-5">
+          <HerramientasCarga />
         </div>
 
         {/* Recordatorio institucional */}
