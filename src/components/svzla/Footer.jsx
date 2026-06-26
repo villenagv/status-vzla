@@ -1,5 +1,7 @@
 import { useLang } from '@/lib/LangContext';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 
 const EMERGENCIAS = [
   { num: '171', op: 'CANTV fijo' },
@@ -12,6 +14,24 @@ export default function Footer() {
   const { lang } = useLang();
   const es = lang === 'es';
   const [mostrarTels, setMostrarTels] = useState(false);
+  const [mostrarSugerencia, setMostrarSugerencia] = useState(false);
+  const [sugerencia, setSugerencia] = useState('');
+  const [emailSug, setEmailSug] = useState('');
+  const [enviandoSug, setEnviandoSug] = useState(false);
+  const [sugOk, setSugOk] = useState(false);
+
+  const enviarSugerencia = async () => {
+    if (!sugerencia.trim()) return;
+    setEnviandoSug(true);
+    try {
+      await base44.entities.Sugerencias.create({ mensaje: sugerencia.trim(), email_contacto: emailSug.trim(), lang });
+      setSugOk(true);
+      setSugerencia('');
+      setEmailSug('');
+      setTimeout(() => { setSugOk(false); setMostrarSugerencia(false); }, 3000);
+    } catch {}
+    setEnviandoSug(false);
+  };
 
   return (
     <footer style={{ background: '#111318', borderTop: '0.5px solid rgba(255,255,255,0.08)', marginTop: 'auto' }}>
@@ -59,10 +79,53 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Formulario de sugerencias */}
+        <div style={{ marginBottom: 10 }}>
+          <button onClick={() => setMostrarSugerencia(v => !v)} style={{
+            background: 'transparent', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 6,
+            padding: '6px 12px', cursor: 'pointer', fontSize: 11, color: 'rgba(255,255,255,0.35)',
+            width: '100%', textAlign: 'left',
+          }}>
+            💡 {es ? 'Tengo una sugerencia o idea de mejora' : 'I have a suggestion or idea'} {mostrarSugerencia ? '▲' : '▼'}
+          </button>
+          {mostrarSugerencia && (
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {sugOk ? (
+                <p style={{ fontSize: 12, color: '#6fcf97', textAlign: 'center', padding: '8px 0' }}>✅ {es ? '¡Gracias! Tu sugerencia fue enviada.' : 'Thanks! Your suggestion was sent.'}</p>
+              ) : (
+                <>
+                  <textarea
+                    value={sugerencia}
+                    onChange={e => setSugerencia(e.target.value)}
+                    rows={3}
+                    maxLength={500}
+                    placeholder={es ? 'Escribe tu idea, sugerencia o reporte de error...' : 'Write your idea, suggestion or bug report...'}
+                    style={{ background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: '#fff', resize: 'none', outline: 'none', width: '100%' }}
+                  />
+                  <input
+                    value={emailSug}
+                    onChange={e => setEmailSug(e.target.value)}
+                    placeholder={es ? 'Tu email (opcional, para responderte)' : 'Your email (optional, to reply)'}
+                    style={{ background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '7px 10px', fontSize: 12, color: '#fff', outline: 'none', width: '100%' }}
+                  />
+                  <button
+                    onClick={enviarSugerencia}
+                    disabled={!sugerencia.trim() || enviandoSug}
+                    style={{ background: '#2471A3', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 0', fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: !sugerencia.trim() || enviandoSug ? 0.5 : 1 }}>
+                    {enviandoSug ? (es ? 'Enviando...' : 'Sending...') : (es ? 'Enviar sugerencia' : 'Send suggestion')}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Bottom */}
-        <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 8, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+        <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 8, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.20)' }}>
             <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.28)' }}>Status Venezuela</span> · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}
+            {/* Punto invisible de acceso al panel de administración */}
+            <Link to="/admin" style={{ marginLeft: 4, color: 'transparent', fontSize: 6, userSelect: 'none' }}>·</Link>
           </p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)' }}>
             {es ? 'Hecho por venezolanos ♥' : 'Made by Venezuelans ♥'}

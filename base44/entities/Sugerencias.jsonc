@@ -1,0 +1,29 @@
+{
+  "name": "Sugerencias",
+  "type": "object",
+  "properties": {
+    "mensaje": {
+      "type": "string"
+    },
+    "email_contacto": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "mejora",
+        "error",
+        "idea",
+        "otro"
+      ],
+      "default": "idea"
+    },
+    "lang": {
+      "type": "string",
+      "default": "es"
+    }
+  },
+  "required": [
+    "mensaje"
+  ]
+}
