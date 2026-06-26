@@ -123,7 +123,7 @@ export default function Edificios() {
       await base44.entities.SuscriptoresSeguimiento.create({
         reporte_id: reporteId,
         tipo_reporte: 'dano',
-        telefono_whatsapp: subEmail.trim(),
+        email_notificacion: subEmail.trim(),
         activo: true,
       });
       setSubOk(true);

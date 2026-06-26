@@ -67,6 +67,19 @@ export default function Pista() {
       if (persona?.estado_caso === 'buscando') {
         await base44.entities.PersonasBuscadas.update(personaId, { estado_caso: 'informacion_recibida' });
       }
+      // Notificar a suscriptores de la actualización (solo si hay un cambio real)
+      if (persona) {
+        base44.functions.invoke('notificarActualizacion', {
+          persona_id: personaId,
+          tipo_evento: 'actualizado',
+          datos_persona: {
+            nombre_completo: persona.nombre_completo || 'Persona',
+            estado_caso: 'informacion_recibida',
+            ubicacion: ubicacion,
+          },
+          lang: lang,
+        }).catch(() => {});
+      }
       setOk(true);
     } catch {
       setError(true);

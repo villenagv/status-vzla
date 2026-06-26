@@ -1,10 +1,29 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+// Labels de estado de daño para notificarTodo (edificios)
+const NIVEL_LABELS = {
+  es: {
+    leve:       'Daño leve',
+    moderado:   'Daño moderado',
+    grave:      'Daño grave — NO ENTRAR',
+    critico:    'CRÍTICO — NO ENTRAR',
+    colapsado:  'COLABSADO — EVACUADO',
+    no_evaluado:'Sin evaluar',
+  },
+  en: {
+    leve:       'Minor damage',
+    moderado:   'Moderate damage',
+    grave:      'Severe damage — DO NOT ENTER',
+    critico:    'CRITICAL — DO NOT ENTER',
+    colapsado:  'COLLAPSED — EVACUATED',
+    no_evaluado:'Not evaluated',
+  },
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-
-    const { email_destino, nombre_reportante, relacion, mensaje, codigo_cris, persona_id, nombre_persona, lang } = await req.json();
+    const { email_destino, nombre_reportante, relacion, mensaje, codigo_cris, persona_id, nombre_persona, lang = 'es' } = await req.json();
     const es = lang !== 'en';
 
     if (!email_destino) return Response.json({ error: 'email_destino requerido' }, { status: 400 });
@@ -41,7 +60,7 @@ ${
   relacion ? `<p style="font-size:14px;color:#555;margin:0 0 6px">🔗 ${es ? 'Relación: ' : 'Relationship: '}${relacion}</p>` : ''
 }
 ${
-  mensaje ? `<p style="font-size:14px;color:#1a1f2e;background:#fdfaeb;border:1px solid #f0e8c0;border-radius:8px;padding:12px;margin:12px 0;line-height:1.6">💬 “${mensaje}”</p>` : ''
+  mensaje ? `<p style="font-size:14px;color:#1a1f2e;background:#fdfaeb;border:1px solid #f0e8c0;border-radius:8px;padding:12px;margin:12px 0;line-height:1.6">💬 \u201c${mensaje}\u201d</p>` : ''
 }
 ${
   codigo_cris ? `<p style="font-size:14px;color:#555;margin:12px 0 6px">🆔 ${es ? 'Código CRIS: ' : 'CRIS Code: '}<span style="font-weight:700;color:#1a1f2e">${codigo_cris}</span></p>` : ''
@@ -66,28 +85,16 @@ StatusVzla · ${es ? 'Herramienta ciudadana y no partidista' : 'Citizen, non-par
 </table>
 </td></tr></table></body></html>`;
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'StatusVzla CRIS <onboarding@resend.dev>',
-        to: email_destino,
-        subject,
-        html: body,
-      }),
+    // Patch: si es un email reportante, avisar amablemente que usamos el correo
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to: email_destino,
+      subject,
+      body,
+      from_name: 'StatusVzla',
     });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      return Response.json({ error: data.message || data.error?.message || 'Error enviando email' }, { status: 500 });
-    }
-
-    return Response.json({ ok: true, enviado_a: email_destino, id: data.id });
+    return Response.json({ ok: true, enviado_a: email_destino });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'Error enviando el aviso. Intenta de nuevo.' }, { status: 500 });
   }
 });

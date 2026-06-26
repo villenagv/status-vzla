@@ -77,6 +77,7 @@ export default function ReportarEncontrado() {
   const [resultado, setResultado] = useState(null);
   const [mostrarLogin, setMostrarLogin] = useState(false);
   const [fotoId] = useState(() => `encontrado-${Date.now()}`);
+  const [modoRapido, setModoRapido] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -213,8 +214,30 @@ export default function ReportarEncontrado() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {modoRapido && (
+            <div className="bg-white rounded-2xl border-2 border-[#D48C2E] p-4 space-y-3">
+              <p className="text-xs font-bold text-[#1A1F2E]">{es ? '⚡ Modo rápido — solo lo esencial' : '⚡ Quick mode — only essentials'}</p>
+              <input required value={form.nombre_o_descripcion} onChange={e => set('nombre_o_descripcion', e.target.value)}
+                placeholder={es ? 'Nombre o descripción' : 'Name or description'} className={`${inputCls} mb-2`} />
+              <div className="grid grid-cols-2 gap-2">
+                {CONDICION.map((c, i) => (
+                  <button key={c.val} type="button" onClick={() => set('condicion', c.val)}
+                    className={`py-3 rounded-xl text-xs font-bold border-2 cursor-pointer ${form.condicion === c.val ? c.sel : 'bg-white border-[#EDEBE8] text-gray-700'}`}>{es ? c.es : c.en}</button>
+                ))}
+              </div>
+              <input required value={form.ciudad} onChange={e => set('ciudad', e.target.value)}
+                placeholder={es ? 'Ciudad' : 'City'} className={inputCls} />
+              <input required value={form.estado_region} onChange={e => set('estado_region', e.target.value)}
+                placeholder={es ? 'Estado' : 'State'} className={inputCls} />
+              <input value={form.reportado_por_telefono} onChange={e => set('reportado_por_telefono', e.target.value)}
+                placeholder={es ? 'Tu teléfono, email o WhatsApp (opcional)' : 'Your phone, email or WhatsApp (optional)'} className={inputCls} />
+            </div>
+          )}
 
-          {/* Buscar en lista */}
+          {!modoRapido && (
+            <>
+              {/* Buscar en lista */}
+          
           <div className="bg-[#F0F4FD] border-2 border-[#B0C4E8] rounded-2xl p-4 space-y-3">
             <h3 className="text-base font-black text-[#1A1F2E]">
               {es ? '¿Está esta persona en lista de búsqueda?' : 'Is this person on a missing list?'}
@@ -502,6 +525,11 @@ export default function ReportarEncontrado() {
           <p className="text-center text-xs text-gray-400">
             {es ? 'Tus datos de contacto no se publicarán.' : 'Your contact details will not be published.'}
           </p>
+            </>
+          )}
+          {modoRapido && (
+            <p className="text-center text-xs text-gray-400">{es ? 'En modo rápido. Cambia a versión completa si tienes más datos.' : 'Quick mode. Switch to full version if you have more data.'}</p>
+          )}
         </form>
       </div>
       <Footer />

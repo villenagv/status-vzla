@@ -13,7 +13,16 @@
     },
     "estado_operativo": {
       "type": "string",
-      "default": "abierto"
+      "enum": [
+        "no_verificado",
+        "abierto",
+        "cerrado",
+        "saturado",
+        "recibe_personas",
+        "recibe_heridos",
+        "requiere_actualizacion"
+      ],
+      "default": "no_verificado"
     },
     "capacidad_maxima": {
       "type": "string"
@@ -126,6 +135,14 @@
     "vistas_hoy": {
       "type": "number",
       "default": 0
+    },
+    "necesita_suministros": {
+      "type": "boolean",
+      "default": false
+    },
+    "necesita_voluntarios": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

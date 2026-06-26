@@ -31,10 +31,31 @@ export default function FotosDragDrop({ category = 'emergencias', caseId, caseLa
     limitReached: es ? `Límite de ${maxFiles} fotos alcanzado` : `${maxFiles} photo limit reached`,
   };
 
-  const addFiles = useCallback((newFiles) => {
+  const maxWidth = category === 'edificios' || category === 'emergencias' ? 1600 : 800;
+  const compressImage = (file) => new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        const compressed = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' });
+        URL.revokeObjectURL(url);
+        resolve(compressed);
+      }, 'image/jpeg', 0.85);
+    };
+    img.src = url;
+  });
+  const addFiles = useCallback(async (newFiles) => {
     const remaining = maxFiles - files.length;
     if (remaining <= 0) return;
-    const toAdd = Array.from(newFiles).slice(0, remaining).map(f => ({
+    const originals = Array.from(newFiles).slice(0, remaining);
+    const compressed = await Promise.all(originals.map(f => compressImage(f)));
+    const toAdd = compressed.map(f => ({
       file: f,
       status: 'pending',
       url: null,
@@ -42,7 +63,6 @@ export default function FotosDragDrop({ category = 'emergencias', caseId, caseLa
       id: Math.random().toString(36).slice(2),
     }));
     setFiles(prev => [...prev, ...toAdd]);
-    // Auto-upload
     toAdd.forEach(item => uploadFile(item));
   }, [files.length, maxFiles, caseId, caseLabel, category]);
 
@@ -116,7 +136,7 @@ export default function FotosDragDrop({ category = 'emergencias', caseId, caseLa
             accept="image/*"
             multiple
             className="hidden"
-            onChange={e => addFiles(e.target.files)}
+            onChange={async e => await addFiles(e.target.files)}
             disabled={disabled}
           />
         </div>

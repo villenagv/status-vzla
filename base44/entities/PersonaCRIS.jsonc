@@ -58,7 +58,11 @@
         "posible_fallecimiento",
         "fallecido_no_confirmado",
         "fallecido_confirmado_institucion",
-        "fallecido_confirmado_familiar"
+        "fallecido_confirmado_familiar",
+        "visto_confirmado",
+        "fallecido_confirmado",
+        "duplicado",
+        "sospechoso"
       ],
       "default": "informacion_incompleta"
     },

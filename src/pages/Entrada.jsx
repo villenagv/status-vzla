@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLang } from '@/lib/LangContext';
+import { useLowBw } from '@/lib/LowBwContext';
 import { Phone } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ContadoresEntrada from '@/components/svzla/ContadoresEntrada';
@@ -25,6 +26,7 @@ const TELS = [
 
 export default function Entrada() {
   const { lang, toggle: toggleLang } = useLang();
+  const { lowBw } = useLowBw();
   const es = lang === 'es';
   const [user, setUser] = useState(null);
 
@@ -44,7 +46,7 @@ export default function Entrada() {
           </div>
           <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+              <span className={`w-2 h-2 rounded-full bg-red-500 ${!lowBw ? 'animate-pulse' : ''} flex-shrink-0`} />
               <p className="text-xs font-semibold text-red-700">{es ? 'Terremoto activo · La Guaira, Caracas, Yaracuy' : 'Active earthquake · La Guaira, Caracas, Yaracuy'}</p>
             </div>
             {user ? (
@@ -63,7 +65,7 @@ export default function Entrada() {
       </header>
 
       <div className="md:hidden bg-red-600 text-white px-4 py-2.5 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
+        <span className={`w-2 h-2 rounded-full bg-white ${!lowBw ? 'animate-pulse' : ''} flex-shrink-0`} />
         <p className="text-xs font-semibold">{es ? 'Terremoto activo · La Guaira, Caracas, Yaracuy · 24 junio 2026' : 'Active earthquake · La Guaira, Caracas, Yaracuy · June 24, 2026'}</p>
       </div>
 

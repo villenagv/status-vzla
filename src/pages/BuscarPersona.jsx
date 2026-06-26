@@ -57,6 +57,7 @@ export default function BuscarPersona() {
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [personaId] = useState(() => `persona-${Date.now()}`);
+  const [modoRapido, setModoRapido] = useState(false);
 
   const [posiblesDuplicados, setPosiblesDuplicados] = useState([]);
   const [buscandoDups, setBuscandoDups] = useState(false);
@@ -209,11 +210,14 @@ export default function BuscarPersona() {
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
           🔎 {es ? 'Busco a alguien' : "I'm looking for someone"}
         </h1>
-        <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+        <p className="text-sm text-gray-500 mb-3 leading-relaxed">
           {es
             ? 'Completa este formulario. No necesitas saberlo todo. Tus datos de contacto no se publicarán.'
             : "Fill in this form. You don't need to know everything. Your contact details will not be published."}
         </p>
+        <button onClick={() => setModoRapido(v => !v)} type="button" className={`text-xs font-semibold px-3 py-1.5 rounded-lg border mb-4 cursor-pointer ${modoRapido ? 'bg-[#D48C2E] text-white border-[#D48C2E]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#D48C2E]'}`}>
+          ⚡ {modoRapido ? (es ? 'Versión completa' : 'Full version') : (es ? 'Modo rápido' : 'Quick mode')}
+        </button>
 
         {/* Anti-extorsión */}
         <div className="flex gap-3 bg-[#FDF1F0] border-2 border-[#E8B4B0] rounded-2xl p-4 mb-5">
@@ -301,7 +305,19 @@ export default function BuscarPersona() {
         )}
 
         {/* Formulario principal */}
-        {decisionDup !== 'suscribir' && (
+        {decisionDup !== 'suscribir' && modoRapido && (
+          <form onSubmit={handleSubmit} className="space-y-3 bg-white rounded-2xl border-2 border-[#D48C2E] p-4">
+            <p className="text-xs font-bold text-[#1A1F2E]">{es ? '⚡ Modo rápido — solo lo esencial' : '⚡ Quick mode — only essentials'}</p>
+            <input required placeholder={es ? 'Nombre completo de la persona' : 'Person\'s full name'} value={form.nombre_completo} onChange={e => { set('nombre_completo', e.target.value); setDupCheck(false); setDecisionDup(null); setPosiblesDuplicados([]); }} onBlur={checkDuplicados} className={inputCls} />
+            <input required placeholder={es ? 'Última ubicación conocida' : 'Last known location'} value={form.ultima_ubicacion_conocida} onChange={e => set('ultima_ubicacion_conocida', e.target.value)} className={inputCls} />
+            <input required placeholder={es ? 'Tu teléfono de contacto' : 'Your contact phone'} value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
+            <button type="submit" disabled={enviando || !form.nombre_completo || !form.ultima_ubicacion_conocida || !form.contacto_telefono} className="w-full bg-[#1A1F2E] disabled:opacity-40 text-white font-black py-4 rounded-xl text-base transition-colors flex items-center justify-center gap-2 cursor-pointer">
+              {enviando ? <Loader2 size={18} className="animate-spin" /> : '🔎'} {es ? 'Registrar búsqueda' : 'Register search'}
+            </button>
+          </form>
+        )}
+
+        {decisionDup !== 'suscribir' && !modoRapido && (
           <form onSubmit={handleSubmit} className="space-y-4">
 
             {/* Sección 1: Persona */}

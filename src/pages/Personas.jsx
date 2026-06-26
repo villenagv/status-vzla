@@ -74,8 +74,8 @@ export default function Personas() {
 
   const compartir = (p) => {
     const texto = es
-      ? `🔴 BÚSQUEDA: ${p.nombre_completo} · ${p.edad_aprox ? p.edad_aprox + ' años · ' : ''}${p.ultima_ubicacion_conocida}, ${p.ciudad}. Contacto: ${p.contacto_telefono || 'ver enlace'}. Comparte si lo/la reconoces.`
-      : `🔴 SEARCHING: ${p.nombre_completo} · ${p.edad_aprox ? p.edad_aprox + ' yrs · ' : ''}${p.ultima_ubicacion_conocida}, ${p.ciudad}. Contact: ${p.contacto_telefono || 'see link'}. Share if you recognize them.`;
+      ? `🔴 BÚSQUEDA: ${p.nombre_completo} · ${p.edad_aprox ? p.edad_aprox + ' años · ' : ''}${p.ultima_ubicacion_conocida}, ${p.ciudad}. Comparte si lo/la reconoces. Ver más en el directorio.`
+      : `🔴 SEARCHING: ${p.nombre_completo} · ${p.edad_aprox ? p.edad_aprox + ' yrs · ' : ''}${p.ultima_ubicacion_conocida}, ${p.ciudad}. Share if you recognize them. See the directory for details.`;
     if (navigator.share) {
       navigator.share({ title: `CRIS · ${p.nombre_completo}`, text: texto });
     } else {
