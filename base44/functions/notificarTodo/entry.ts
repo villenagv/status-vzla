@@ -65,15 +65,27 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'tipo y entidad_id requeridos' }, { status: 400 });
     }
 
-    // Sólo consultar suscriptores directos — más eficiente que 3 consultas separadas
-    const subsDirectos = await base44.asServiceRole.entities.Suscripciones.filter({
+    const emails = new Set();
+    const { asServiceRole } = base44;
+
+    // 1. Suscriptores anónimos (botón "Avísame" en cada ficha) — los más comunes
+    const seguimiento = await asServiceRole.entities.SuscriptoresSeguimiento.filter({
+      reporte_id: entidad_id,
+      activo: true,
+    });
+    for (const s of seguimiento) {
+      const email = s.telefono_whatsapp?.trim();
+      if (email && email.includes('@')) emails.add(email);
+    }
+
+    // 2. Suscriptores con cuenta (Suscripciones), por si se unieron también
+    const porCuenta = await asServiceRole.entities.Suscripciones.filter({
       persona_id: entidad_id,
       activa: true,
     });
-
-    const emails = new Set(
-      subsDirectos.map(s => s.email_notificacion).filter(Boolean)
-    );
+    for (const s of porCuenta) {
+      if (s.email_notificacion?.trim()) emails.add(s.email_notificacion.trim());
+    }
 
     if (emails.size === 0) {
       return Response.json({ ok: true, enviados: 0, total: 0, motivo: 'sin_suscriptores' });

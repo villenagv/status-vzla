@@ -35,9 +35,25 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Notification type not found' }), { status: 400 });
     }
 
-    const subs = await serviceRoleClient.entities.Suscripciones.filter({ persona_id: entidad_id, activa: true });
+    const emails = new Set();
 
-    if (subs.length === 0) {
+    // 1. Suscriptores anónimos (botón "Avísame" en fichas de persona/edificio)
+    const seguimiento = await serviceRoleClient.entities.SuscriptoresSeguimiento.filter({
+      reporte_id: entidad_id,
+      activo: true,
+    });
+    for (const s of seguimiento) {
+      const email = s.telefono_whatsapp?.trim();
+      if (email && email.includes('@')) emails.add(email);
+    }
+
+    // 2. Suscriptores con cuenta
+    const porCuenta = await serviceRoleClient.entities.Suscripciones.filter({ persona_id: entidad_id, activa: true });
+    for (const s of porCuenta) {
+      if (s.email_notificacion?.trim()) emails.add(s.email_notificacion.trim());
+    }
+
+    if (emails.size === 0) {
       return new Response(JSON.stringify({ message: 'No active subscribers' }), { status: 200 });
     }
 
@@ -45,13 +61,21 @@ Deno.serve(async (req) => {
     const subject = plantilla.subject;
     const body = plantilla.body(datos.nombre, enlace, datos.estado, datos.notas);
 
-    for (const sub of subs) {
-      await serviceRoleClient.integrations.Core.SendEmail({
-        to: sub.email_notificacion,
-        subject: subject,
-        body: body,
-      });
+    let enviados = 0;
+    for (const email of emails) {
+      try {
+        await serviceRoleClient.integrations.Core.SendEmail({
+          to: email,
+          subject: subject,
+          body: body,
+        });
+        enviados++;
+      } catch (e) {
+        console.warn(`Error enviando a ${email}: ${e.message}`);
+      }
     }
+
+    return new Response(JSON.stringify({ success: true, sent_to: enviados }), { status: 200 });
 
     return new Response(JSON.stringify({ success: true, sent_to: subs.length }), { status: 200 });
 
