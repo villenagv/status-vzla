@@ -21,6 +21,8 @@ const T = {
     card2_desc: 'Consulta el estado de edificios, refugios activos y zonas reportadas',
     card3_title: 'Soy una institución o punto de ayuda',
     card3_desc: 'Registra tu refugio, hospital, comedor o centro de donaciones',
+    card_buscar_title: 'Estoy buscando a alguien',
+    card_buscar_desc: 'Registra a una persona desaparecida con su última ubicación y tus datos de contacto',
     no_reg: 'Sin registro · Acceso inmediato · Sin internet requerido para leer',
     // Reportar
     report_title: 'Reportar emergencia',
@@ -82,6 +84,8 @@ const T = {
     card2_desc: 'Check the status of buildings, active shelters and reported zones',
     card3_title: 'I represent an institution or help point',
     card3_desc: 'Register your shelter, hospital, food center or donation point',
+    card_buscar_title: 'I am looking for someone',
+    card_buscar_desc: 'Register a missing person with their last known location and your contact details',
     no_reg: 'No registration · Immediate access · No internet required to read',
     report_title: 'Report emergency',
     report_desc: 'Use this form to report visible damage, trapped people, or hazards like gas, electricity or collapse.',

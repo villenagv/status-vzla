@@ -1,0 +1,81 @@
+{
+  "name": "PersonasBuscadas",
+  "type": "object",
+  "properties": {
+    "nombre_completo": {
+      "type": "string"
+    },
+    "apodo": {
+      "type": "string"
+    },
+    "edad_aprox": {
+      "type": "string"
+    },
+    "sexo": {
+      "type": "string"
+    },
+    "descripcion_fisica": {
+      "type": "string"
+    },
+    "ultima_ubicacion_conocida": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "fecha_ultima_vez": {
+      "type": "string"
+    },
+    "telefono_persona": {
+      "type": "string"
+    },
+    "email_persona": {
+      "type": "string"
+    },
+    "contacto_nombre": {
+      "type": "string"
+    },
+    "contacto_telefono": {
+      "type": "string"
+    },
+    "contacto_email": {
+      "type": "string"
+    },
+    "contacto_whatsapp": {
+      "type": "string"
+    },
+    "foto_url": {
+      "type": "string"
+    },
+    "estado_caso": {
+      "type": "string",
+      "enum": [
+        "buscando",
+        "informacion_recibida",
+        "visto_no_confirmado",
+        "encontrado_con_vida",
+        "en_hospital_refugio",
+        "fallecido_reportado",
+        "caso_cerrado"
+      ],
+      "default": "buscando"
+    },
+    "notas_publicas": {
+      "type": "string"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "web_publica"
+    }
+  },
+  "required": [
+    "nombre_completo",
+    "ultima_ubicacion_conocida",
+    "ciudad",
+    "estado_region",
+    "contacto_telefono"
+  ]
+}
