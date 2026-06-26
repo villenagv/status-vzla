@@ -26,6 +26,9 @@
     "foto_url": {
       "type": "string"
     },
+    "foto_url_2": {
+      "type": "string"
+    },
     "descripcion_fisica": {
       "type": "string"
     },
@@ -89,6 +92,24 @@
       "default": false
     },
     "condicion_especial": {
+      "type": "string"
+    },
+    "condiciones_medicas": {
+      "type": "string"
+    },
+    "medicamento_urgente": {
+      "type": "string"
+    },
+    "bateria_senal": {
+      "type": "string"
+    },
+    "acompanado": {
+      "type": "string"
+    },
+    "necesidades_inmediatas": {
+      "type": "string"
+    },
+    "centro_apoyo": {
       "type": "string"
     },
     "fuente_inicial": {
