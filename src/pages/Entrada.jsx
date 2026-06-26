@@ -13,6 +13,7 @@ const MODOS = [
   { to: '/personas', icon: '👤', bg: '#6C3483', label: { es: 'PERSONAS', en: 'PEOPLE' }, titulo: { es: 'Busco o reporto a una persona', en: 'I search or report a person' }, sub: { es: 'Persona sin contacto · Alguien encontrado', en: 'Missing person · Someone found' } },
   { to: '/edificios', icon: '🏗️', bg: '#784212', label: { es: 'EDIFICIOS', en: 'BUILDINGS' }, titulo: { es: '¿Es seguro este edificio?', en: 'Is this building safe?' }, sub: { es: 'Consulta daños · Reporta estructuras · Ver estado', en: 'Check damage · Report structures · View status' } },
   { to: '/institucional', icon: '🏛️', bg: '#1A5C3A', label: { es: 'INSTITUCIÓN', en: 'INSTITUTION' }, titulo: { es: 'Soy institución o punto de ayuda', en: 'I am an institution or help point' }, sub: { es: 'Refugio · Hospital · Comedor · Donaciones', en: 'Shelter · Hospital · Food · Donations' } },
+  { to: '/voluntario', icon: '🤝', bg: '#7B3A9E', label: { es: 'VOLUNTARIO', en: 'VOLUNTEER' }, titulo: { es: 'Soy voluntario o personal de apoyo', en: 'I am a volunteer or support staff' }, sub: { es: 'Encontrados · Listados · Centros de apoyo', en: 'Found people · Lists · Support centers' } },
 ];
 
 const TELS = [
