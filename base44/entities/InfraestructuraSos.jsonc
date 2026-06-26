@@ -1,0 +1,111 @@
+{
+  "name": "InfraestructuraSos",
+  "type": "object",
+  "properties": {
+    "tipo_reporte": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "string"
+    },
+    "nivel_dano": {
+      "type": "string",
+      "enum": [
+        "leve",
+        "moderado",
+        "grave",
+        "critico",
+        "no_sabe"
+      ]
+    },
+    "personas_atrapadas": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no",
+        "no_sabe",
+        "voces",
+        "familiares"
+      ]
+    },
+    "riesgo_electrico": {
+      "type": "boolean"
+    },
+    "riesgo_gas": {
+      "type": "boolean"
+    },
+    "riesgo_incendio": {
+      "type": "boolean"
+    },
+    "acceso_sitio": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requiere_maquinaria": {
+      "type": "boolean"
+    },
+    "direccion": {
+      "type": "string"
+    },
+    "referencia": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "prioridad": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "alta",
+        "critica"
+      ],
+      "default": "normal"
+    },
+    "estado_reporte": {
+      "type": "string",
+      "default": "no_verificado"
+    },
+    "nivel_verificacion": {
+      "type": "string",
+      "default": "comunidad"
+    },
+    "fuente": {
+      "type": "string"
+    },
+    "nombre_reportante": {
+      "type": "string"
+    },
+    "telefono_reportante": {
+      "type": "string"
+    },
+    "rol_reportante": {
+      "type": "string"
+    },
+    "foto_url": {
+      "type": "string"
+    },
+    "video_url": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tipo_reporte",
+    "ciudad",
+    "estado_region"
+  ]
+}

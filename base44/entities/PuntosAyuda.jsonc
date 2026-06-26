@@ -1,0 +1,137 @@
+{
+  "name": "PuntosAyuda",
+  "type": "object",
+  "properties": {
+    "tipo_lugar": {
+      "type": "string"
+    },
+    "nombre_lugar": {
+      "type": "string"
+    },
+    "tipo_entidad": {
+      "type": "string"
+    },
+    "estado_operativo": {
+      "type": "string",
+      "default": "abierto"
+    },
+    "capacidad_maxima": {
+      "type": "string"
+    },
+    "personas_actuales": {
+      "type": "number"
+    },
+    "espacio_disponible": {
+      "type": "string"
+    },
+    "servicios_disponibles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "necesidades_urgentes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "direccion": {
+      "type": "string"
+    },
+    "referencia": {
+      "type": "string"
+    },
+    "descripcion_como_llegar": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "horario_apertura": {
+      "type": "string"
+    },
+    "horario_cierre": {
+      "type": "string"
+    },
+    "opera_24h": {
+      "type": "boolean"
+    },
+    "dias_activos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nota_horario": {
+      "type": "string"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "facebook": {
+      "type": "string"
+    },
+    "telegram": {
+      "type": "string"
+    },
+    "sitio_web": {
+      "type": "string"
+    },
+    "telefono_publico": {
+      "type": "string"
+    },
+    "foto_principal_url": {
+      "type": "string"
+    },
+    "fotos_adicionales_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "contacto_privado": {
+      "type": "string"
+    },
+    "codigo_admin": {
+      "type": "string"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "comunidad"
+    },
+    "nivel_verificacion": {
+      "type": "string",
+      "default": "no_verificado"
+    },
+    "requiere_actualizacion": {
+      "type": "boolean",
+      "default": false
+    },
+    "ultima_actualizacion": {
+      "type": "string"
+    },
+    "vistas_hoy": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "tipo_lugar",
+    "nombre_lugar",
+    "ciudad",
+    "estado_region"
+  ]
+}

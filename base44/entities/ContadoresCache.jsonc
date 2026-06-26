@@ -1,0 +1,19 @@
+{
+  "name": "ContadoresCache",
+  "type": "object",
+  "properties": {
+    "clave": {
+      "type": "string"
+    },
+    "valor": {
+      "type": "number",
+      "default": 0
+    },
+    "ultima_actualizacion": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "clave"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "ActualizacionesSitios",
+  "type": "object",
+  "properties": {
+    "sitio_id": {
+      "type": "string"
+    },
+    "tipo_sitio": {
+      "type": "string",
+      "enum": [
+        "dano",
+        "ayuda"
+      ]
+    },
+    "tipo_actualizacion": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "estado_anterior": {
+      "type": "string"
+    },
+    "estado_nuevo": {
+      "type": "string"
+    },
+    "reportado_por": {
+      "type": "string"
+    },
+    "nivel_verificacion": {
+      "type": "string",
+      "default": "comunidad"
+    }
+  },
+  "required": [
+    "sitio_id",
+    "tipo_sitio",
+    "tipo_actualizacion"
+  ]
+}
