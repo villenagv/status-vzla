@@ -54,13 +54,23 @@ export default function StepFamilia({ form, setVal, es }) {
           <input value={form.avisar_contacto || ''} onChange={e => setVal('avisar_contacto', e.target.value)} placeholder={es ? 'Telefono / WhatsApp' : 'Phone / WhatsApp'} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900" />
         </div>
         <div>
+          <label className="text-xs font-medium text-gray-600 mb-1 block">{es ? 'Correo electrónico:' : 'Email address:'}</label>
+          <input type="email" value={form.avisar_email || ''} onChange={e => setVal('avisar_email', e.target.value)}
+            placeholder={es ? 'Correo al que enviaremos el aviso...' : 'Email to send the notice to...'}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900" />
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">
+            📨 {es ? 'Por ahora el aviso llega solo a correos registrados en la plataforma. Para enviar a cualquier correo externo, necesita activar un servicio como Resend o SendGrid.'
+              : 'For now, the notice only reaches emails registered in the platform. To send to any external email, activate a service like Resend or SendGrid.'}
+          </p>
+        </div>
+        <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">{es ? 'Mensaje corto:' : 'Short message:'}</label>
           <input value={form.avisar_mensaje || ''} onChange={e => setVal('avisar_mensaje', e.target.value)}
             placeholder={es ? 'Avisenle a mi mama que estoy vivo y estoy en...' : 'Tell my mom I am alive and I am in...'}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900" />
         </div>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-600">
-          🔒 {es ? 'Esta informacion es PRIVADA. Solo la veran rescatistas e instituciones verificadas.' : 'This information is PRIVATE. Only rescue teams and verified institutions will see it.'}
+          🔒 {es ? 'Esta informacion es PRIVADA. Solo la veran rescatistas e instituciones verificadas. Si das un correo, le enviaremos un aviso automatico.' : 'This information is PRIVATE. Only rescue teams and verified institutions will see it. If you provide an email, we will send an automatic notice.'}
         </div>
       </div>
     </div>

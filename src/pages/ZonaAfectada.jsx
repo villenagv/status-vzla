@@ -78,8 +78,27 @@ export default function ZonaAfectada() {
         nivel_confianza: 'medio',
         es_sensible: form.medicamento_urgente ? true : false,
       });
-      setOk({ id: persona.id, codigo: generarcodigo(persona.id), nombre: persona.nombre });
-      guardarcodigo(persona.id, generarcodigo(persona.id));
+      const codigo = generarcodigo(persona.id);
+      setOk({ id: persona.id, codigo, nombre: persona.nombre });
+      guardarcodigo(persona.id, codigo);
+
+      // Enviar email al contacto que eligió avisar
+      if (form.avisar_email?.trim()) {
+        try {
+          await base44.functions.invoke('enviarAvisoFamiliar', {
+            email_destino: form.avisar_email.trim(),
+            nombre_reportante: form.avisar_nombre || form.nombre || '',
+            relacion: form.avisar_relacion || '',
+            mensaje: form.avisar_mensaje || form.mensaje_rápido || '',
+            codigo_cris: codigo,
+            persona_id: persona.id,
+            nombre_persona: form.nombre || '',
+            lang: lang,
+          });
+        } catch {
+          // email falla silenciosamente — el reporte ya se guardó
+        }
+      }
       clearForm();
     } catch {
       setError(true);
@@ -244,6 +263,7 @@ function ReviewStep({ form, es }) {
     { label: { es: 'Necesidades', en: 'Needs' }, val: form.necesidades?.length ? form.necesidades.join(', ') : '-' },
     { label: { es: 'Ubicación', en: 'Location' }, val: form.ubicacion || '-' },
     { label: { es: 'Contacto a avisar', en: 'Contact to alert' }, val: form.avisar_nombre || '-' },
+    { label: { es: 'Correo para aviso', en: 'Email for notice' }, val: form.avisar_email || '-' },
     { label: { es: 'Centro de apoyo', en: 'Support center' }, val: form.centro_nombre || '-' },
     { label: { es: 'Avisar a', en: 'Notify' }, val: form.avisar_familiar_historico ? `${form.avisar_nombre || ''}` : '-' },
   ];
