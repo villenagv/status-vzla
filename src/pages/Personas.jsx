@@ -44,10 +44,31 @@ export default function Personas() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    base44.entities.PersonasBuscadas.list('-updated_date', 300)
-      .then(d => setTodos(d))
-      .catch(() => {})
-      .finally(() => setCargando(false));
+    Promise.all([
+      base44.entities.PersonasBuscadas.list('-updated_date', 300),
+      base44.entities.PersonaRegistrada.list('-created_date', 300),
+    ]).then(([buscadas, registradas]) => {
+      // Normalizar PersonaRegistrada para mostrar en el directorio
+      const regNorm = registradas
+        .filter(r => r.condicion !== 'a_salvo')
+        .map(r => ({
+          id: r.id,
+          nombre_completo: r.nombre_completo,
+          ciudad: r.ciudad,
+          estado_region: r.estado_region,
+          ultima_ubicacion_conocida: r.institucion_nombre || r.ciudad || '',
+          edad_aprox: r.edad_aprox,
+          sexo: r.sexo,
+          foto_url: null,
+          descripcion_fisica: r.observaciones || '',
+          estado_caso: r.condicion === 'fallecido_reportado' ? 'fallecido_reportado'
+            : (r.condicion === 'herido_grave' || r.condicion === 'herido_leve') ? 'en_hospital_refugio'
+            : 'informacion_recibida',
+          contacto_telefono: '',
+          _fuente: 'institucional',
+        }));
+      setTodos([...buscadas, ...regNorm]);
+    }).catch(() => {}).finally(() => setCargando(false));
   }, []);
 
   const filtrados = todos.filter(p => {

@@ -24,10 +24,29 @@ export default function DirectorioPersonasEntrada() {
   const [busqueda, setBusqueda] = useState('');
 
   useEffect(() => {
-    base44.entities.PersonasBuscadas.list('-created_date', 50)
-      .then(d => setPersonas(d.filter(p => p.estado_caso !== 'caso_cerrado')))
-      .catch(() => {})
-      .finally(() => setCargando(false));
+    Promise.all([
+      base44.entities.PersonasBuscadas.list('-created_date', 50),
+      base44.entities.PersonaRegistrada.list('-created_date', 50),
+    ]).then(([buscadas, registradas]) => {
+      // Normalizar PersonaRegistrada al mismo formato que PersonasBuscadas
+      const regNorm = registradas
+        .filter(r => r.condicion !== 'a_salvo')
+        .map(r => ({
+          id: r.id,
+          nombre_completo: r.nombre_completo,
+          ciudad: r.ciudad,
+          estado_region: r.estado_region,
+          ultima_ubicacion_conocida: r.institucion_nombre || r.ciudad || '',
+          edad_aprox: r.edad_aprox,
+          estado_caso: r.condicion === 'herido_grave' ? 'informacion_recibida'
+            : r.condicion === 'herido_leve' ? 'informacion_recibida'
+            : r.condicion === 'fallecido_reportado' ? 'fallecido_reportado'
+            : 'informacion_recibida',
+          _fuente: 'institucional',
+        }));
+      const activas = buscadas.filter(p => p.estado_caso !== 'caso_cerrado');
+      setPersonas([...activas, ...regNorm]);
+    }).catch(() => {}).finally(() => setCargando(false));
   }, []);
 
   const filtradas = personas.filter(p => {
