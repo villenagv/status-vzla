@@ -133,7 +133,11 @@ const T = {
 const LangContext = createContext(null);
 
 export function LangProvider({ children }) {
-  const [lang, setLang] = useState(() => localStorage.getItem('svzla_lang') || 'es');
+  const [lang, setLang] = useState(() => {
+    const stored = localStorage.getItem('svzla_lang');
+    if (!stored) localStorage.setItem('svzla_lang', 'es');
+    return stored || 'es';
+  });
   const toggle = () => {
     const next = lang === 'es' ? 'en' : 'es';
     setLang(next);
