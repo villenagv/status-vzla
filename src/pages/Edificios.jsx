@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X, Image } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import GaleriaFotos from '@/components/svzla/GaleriaFotos';
+import { VistaToggler } from '@/components/svzla/VistaToggler';
 
 function normalizar(str) {
   return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
@@ -80,6 +81,7 @@ export default function Edificios() {
   const [cargandoDir, setCargandoDir] = useState(true);
   const [filtroDir, setFiltroDir] = useState('');
   const [pageDir, setPageDir] = useState(8);
+  const [vistaDir, setVistaDir] = useState('tabla');
 
   // ── PERSONAS ──
   const [personas, setPersonas] = useState([]);
@@ -286,9 +288,12 @@ export default function Edificios() {
               <input value={filtroDir} onChange={e => { setFiltroDir(e.target.value); setPageDir(8); }}
                 placeholder={es ? 'Filtrar por nombre, dirección, ciudad...' : 'Filter by name, address, city...'}
                 className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400 placeholder-gray-400" />
-              <button onClick={() => setTab('reportar')} className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg cursor-pointer whitespace-nowrap">
-                + {es ? 'Reportar daño' : 'Report damage'}
-              </button>
+              <div className="flex items-center gap-2">
+                <VistaToggler vista={vistaDir} setVista={setVistaDir} es={es} />
+                <button onClick={() => setTab('reportar')} className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg cursor-pointer whitespace-nowrap">
+                  + {es ? 'Reportar daño' : 'Report damage'}
+                </button>
+              </div>
             </div>
 
             {cargandoDir ? (
@@ -301,8 +306,33 @@ export default function Edificios() {
             ) : (
               <>
                 <p className="text-xs text-gray-400 mb-3">{dirFiltrados.length} {es ? 'edificio(s) reportado(s)' : 'reported building(s)'}</p>
-                {/* Tabla desktop */}
-                <div className="hidden sm:block bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
+
+                {/* Vista Lista */}
+                {vistaDir === 'lista' && (
+                  <div className="mb-4 divide-y divide-gray-100 bg-white border border-gray-200 rounded-xl overflow-hidden">
+                    {dirFiltrados.slice(0, pageDir).map(r => {
+                      const c = cfg(r.nivel_dano);
+                      const noEntrar = ['grave', 'critico'].includes(r.nivel_dano);
+                      const esCritico = noEntrar || r.prioridad === 'critica';
+                      return (
+                        <div key={r.id} className="flex items-center justify-between px-4 py-3 gap-2 hover:bg-gray-50">
+                          <Link to={`/edificio?id=${r.id}`} className="flex-1 min-w-0 no-underline">
+                            <p className="text-sm font-semibold text-gray-900 truncate">{r.nombre_lugar || r.tipo_estructura || '—'}</p>
+                            <p className="text-xs text-gray-400 truncate">📍 {r.direccion || ''}{r.direccion && r.ciudad ? ' · ' : ''}{r.ciudad || ''}{r.estado_region ? `, ${r.estado_region}` : ''}</p>
+                          </Link>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {esCritico && <span className="text-[9px] font-black text-red-600">🚫</span>}
+                            <span className="text-xs font-semibold" style={{ color: c.color }}>{c.icon}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Vista Tabla */}
+                {vistaDir === 'tabla' && (
+                  <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
@@ -357,38 +387,46 @@ export default function Edificios() {
                   </table>
                 </div>
 
-                {/* Cards mobile */}
-                <div className="sm:hidden space-y-3 mb-4">
-                  {dirFiltrados.slice(0, pageDir).map(r => {
-                    const c = cfg(r.nivel_dano);
-                    const noEntrar = ['grave', 'critico'].includes(r.nivel_dano);
-                    return (
-                      <Link key={r.id} to={`/edificio?id=${r.id}`} className="no-underline block">
-                      <div style={{ background: c.bg, borderColor: c.border }} className="border rounded-xl p-3">
-                       <div className="flex justify-between items-start gap-2 mb-1">
-                         <div>
-                           <p className="text-sm font-bold text-gray-900">{r.nombre_lugar || r.tipo_estructura}</p>
-                            <p className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={9} />{r.direccion} · {r.ciudad}</p>
+                {/* Vista Grid (cards con fotos, mobile) */}
+                {vistaDir !== 'lista' && vistaDir !== 'tabla' && !cargandoDir && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                    {dirFiltrados.slice(0, pageDir).map(r => {
+                      const c = cfg(r.nivel_dano);
+                      const noEntrar = ['grave', 'critico'].includes(r.nivel_dano);
+                      const esCritico = noEntrar || r.prioridad === 'critica';
+                      const tieneFotos = r.foto_urls?.length > 0;
+                      return (
+                        <Link key={r.id} to={`/edificio?id=${r.id}`} className="bg-white border border-gray-200 rounded-xl overflow-hidden no-underline hover:shadow-md transition-shadow">
+                          {tieneFotos ? (
+                            <img src={r.foto_urls[0]} alt="" className="w-full h-36 object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-36 bg-gray-100 flex items-center justify-center">
+                              <Image size={36} className="text-gray-300" />
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <p className="text-sm font-bold text-gray-900 leading-tight line-clamp-1">{r.nombre_lugar || r.tipo_estructura}</p>
+                              {esCritico && <span className="text-[10px] font-black text-white bg-red-600 px-1.5 py-0.5 rounded flex-shrink-0">🚫</span>}
+                            </div>
+                            <p className="text-xs text-gray-500 mb-2 flex items-center gap-1"><MapPin size={9} /> {r.direccion || ''} · {r.ciudad || ''}</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border`} style={{ color: c.color, borderColor: c.border, background: c.bg }}>
+                                {c.icon} {es ? c.label.es : c.label.en}
+                              </span>
+                              {r.riesgo_gas && <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full border border-orange-200">💨</span>}
+                              {r.riesgo_electrico && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full border border-yellow-200">⚡</span>}
+                              {r.personas_atrapadas === 'si' && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full border border-red-200">🆘</span>}
+                            </div>
+                            {r.foto_urls?.length > 1 && (
+                              <p className="text-[10px] text-gray-400 mt-2">+{r.foto_urls.length - 1} {es ? 'fotos más' : 'more photos'}</p>
+                            )}
                           </div>
-                          {noEntrar && <span className="text-[10px] font-black text-white bg-red-600 px-2 py-0.5 rounded flex-shrink-0">{es ? 'NO ENTRAR' : 'DO NOT ENTER'}</span>}
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-semibold" style={{ color: c.color }}>{c.icon} {es ? c.label.es : c.label.en}</span>
-                          {noEntrar && <span className="text-[10px] font-black text-white bg-red-600 px-2 py-0.5 rounded">{es ? 'NO ENTRAR' : 'DO NOT ENTER'}</span>}
-                          {r.riesgo_gas && <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
-                          {r.riesgo_electrico && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full">⚡</span>}
-                          {r.riesgo_incendio && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">🔥</span>}
-                        </div>
-                        {r.foto_urls?.length > 0 && (
-                          <div className="mt-2">
-                            <GaleriaFotos urls={r.foto_urls} />
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                    );
-                  })}
-                </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {dirFiltrados.length > pageDir && (
                   <button onClick={() => setPageDir(v => v + 8)} className="w-full py-2.5 text-sm text-blue-700 border border-blue-200 bg-white rounded-xl cursor-pointer hover:bg-blue-50">
