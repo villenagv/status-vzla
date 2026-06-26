@@ -361,8 +361,10 @@ export default function Edificios() {
                     {es ? `Ver ${Math.min(8, dirFiltrados.length - pageDir)} más` : `Load ${Math.min(8, dirFiltrados.length - pageDir)} more`}
                   </button>
                 )}
+              </>
+            )}
 
-                {/* ── TABLA DE PERSONAS ── */}
+            {/* ── TABLA DE PERSONAS — siempre visible ── */}
                 <div className="mt-8">
                   <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                     <h2 className="text-base font-bold text-gray-800">👤 {es ? 'Personas buscadas y encontradas' : 'Missing & Found people'}</h2>
@@ -460,8 +462,6 @@ export default function Edificios() {
                     </>
                   )}
                 </div>
-              </>
-            )}
           </div>
         )}
 

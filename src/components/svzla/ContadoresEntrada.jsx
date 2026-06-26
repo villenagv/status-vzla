@@ -11,10 +11,10 @@ export default function ContadoresEntrada() {
     const cargar = async () => {
       try {
         const [reportes, personas, puntos, encontrados] = await Promise.all([
-          base44.entities.ReportesDano.list(),
-          base44.entities.PersonasBuscadas.filter({ estado_caso: 'buscando' }),
-          base44.entities.PuntosAyuda.filter({ estado_operativo: 'abierto' }),
-          base44.entities.PersonasEncontradas.list(),
+          base44.entities.ReportesDano.list(null, 200),
+          base44.entities.PersonasBuscadas.filter({ estado_caso: 'buscando' }, null, 200),
+          base44.entities.PuntosAyuda.filter({ estado_operativo: 'abierto' }, null, 100),
+          base44.entities.PersonasEncontradas.list(null, 100),
         ]);
         const criticos = reportes.filter(r => r.prioridad === 'critica').length;
         const conAtrapados = reportes.filter(r => r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces').length;

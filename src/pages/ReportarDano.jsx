@@ -109,6 +109,7 @@ export default function ReportarDano() {
         referencia: form.referencia,
         descripcion: form.descripcion,
         reportante_nombre: form.nombre,
+        reportante_telefono: form.contacto,
         prioridad: esCritico ? 'critica' : (nivel === 'grave' ? 'alta' : 'normal'),
         estado_verificacion: 'recibido',
         nivel_verificacion: 'sin_verificar',
@@ -234,7 +235,7 @@ export default function ReportarDano() {
               </h3>
               <div className="flex flex-col gap-2">
                 {ATRAPADOS.map(a => (
-                  <button key={a.val} type="button" onClick={() => { setAtrapados(a.val); setPaso(Math.max(paso, 4)); }}
+                  <button key={a.val} type="button" onClick={() => { setAtrapados(a.val); setPaso(Math.max(paso, 5)); }}
                     className={`py-3 px-4 rounded-xl text-sm font-bold border-2 text-left transition-colors cursor-pointer ${
                       atrapados === a.val ? a.color : 'bg-white border-[#EDEBE8] text-gray-700'
                     }`}>
@@ -300,7 +301,7 @@ export default function ReportarDano() {
           )}
 
           {/* PASO 5: Datos del reportante */}
-          {paso >= 4 && (
+          {paso >= 5 && (
             <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-3">
               <h3 className="text-sm font-black text-[#1A1F2E]">
                 5. {es ? 'Tus datos (privados, nunca públicos)' : 'Your data (private, never public)'}
@@ -343,7 +344,7 @@ export default function ReportarDano() {
           {tipo && nivel && atrapados && form.direccion && form.ciudad && form.estado_region && (
             <button
               type="button"
-              onClick={() => { setPaso(5); handleSubmit(); }}
+              onClick={handleSubmit}
               disabled={enviando}
               className={`w-full font-black py-5 rounded-2xl text-lg transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 ${
                 esCritico
