@@ -27,7 +27,8 @@
         "moderado",
         "grave",
         "critico",
-        "no_evaluado"
+        "no_evaluado",
+        "colapsado"
       ],
       "default": "no_evaluado"
     },

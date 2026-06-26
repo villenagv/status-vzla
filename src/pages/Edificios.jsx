@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X, ImageIcon } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+import GaleriaFotos from '@/components/svzla/GaleriaFotos';
 
 function normalizar(str) {
   return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
@@ -25,6 +26,7 @@ const DANO_CONFIG = {
   critico:    { color: '#922B21', bg: '#FDEDEC', border: '#E74C3C', label: { es: 'CRÍTICO',         en: 'CRITICAL' },        icon: '🚨', acceso: { es: 'NO ENTRAR — PELIGRO EXTREMO', en: 'DO NOT ENTER — EXTREME DANGER' } },
   no_evaluado:{ color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', label: { es: 'Sin evaluar',    en: 'Not evaluated' },   icon: '⚪', acceso: { es: 'Precaución — sin verificar', en: 'Caution — unverified' } },
   no_sabe:    { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', label: { es: 'Sin datos',      en: 'No data' },         icon: '⚪', acceso: { es: 'Sin información',         en: 'No information' } },
+  colapsado:  { color: '#4A0E0E', bg: '#FCECEC', border: '#DC3545', label: { es: 'COLABSADO',      en: 'COLLAPSED' },       icon: '💥', acceso: { es: 'NO ENTRAR — COLABSADO',     en: 'DO NOT ENTER — COLLAPSED' } },
 };
 
 const TIPO_OPTS = [
@@ -44,6 +46,7 @@ const NIVEL_OPTS = [
   { val: 'grave',    es: 'Grave — parte colapsó o riesgo alto',          en: 'Severe — partial collapse or high risk' },
   { val: 'critico',  es: 'Crítico — colapso total o personas atrapadas', en: 'Critical — total collapse or trapped' },
   { val: 'no_sabe',  es: 'No sé / No pude evaluar',                      en: "Don't know / Can't evaluate" },
+  { val: 'colapsado',es: '💥 Colapsado — estructura derrumbada',            en: '💥 Collapsed — structure down' },
 ];
 const ATRAPADOS_OPTS = [
   { val: 'si',        es: '🚨 Sí, confirmado',                    en: '🚨 Yes, confirmed' },
@@ -104,6 +107,30 @@ export default function Edificios() {
   const [buscando, setBuscando] = useState(false);
   const [buscado, setBuscado] = useState(false);
 
+  // ── SUSCRIPCIÓN ──
+  const [subEmail, setSubEmail] = useState('');
+  const [subPara, setSubPara] = useState(null); // { id, nombre }
+  const [subEnviando, setSubEnviando] = useState(false);
+  const [subOk, setSubOk] = useState(false);
+
+  const suscribirse = async (reporteId, nombre) => {
+    if (!subEmail.trim()) return;
+    setSubEnviando(true);
+    try {
+      await base44.entities.SuscriptoresSeguimiento.create({
+        reporte_id: reporteId,
+        tipo_reporte: 'dano',
+        telefono_whatsapp: subEmail.trim(),
+        activo: true,
+      });
+      setSubOk(true);
+      setTimeout(() => setSubOk(false), 3000);
+    } catch {}
+    setSubEnviando(false);
+    setSubEmail('');
+    setSubPara(null);
+  };
+
   const buscarEdificio = async () => {
     if (!query.trim()) return;
     setBuscando(true); setBuscado(false);
@@ -142,7 +169,7 @@ export default function Edificios() {
   const [enviando, setEnviando] = useState(false);
   const [exito, setExito] = useState(null);
 
-  const esCritico = nivel === 'critico' || nivel === 'grave' || atrapados === 'si' || atrapados === 'voces';
+  const esCritico = nivel === 'critico' || nivel === 'grave' || nivel === 'colapsado' || atrapados === 'si' || atrapados === 'voces';
 
   const buscarDuplicados = async () => {
     if (!direccion.trim() && !nombreLugar.trim()) return;
@@ -185,7 +212,7 @@ export default function Edificios() {
   const handleSubmit = async () => {
     setEnviando(true);
     try {
-      const prioridad = (nivel === 'critico' || atrapados === 'si' || atrapados === 'voces') ? 'critica' : nivel === 'grave' ? 'alta' : 'normal';
+      const prioridad = (nivel === 'critico' || nivel === 'colapsado' || atrapados === 'si' || atrapados === 'voces') ? 'critica' : nivel === 'grave' ? 'alta' : 'normal';
       const foto_urls = fotos.filter(f => f.url).map(f => f.url);
       const nuevo = await base44.entities.ReportesDano.create({
         tipo_estructura: tipo || 'otro', nombre_lugar: nombreLugar,
@@ -282,7 +309,7 @@ export default function Edificios() {
                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{es ? 'Daño' : 'Damage'}</th>
                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{es ? 'Riesgos' : 'Hazards'}</th>
                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{es ? 'Acceso' : 'Access'}</th>
-                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">📷</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">📷 {es ? 'Fotos' : 'Photos'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -319,10 +346,7 @@ export default function Edificios() {
                               }
                             </td>
                             <td className="px-4 py-3">
-                              {r.foto_urls?.length > 0
-                                ? <span className="text-[10px] text-blue-600 font-medium">{r.foto_urls.length} foto{r.foto_urls.length > 1 ? 's' : ''}</span>
-                                : <span className="text-[10px] text-gray-300">—</span>
-                              }
+                              <GaleriaFotos urls={r.foto_urls} />
                             </td>
                           </tr>
                         );
@@ -347,11 +371,16 @@ export default function Edificios() {
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs font-semibold" style={{ color: c.color }}>{c.icon} {es ? c.label.es : c.label.en}</span>
+                          {noEntrar && <span className="text-[10px] font-black text-white bg-red-600 px-2 py-0.5 rounded">{es ? 'NO ENTRAR' : 'DO NOT ENTER'}</span>}
                           {r.riesgo_gas && <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
                           {r.riesgo_electrico && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full">⚡</span>}
                           {r.riesgo_incendio && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">🔥</span>}
-                          {r.foto_urls?.length > 0 && <span className="text-[10px] text-blue-600">📷 {r.foto_urls.length}</span>}
                         </div>
+                        {r.foto_urls?.length > 0 && (
+                          <div className="mt-2">
+                            <GaleriaFotos urls={r.foto_urls} />
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -527,6 +556,30 @@ export default function Edificios() {
                       <div className="mt-2 pt-2 border-t" style={{ borderColor: c.border }}>
                         <p className="text-xs font-medium" style={{ color: c.color }}>🚪 {es ? c.acceso.es : c.acceso.en}</p>
                         {r.descripcion && <p className="text-xs text-gray-600 mt-1 line-clamp-2">{r.descripcion}</p>}
+                      </div>
+
+                      {/* Suscripción */}
+                      {subPara?.id === r.id && subEmail && (
+                        <div className="mt-3 flex gap-2">
+                          <input value={subEmail} onChange={e => setSubEmail(e.target.value)}
+                            placeholder={es ? 'Tu email...' : 'Your email...'}
+                            className="flex-1 border border-gray-200 rounded-lg px-2.5 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 placeholder-gray-400" />
+                          <button onClick={() => suscribirse(r.id, r.nombre_lugar)} disabled={subEnviando}
+                            className="bg-blue-600 text-white text-xs font-medium px-3 py-2 rounded-lg disabled:opacity-40 cursor-pointer">
+                            {es ? 'Suscribir' : 'Subscribe'}
+                          </button>
+                        </div>
+                      )}
+                      <div className="mt-2 flex justify-between items-center">
+                        {subOk && subPara?.id === r.id && (
+                          <span className="text-xs text-green-600 font-medium">✅ {es ? 'Suscrito. Te avisamos si cambia.' : 'Subscribed.'}</span>
+                        )}
+                        {(!subPara || subPara.id !== r.id) && (
+                          <button onClick={() => setSubPara({ id: r.id, nombre: r.nombre_lugar })}
+                            className="text-[11px] text-blue-600 underline cursor-pointer">
+                            🔔 {es ? 'Avísame si cambia el estado' : 'Notify me of changes'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
