@@ -1,16 +1,21 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
-import AuthLayout from "@/components/AuthLayout";
-import GoogleIcon from "@/components/GoogleIcon";
+import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+
+const GoogleSVG = () => (
+  <svg width="20" height="20" viewBox="0 0 48 48" className="flex-shrink-0">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+  </svg>
+);
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +27,7 @@ export default function Login() {
       await base44.auth.loginViaEmailPassword(email, password);
       window.location.href = "/";
     } catch (err) {
-      setError(err.message || "Invalid email or password");
+      setError("Email o contraseña incorrectos. Verifica tus datos e intenta de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -33,93 +38,116 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout
-      icon={LogIn}
-      title="Welcome back"
-      subtitle="Log in to your account"
-      footer={
-        <>
-          Don't have an account?{" "}
-          <Link to="/register" className="text-primary font-medium hover:underline">
-            Create one
-          </Link>
-        </>
-      }
-    >
-      <Button
-        variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
-        onClick={handleGoogle}
-      >
-        <GoogleIcon className="w-5 h-5 mr-2" />
-        Continue with Google
-      </Button>
-
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground">or</span>
-        </div>
+    <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
+      {/* Brand bar */}
+      <div className="bg-[#1A1F2E] px-5 py-4">
+        <Link to="/" className="inline-flex flex-col leading-tight">
+          <span className="font-black text-lg text-white tracking-tight">STATUS<span className="text-[#D48C2E]">VZLA</span><span className="text-[#D48C2E] text-sm">.com</span></span>
+          <span className="text-[10px] text-gray-400">Sistema de respuesta a emergencias · Venezuela</span>
+        </Link>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          {error}
+      <div className="flex-1 flex flex-col justify-center px-5 py-8 max-w-md mx-auto w-full">
+        <div className="mb-7 text-center">
+          <div className="text-4xl mb-3">🔐</div>
+          <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">Iniciar sesión</h1>
+          <p className="text-sm text-gray-500">Accede para gestionar tus búsquedas y recibir alertas</p>
         </div>
-      )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              autoFocus
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12"
-              required
-            />
-          </div>
+        {/* Google — primary CTA */}
+        <button
+          onClick={handleGoogle}
+          className="w-full flex items-center justify-center gap-3 bg-white border-2 border-[#EDEBE8] rounded-2xl py-4 text-sm font-bold text-[#1A1F2E] hover:border-[#1A1F2E] hover:shadow-sm transition-all mb-5"
+        >
+          <GoogleSVG />
+          Continuar con Google
+        </button>
+
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-1 h-px bg-[#EDEBE8]" />
+          <span className="text-xs text-gray-400 font-medium">o con email</span>
+          <div className="flex-1 h-px bg-[#EDEBE8]" />
         </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-              Forgot password?
-            </Link>
+
+        {error && (
+          <div className="mb-4 bg-[#FDF1F0] border border-[#E8B4B0] rounded-xl p-3 text-sm text-[#B83A52]">
+            {error}
           </div>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-12"
-              required
-            />
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-[#1A1F2E] mb-1.5">Correo electrónico</label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="email"
+                autoComplete="email"
+                autoFocus
+                placeholder="tu@correo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full border border-[#EDEBE8] rounded-xl pl-10 pr-4 py-3.5 text-sm bg-white focus:outline-none focus:border-[#1A1F2E] focus:ring-1 focus:ring-[#1A1F2E]"
+              />
+            </div>
           </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm font-semibold text-[#1A1F2E]">Contraseña</label>
+              <Link to="/forgot-password" className="text-xs text-[#D48C2E] hover:underline font-medium">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type={showPass ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full border border-[#EDEBE8] rounded-xl pl-10 pr-11 py-3.5 text-sm bg-white focus:outline-none focus:border-[#1A1F2E] focus:ring-1 focus:ring-[#1A1F2E]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass(s => !s)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#1A1F2E] hover:bg-[#2d3549] disabled:opacity-50 text-white font-bold py-4 rounded-xl text-base transition-colors flex items-center justify-center gap-2 mt-2"
+          >
+            {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-gray-500 mt-6">
+          ¿No tienes cuenta?{" "}
+          <Link to="/register" className="text-[#D48C2E] font-bold hover:underline">
+            Regístrate gratis
+          </Link>
+        </p>
+
+        <div className="mt-6 bg-[#FDF1F0] border border-[#E8B4B0] rounded-xl p-3">
+          <p className="text-xs text-[#B83A52] text-center leading-relaxed">
+            ⚠️ Nunca compartas tu contraseña. Esta plataforma no te pedirá dinero ni datos bancarios.
+          </p>
         </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Logging in...
-            </>
-          ) : (
-            "Log in"
-          )}
-        </Button>
-      </form>
-    </AuthLayout>
+
+        <p className="text-center text-[11px] text-gray-400 mt-4">
+          <Link to="/" className="hover:text-[#1A1F2E]">← Volver al inicio sin registrarse</Link>
+        </p>
+      </div>
+    </div>
   );
 }
