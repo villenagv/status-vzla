@@ -143,7 +143,7 @@ export default function ZonaAfectada() {
         {/* Sub-menú inicial */}
         {currentStep === 0 && !form.estado_fisico && (
           <div className="space-y-2 mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
-            ⚡ {es ? 'Responde solo lo que puedas. Ningún dato es obligatorio. Cada campo te ayudará a ti y a quienes te buscan.' : 'Answer only what you can. No field is required. Each helps you and those looking for you.'}
+            ⚡ {es ? 'Responde solo lo que puedas. Ningún dato es obligatorio.' : 'Answer only what you can. No field is required.'}
           </div>
         )}
 
@@ -176,33 +176,10 @@ export default function ZonaAfectada() {
           {currentStep === 2 && (
             <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
               <StepNecesidad form={form} setVal={setVal} es={es} />
-              {/* Acompañamiento */}
-              <div className="pt-3 border-t border-gray-100">
-                <p className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-1">👥 {es ? '¿Estás solo/a o acompañado/a?' : 'Are you alone or accompanied?'}</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { val: 'solo', es: 'Solo/a', en: 'Alone' },
-                    { val: 'familia', es: 'Con mi familia', en: 'With family' },
-                    { val: 'vecinos', es: 'Con vecinos', en: 'With neighbors' },
-                    { val: 'ninos', es: 'Con niños', en: 'With children' },
-                    { val: 'adultos', es: 'Con adultos mayores', en: 'With elderly' },
-                    { val: 'heridos', es: 'Con heridos', en: 'With injured' },
-                  ].map(a => (
-                    <button key={a.val} type="button" onClick={() => setVal('acompanado', form.acompanado === a.val ? '' : a.val)}
-                      className={`py-2.5 rounded-lg text-xs font-semibold border cursor-pointer ${form.acompanado === a.val ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-200 text-gray-700'}`}>
-                      {es ? a.es : a.en}
-                    </button>
-                  ))}
-                </div>
-                {form.acompanado === 'familia' || form.acompanado === 'vecinos' || form.acompanado === 'heridos' ? (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    {[{ k: 'acompanantes_cantidad', label: { es: '¿Cuántos son?', en: 'How many?' } }].map(f => (
-                      <input key={f.k} type="text" inputMode="numeric" value={form[f.k] || ''} onChange={e => setVal(f.k, e.target.value)}
-                        placeholder={es ? 'Número' : 'Number'} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900" />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
+                  <p className="text-xs text-gray-400 mt-2">{es ? 'Información adicional' : 'Additional info'}</p>
+              <input value={form.acompanado || ''} onChange={e => setVal('acompanado', e.target.value)}
+                placeholder={es ? 'Ej: con 2 vecinos heridos' : 'E.g: with 2 injured neighbors'}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900 mt-1" />
             </div>
           )}
 
@@ -270,7 +247,7 @@ function ReviewStep({ form, es }) {
     { label: { es: 'Contacto a avisar', en: 'Contact to alert' }, val: form.avisar_nombre || '-' },
     { label: { es: 'Correo para aviso', en: 'Email for notice' }, val: form.avisar_email || '-' },
     { label: { es: 'Centro de apoyo', en: 'Support center' }, val: form.centro_nombre || '-' },
-    { label: { es: 'Avisar a', en: 'Notify' }, val: form.avisar_familiar_historico ? `${form.avisar_nombre || ''}` : '-' },
+    { label: { es: 'Avisar a', en: 'Notify' }, val: form.avisar_nombre || '-' },
   ];
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-1">

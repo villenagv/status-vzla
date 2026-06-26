@@ -14,7 +14,7 @@ export default function StepPeligro({ form, setVal, es }) {
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-2">
-      <p className="text-xs text-gray-500 mb-1">{es ? 'Elige una opción' : 'Choose one option'}</p>
+      <p className="text-xs text-gray-500 mb-1">{es ? 'Responde solo si tienes la información' : 'Answer only if you have the information'}</p>
       {options.map(o => {
         const active = form.lugar_seguro === o.value;
         const critical = ['no', 'fire_smoke', 'gas_leak'].includes(o.value);

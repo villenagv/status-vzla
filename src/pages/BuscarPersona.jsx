@@ -211,8 +211,8 @@ export default function BuscarPersona() {
         </h1>
         <p className="text-sm text-gray-500 mb-3 leading-relaxed">
           {es
-            ? 'Completa este formulario. No necesitas saberlo todo. Tus datos de contacto no se publicarán.'
-            : "Fill in this form. You don't need to know everything. Your contact details will not be published."}
+            ? 'Registra a la persona que buscas. Responde solo lo que sepas — todos los datos son opcionales excepto nombre, ubicación y tu teléfono. Tus datos de contacto no se publicarán.'
+            : "Register the person you're looking for. Answer only what you know — all fields are optional except name, location and your phone. Your contact details won't be published."}
         </p>
         <button onClick={() => setModoRapido(v => !v)} type="button" className={`text-xs font-semibold px-3 py-1.5 rounded-lg border mb-4 cursor-pointer ${modoRapido ? 'bg-[#D48C2E] text-white border-[#D48C2E]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#D48C2E]'}`}>
           ⚡ {modoRapido ? (es ? 'Versión completa' : 'Full version') : (es ? 'Modo rápido' : 'Quick mode')}

@@ -8,11 +8,11 @@ export default function StepFamilia({ form, setVal, es }) {
         </h3>
         <div className="grid grid-cols-1 gap-1.5">
           {[
-            { es: 'Estoy vivo/a y estoy en...', en: 'I am alive and I am in...' },
-            { es: 'No tengo senal constante, pero estoy bien', en: 'No constant signal, but I am OK' },
-            { es: 'Me trasladaron desde... hacia...', en: 'I was moved from... to...' },
-            { es: 'Estoy en un refugio/hospital', en: 'I am in a shelter/hospital' },
-            { es: 'Necesito que contacten a...', en: 'I need someone to contact...' },
+            { es: 'Estoy bien y estoy en...', en: 'I\'m OK and I\'m in...' },
+            { es: 'Se me va la señal, pero estoy bien', en: 'Signal keeps dropping but I\'m alright' },
+            { es: 'Me llevaron de... hacia...', en: 'I was taken from... to...' },
+            { es: 'Estoy en un refugio u hospital', en: 'I\'m at a shelter or hospital' },
+            { es: 'Necesito que localicen a...', en: 'Need someone to find...' },
           ].map((m, i) => (
             <button key={i} type="button" onClick={() => setVal('mensaje_rápido', es ? m.es : m.en)}
               className={`text-xs text-left py-2 px-3 rounded-lg border cursor-pointer transition-colors ${form.mensaje_rápido === (es ? m.es : m.en) ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>
@@ -23,21 +23,6 @@ export default function StepFamilia({ form, setVal, es }) {
         <textarea rows={2} value={form.mensaje_rápido || ''} onChange={e => setVal('mensaje_rápido', e.target.value)}
           placeholder={es ? 'O escribe tu propio mensaje...' : 'Or write your own message...'}
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900 resize-none mt-2" />
-      </div>
-
-      {/* Busca familiar desde la zona */}
-      <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-1">
-          🔍 {es ? '¿Estas buscando a alguien de tu familia?' : 'Are you looking for a family member?'}
-        </h3>
-        <p className="text-xs text-gray-500">{es ? '(Opcional)' : '(Optional)'}</p>
-        <input value={form.busca_familiar_nombre || ''} onChange={e => setVal('busca_familiar_nombre', e.target.value)}
-          placeholder={es ? 'Nombre de la persona que buscas...' : 'Name of the person you are looking for...'}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900" />
-        <div className="grid grid-cols-2 gap-2">
-          <input value={form.busca_familiar_relacion || ''} onChange={e => setVal('busca_familiar_relacion', e.target.value)} placeholder={es ? 'Relacion' : 'Relationship'} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900" />
-          <input value={form.busca_familiar_ubicacion || ''} onChange={e => setVal('busca_familiar_ubicacion', e.target.value)} placeholder={es ? 'Donde podria estar' : 'Where they might be'} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-900" />
-        </div>
       </div>
 
       {/* Persona a quien quiere avisar */}

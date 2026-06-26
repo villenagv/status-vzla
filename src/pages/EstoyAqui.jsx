@@ -157,8 +157,8 @@ export default function EstoyAqui() {
         </h1>
         <p className="text-sm text-gray-500 mb-4 leading-relaxed">
           {es
-            ? 'Usa esta opción si estás vivo/a y quieres avisar dónde estás, cómo estás o buscar a tu familia. No hace falta saberlo todo.'
-            : 'Use this option if you are alive and want to say where you are, how you are, or find your family. You don\'t need to know everything.'}
+            ? 'Avisa dónde estás y cómo estás. Responde solo lo que sepas — cada campo es opcional.'
+            : 'Let us know where you are and how you are. Answer only what you know — every field is optional.'}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
