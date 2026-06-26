@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Upload, CheckCircle, AlertCircle, Loader2, FileText, RotateCcw, Users, AlertTriangle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { base44 } from '@/api/base44Client';
+import DialogoDuplicado from './DialogoDuplicado';
 
 const CONDICION_MAP = {
   'a salvo': 'a_salvo', 'a_salvo': 'a_salvo', 'safe': 'a_salvo', 'bien': 'a_salvo',
@@ -42,13 +43,10 @@ function parseFile(file) {
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
         const parsed = rows
-          .filter(r => {
-            const nombre = findCol(r, 'nombre completo', 'nombre', 'full name', 'name', 'nombre_completo');
-            return nombre.length > 1;
-          })
+          .filter(r => findCol(r, 'nombre completo', 'nombre', 'full name', 'name', 'nombre_completo').length > 1)
           .map((r, i) => ({
             _id: i,
-            _estado: 'pendiente',
+            _estado: 'pendiente', // pendiente | procesando | ok | duplicado | error | ignorado
             nombre_completo: findCol(r, 'nombre completo', 'nombre', 'full name', 'name', 'nombre_completo'),
             fecha_nacimiento: findCol(r, 'fecha de nacimiento', 'fecha nacimiento', 'nacimiento', 'date of birth', 'fecha_nacimiento'),
             telefono_contacto: findCol(r, 'teléfono de contacto', 'telefono de contacto', 'teléfono', 'telefono', 'phone', 'telefono_contacto'),
@@ -75,21 +73,55 @@ const CONDICION_LABEL = {
   no_sabe: { es: 'No se sabe', en: 'Unknown', color: 'bg-gray-100 text-gray-500' },
 };
 
-// Busca o crea un PuntoAyuda para esta institución
-async function resolverCentroApoyo(instId, instNombre, instTipo, ciudad, estado, es, onDuplicado) {
-  // Buscar si ya existe un punto de ayuda vinculado a esta institución
-  const todos = await base44.entities.PuntosAyuda.filter({ nombre_lugar: instNombre });
-  const similares = todos.filter(p =>
-    p.nombre_lugar?.toLowerCase().trim() === instNombre.toLowerCase().trim() ||
-    p.fuente === instId
+// Normaliza un nombre para comparación fuzzy simple
+function normalizarNombre(n) {
+  return String(n || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+// Devuelve true si los nombres son similares (contiene palabras clave)
+function nombreSimilar(a, b) {
+  const na = normalizarNombre(a);
+  const nb = normalizarNombre(b);
+  if (na === nb) return true;
+  // Verificar si las palabras principales coinciden (al menos 2 palabras de >= 3 letras)
+  const wordsA = na.split(/\s+/).filter(w => w.length >= 3);
+  const wordsB = nb.split(/\s+/).filter(w => w.length >= 3);
+  const matches = wordsA.filter(w => wordsB.includes(w));
+  return matches.length >= 2;
+}
+
+// Busca duplicados en PersonaCRIS y PersonaRegistrada
+async function buscarDuplicados(nombre) {
+  const n = normalizarNombre(nombre);
+  const palabras = n.split(/\s+/).filter(w => w.length >= 3);
+  if (palabras.length === 0) return [];
+
+  // Buscar usando la primera palabra del nombre como filtro de texto
+  const [enCris, enRegistradas] = await Promise.all([
+    base44.entities.PersonaCRIS.filter({}, '-created_date', 200).catch(() => []),
+    base44.entities.PersonaRegistrada.filter({}, '-created_date', 200).catch(() => []),
+  ]);
+
+  const coincidenciasCris = enCris.filter(p =>
+    nombreSimilar(p.nombre, nombre) || nombreSimilar(`${p.nombre} ${p.apellido}`, nombre)
+  );
+  const coincidenciasReg = enRegistradas.filter(p =>
+    nombreSimilar(p.nombre_completo, nombre)
   );
 
+  return [...coincidenciasCris, ...coincidenciasReg];
+}
+
+// Crea o actualiza PuntoAyuda
+async function resolverCentroApoyo(instId, instNombre, instTipo, ciudad, estado, onDuplicadoCentro) {
+  const todos = await base44.entities.PuntosAyuda.filter({ nombre_lugar: instNombre }).catch(() => []);
+  const similares = todos.filter(p =>
+    p.nombre_lugar?.toLowerCase().trim() === instNombre.toLowerCase().trim() || p.fuente === instId
+  );
   if (similares.length > 0) {
-    // Existe — preguntar si es duplicado
     return new Promise((resolve) => {
-      onDuplicado(similares[0], (decision) => {
+      onDuplicadoCentro(similares[0], (decision) => {
         if (decision === 'actualizar') {
-          // Actualizar personas_actuales
           base44.entities.PuntosAyuda.update(similares[0].id, {
             ultima_actualizacion: new Date().toISOString(),
             requiere_actualizacion: false,
@@ -99,12 +131,7 @@ async function resolverCentroApoyo(instId, instNombre, instTipo, ciudad, estado,
       });
     });
   }
-
-  // No existe — crear nuevo PuntoAyuda
-  const tipoMap = {
-    refugio: 'refugio', hospital: 'hospital', centro_acopio: 'centro_acopio',
-    comedor: 'comedor', otro: 'refugio',
-  };
+  const tipoMap = { refugio: 'refugio', hospital: 'hospital', centro_acopio: 'centro_acopio', comedor: 'comedor', otro: 'refugio' };
   const nuevo = await base44.entities.PuntosAyuda.create({
     nombre_lugar: instNombre,
     tipo_lugar: tipoMap[instTipo] || 'refugio',
@@ -119,6 +146,22 @@ async function resolverCentroApoyo(instId, instNombre, instTipo, ciudad, estado,
   return nuevo.id;
 }
 
+async function crearPersona(fila, instId, instNombre, centroId) {
+  return base44.entities.PersonaRegistrada.create({
+    nombre_completo: fila.nombre_completo,
+    fecha_nacimiento: fila.fecha_nacimiento,
+    telefono_contacto: fila.telefono_contacto,
+    email: fila.email,
+    condicion: fila.condicion,
+    observaciones: fila.observaciones,
+    institucion_id: instId,
+    institucion_nombre: instNombre,
+    centro_apoyo: centroId || '',
+    nivel_verificacion: 'institucional',
+    fuente: 'institucional',
+  });
+}
+
 export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo, ciudad, estado, onPersonasGuardadas }) {
   const [archivo, setArchivo] = useState(null);
   const [filas, setFilas] = useState([]);
@@ -126,14 +169,26 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
   const [procesando, setProcesando] = useState(false);
   const [completado, setCompletado] = useState(false);
 
-  // Estado para diálogo de duplicado
-  const [duplicadoData, setDuplicadoData] = useState(null); // { centroExistente, resolve }
+  // Diálogo duplicado de centro de apoyo
+  const [duplicadoCentro, setDuplicadoCentro] = useState(null);
 
+  // Cola de duplicados de personas pendientes de resolver
+  const [colaDuplicados, setColaDuplicados] = useState([]); // [{filaIdx, fila, coincidencias}]
+  const [duplicadoActual, setDuplicadoActual] = useState(null);
+
+  // centroId ref para usarlo en resolución de duplicados
+  const centroIdRef = useRef(null);
   const inputRef = useRef();
+
+  const setFilaEstado = (idx, estado) =>
+    setFilas(prev => prev.map((f, i) => i === idx ? { ...f, _estado: estado } : f));
 
   const okCount = filas.filter(f => f._estado === 'ok').length;
   const errorCount = filas.filter(f => f._estado === 'error').length;
-  const progreso = filas.length > 0 ? Math.round((okCount + errorCount) / filas.length * 100) : 0;
+  const ignoradoCount = filas.filter(f => f._estado === 'ignorado').length;
+  const dupCount = filas.filter(f => f._estado === 'duplicado_pendiente').length;
+  const procesados = filas.filter(f => ['ok', 'error', 'ignorado'].includes(f._estado)).length;
+  const progreso = filas.length > 0 ? Math.round(procesados / filas.length * 100) : 0;
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -141,6 +196,8 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
     setFilas([]);
     setParseError('');
     setCompletado(false);
+    setColaDuplicados([]);
+    setDuplicadoActual(null);
     try {
       const parsed = await parseFile(file);
       if (parsed.length === 0) {
@@ -161,65 +218,138 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
     if (!filas.length || procesando) return;
     setProcesando(true);
     setCompletado(false);
+    setColaDuplicados([]);
+    setDuplicadoActual(null);
 
-    // Resolver centro de apoyo primero
+    // 1. Resolver centro de apoyo
     let centroId = null;
     try {
       centroId = await resolverCentroApoyo(
-        instId, instNombre, instTipo, ciudad, estado, es,
-        (centroExistente, resolveFn) => {
-          setDuplicadoData({ centroExistente, resolveFn });
-        }
+        instId, instNombre, instTipo, ciudad, estado,
+        (centroExistente, resolveFn) => setDuplicadoCentro({ centroExistente, resolveFn })
       );
-    } catch {
-      centroId = null;
+    } catch { centroId = null; }
+    centroIdRef.current = centroId;
+
+    // 2. Procesar cada fila — buscar duplicados, crear si no hay
+    const colaPendiente = [];
+    const snapshot = filas; // usar snapshot para índices correctos
+
+    for (let i = 0; i < snapshot.length; i++) {
+      const fila = snapshot[i];
+      if (fila._estado === 'ok' || fila._estado === 'ignorado') continue;
+
+      setFilaEstado(i, 'procesando');
+
+      // Buscar duplicados
+      let duplicados = [];
+      try {
+        duplicados = await buscarDuplicados(fila.nombre_completo);
+      } catch { duplicados = []; }
+
+      if (duplicados.length > 0) {
+        // Marcar como duplicado pendiente y encolar
+        setFilaEstado(i, 'duplicado_pendiente');
+        colaPendiente.push({ filaIdx: i, fila, coincidencias: duplicados });
+        await new Promise(r => setTimeout(r, 80));
+        continue;
+      }
+
+      // Sin duplicados — crear directamente
+      try {
+        await crearPersona(fila, instId, instNombre, centroId);
+        setFilaEstado(i, 'ok');
+      } catch {
+        setFilaEstado(i, 'error');
+      }
+      await new Promise(r => setTimeout(r, 120));
     }
 
-    const nuevas = [];
-    for (let i = 0; i < filas.length; i++) {
-      const fila = filas[i];
-      if (fila._estado === 'ok') continue;
+    // 3. Si hay duplicados en cola, mostrar uno a uno
+    if (colaPendiente.length > 0) {
+      setProcesando(false); // pausar spinner principal
+      setColaDuplicados(colaPendiente);
+      setDuplicadoActual(0);
+      return; // La resolución continúa en handleDecisionDuplicado
+    }
 
-      setFilas(prev => prev.map((f, idx) => idx === i ? { ...f, _estado: 'procesando' } : f));
+    // 4. Finalizar
+    finalizarProceso(centroId);
+  };
 
+  const handleDecisionDuplicado = async ({ accion, coincidenciaId }) => {
+    const item = colaDuplicados[duplicadoActual];
+    const centroId = centroIdRef.current;
+
+    if (accion === 'nuevo') {
+      // Crear como persona nueva
       try {
-        const creada = await base44.entities.PersonaRegistrada.create({
-          nombre_completo: fila.nombre_completo,
-          fecha_nacimiento: fila.fecha_nacimiento,
-          telefono_contacto: fila.telefono_contacto,
-          email: fila.email,
-          condicion: fila.condicion,
-          observaciones: fila.observaciones,
+        await crearPersona(item.fila, instId, instNombre, centroId);
+        setFilaEstado(item.filaIdx, 'ok');
+      } catch {
+        setFilaEstado(item.filaIdx, 'error');
+      }
+    } else if (accion === 'mismo') {
+      // Actualizar la existente con los datos nuevos (si es PersonaRegistrada)
+      try {
+        await base44.entities.PersonaRegistrada.update(coincidenciaId, {
+          condicion: item.fila.condicion,
+          observaciones: item.fila.observaciones,
           institucion_id: instId,
           institucion_nombre: instNombre,
           centro_apoyo: centroId || '',
           nivel_verificacion: 'institucional',
-          fuente: 'institucional',
+        }).catch(async () => {
+          // Si falla (es PersonaCRIS), crear un enlace en PersonaRegistrada igualmente
+          await crearPersona(item.fila, instId, instNombre, centroId);
         });
-        nuevas.push(creada);
-        setFilas(prev => prev.map((f, idx) => idx === i ? { ...f, _estado: 'ok' } : f));
+        setFilaEstado(item.filaIdx, 'ok');
       } catch {
-        setFilas(prev => prev.map((f, idx) => idx === i ? { ...f, _estado: 'error' } : f));
+        setFilaEstado(item.filaIdx, 'error');
       }
-      await new Promise(r => setTimeout(r, 150));
+    } else {
+      // ignorar
+      setFilaEstado(item.filaIdx, 'ignorado');
     }
 
-    // Actualizar contador de personas en PuntoAyuda
-    if (centroId && nuevas.length > 0) {
-      base44.entities.PuntosAyuda.update(centroId, {
-        personas_actuales: nuevas.length,
-        ultima_actualizacion: new Date().toISOString(),
-      }).catch(() => {});
+    const siguienteIdx = duplicadoActual + 1;
+    if (siguienteIdx < colaDuplicados.length) {
+      setDuplicadoActual(siguienteIdx);
+    } else {
+      // Cola agotada — finalizar
+      setDuplicadoActual(null);
+      setColaDuplicados([]);
+      finalizarProceso(centroId);
     }
+  };
 
+  const finalizarProceso = (centroId) => {
+    // Actualizar contador en PuntoAyuda
+    if (centroId) {
+      setFilas(prev => {
+        const okC = prev.filter(f => f._estado === 'ok').length;
+        base44.entities.PuntosAyuda.update(centroId, {
+          personas_actuales: okC,
+          ultima_actualizacion: new Date().toISOString(),
+        }).catch(() => {});
+        return prev;
+      });
+    }
     setProcesando(false);
     setCompletado(true);
-    if (onPersonasGuardadas) onPersonasGuardadas(nuevas.length);
+    if (onPersonasGuardadas) {
+      setFilas(prev => {
+        const okC = prev.filter(f => f._estado === 'ok').length;
+        onPersonasGuardadas(okC);
+        return prev;
+      });
+    }
   };
 
   const reintentarErrores = async () => {
     if (procesando) return;
     setFilas(prev => prev.map(f => f._estado === 'error' ? { ...f, _estado: 'pendiente' } : f));
+    setCompletado(false);
     await new Promise(r => setTimeout(r, 50));
     await procesarTodo();
   };
@@ -230,13 +360,18 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
     setParseError('');
     setCompletado(false);
     setProcesando(false);
+    setColaDuplicados([]);
+    setDuplicadoActual(null);
     if (inputRef.current) inputRef.current.value = '';
   };
 
+  const itemDuplicadoActual = duplicadoActual !== null ? colaDuplicados[duplicadoActual] : null;
+
   return (
     <div className="bg-white border border-[#2471A3] rounded-xl p-4 space-y-4">
-      {/* Diálogo duplicado */}
-      {duplicadoData && (
+
+      {/* Diálogo duplicado de CENTRO */}
+      {duplicadoCentro && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-xl">
             <div className="flex items-start gap-2">
@@ -247,20 +382,20 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   {es
-                    ? `"${duplicadoData.centroExistente.nombre_lugar}" ya está registrado en ${duplicadoData.centroExistente.ciudad || 'el sistema'}. ¿Qué deseas hacer?`
-                    : `"${duplicadoData.centroExistente.nombre_lugar}" is already registered in ${duplicadoData.centroExistente.ciudad || 'the system'}. What do you want to do?`}
+                    ? `"${duplicadoCentro.centroExistente.nombre_lugar}" ya está registrado en ${duplicadoCentro.centroExistente.ciudad || 'el sistema'}. ¿Qué deseas hacer?`
+                    : `"${duplicadoCentro.centroExistente.nombre_lugar}" is already registered in ${duplicadoCentro.centroExistente.ciudad || 'the system'}. What do you want to do?`}
                 </p>
               </div>
             </div>
             <div className="flex flex-col gap-2">
               <button
-                onClick={() => { const fn = duplicadoData.resolveFn; setDuplicadoData(null); fn('actualizar'); }}
+                onClick={() => { const fn = duplicadoCentro.resolveFn; setDuplicadoCentro(null); fn('actualizar'); }}
                 className="w-full bg-[#2471A3] text-white font-bold py-3 rounded-xl text-sm"
               >
                 {es ? '🔄 Actualizar el centro existente' : '🔄 Update existing center'}
               </button>
               <button
-                onClick={() => { const fn = duplicadoData.resolveFn; setDuplicadoData(null); fn('nuevo'); }}
+                onClick={() => { const fn = duplicadoCentro.resolveFn; setDuplicadoCentro(null); fn('nuevo'); }}
                 className="w-full border border-[#EDEBE8] text-gray-700 font-semibold py-3 rounded-xl text-sm"
               >
                 {es ? '+ Crear como centro nuevo' : '+ Create as new center'}
@@ -268,6 +403,16 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
             </div>
           </div>
         </div>
+      )}
+
+      {/* Diálogo duplicado de PERSONA */}
+      {itemDuplicadoActual && (
+        <DialogoDuplicado
+          persona={itemDuplicadoActual.fila}
+          coincidencias={itemDuplicadoActual.coincidencias}
+          es={es}
+          onDecision={handleDecisionDuplicado}
+        />
       )}
 
       {/* Header */}
@@ -284,8 +429,8 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
         </p>
         <p className="text-[11px] text-blue-700 leading-relaxed">
           {es
-            ? 'Leemos el archivo aquí mismo (sin internet). Luego guardamos cada persona una a una. Si falla la conexión, puedes reintentar solo los que fallaron.'
-            : 'We read the file locally (no internet needed). Then save each person one by one. If the connection fails, retry only the failed ones.'}
+            ? 'Leemos el archivo aquí mismo. Luego guardamos cada persona, detectamos posibles duplicados y te preguntamos antes de crear registros repetidos.'
+            : 'We read the file locally. Then save each person, detect possible duplicates and ask before creating repeated records.'}
         </p>
         <p className="text-[11px] text-blue-600">
           {es ? '✅ El centro de apoyo se creará o actualizará automáticamente.' : '✅ The aid center will be created or updated automatically.'}
@@ -334,21 +479,39 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
                 {filas.length} {es ? 'personas detectadas' : 'people detected'}
                 {okCount > 0 && ` · ✅ ${okCount}`}
                 {errorCount > 0 && ` · ❌ ${errorCount}`}
+                {dupCount > 0 && ` · 🔍 ${dupCount} ${es ? 'a revisar' : 'to review'}`}
+                {ignoradoCount > 0 && ` · ⊘ ${ignoradoCount}`}
               </p>
             </div>
-            {!procesando && !completado && (
+            {!procesando && !completado && !itemDuplicadoActual && (
               <button onClick={reset} className="text-[11px] text-blue-500 underline cursor-pointer">{es ? 'Cambiar' : 'Change'}</button>
             )}
           </div>
 
+          {/* Aviso cola de duplicados */}
+          {itemDuplicadoActual && (
+            <div className="bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-center">
+              <p className="text-xs font-bold text-orange-800">
+                🔍 {es
+                  ? `Revisando ${duplicadoActual + 1} de ${colaDuplicados.length} posible${colaDuplicados.length > 1 ? 's' : ''} duplicado${colaDuplicados.length > 1 ? 's' : ''}`
+                  : `Reviewing ${duplicadoActual + 1} of ${colaDuplicados.length} possible duplicate${colaDuplicados.length > 1 ? 's' : ''}`}
+              </p>
+              <p className="text-[11px] text-orange-600">
+                {es ? 'Los demás registros ya se guardaron. Ahora revisa los que tienen coincidencias.' : 'Other records are already saved. Now review those with matches.'}
+              </p>
+            </div>
+          )}
+
           {/* Barra de progreso */}
-          {(procesando || completado) && (
+          {(procesando || completado || itemDuplicadoActual) && (
             <div className="space-y-1">
               <div className="flex justify-between items-center">
                 <p className="text-xs font-semibold text-[#1A1F2E]">
-                  {completado
+                  {completado && !itemDuplicadoActual
                     ? (es ? '✅ Proceso completado' : '✅ Process complete')
-                    : (es ? `Guardando... ${okCount + errorCount} de ${filas.length}` : `Saving... ${okCount + errorCount} of ${filas.length}`)}
+                    : itemDuplicadoActual
+                      ? (es ? '🔍 Revisando duplicados...' : '🔍 Reviewing duplicates...')
+                      : (es ? `Guardando... ${procesados} de ${filas.length}` : `Saving... ${procesados} of ${filas.length}`)}
                 </p>
                 <span className="text-xs font-bold text-[#2471A3]">{progreso}%</span>
               </div>
@@ -380,7 +543,9 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
                       <tr key={f._id} className={
                         f._estado === 'procesando' ? 'bg-blue-50' :
                         f._estado === 'ok' ? 'bg-green-50' :
-                        f._estado === 'error' ? 'bg-red-50' : ''
+                        f._estado === 'error' ? 'bg-red-50' :
+                        f._estado === 'duplicado_pendiente' ? 'bg-orange-50' :
+                        f._estado === 'ignorado' ? 'bg-gray-50 opacity-50' : ''
                       }>
                         <td className="px-3 py-2 text-gray-400">{i + 1}</td>
                         <td className="px-3 py-2 font-medium text-[#1A1F2E] max-w-[120px] truncate">{f.nombre_completo}</td>
@@ -394,6 +559,8 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
                           {f._estado === 'procesando' && <Loader2 size={12} className="animate-spin text-blue-500" />}
                           {f._estado === 'ok' && <CheckCircle size={13} className="text-green-600" />}
                           {f._estado === 'error' && <AlertCircle size={13} className="text-red-500" />}
+                          {f._estado === 'duplicado_pendiente' && <span className="text-orange-500 text-[10px] font-bold">🔍</span>}
+                          {f._estado === 'ignorado' && <span className="text-gray-400 text-[10px]">⊘</span>}
                         </td>
                       </tr>
                     );
@@ -404,7 +571,7 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
           </div>
 
           {/* Botones de acción */}
-          {!completado && !procesando && (
+          {!completado && !procesando && !itemDuplicadoActual && (
             <button onClick={procesarTodo} className="w-full bg-[#2471A3] text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2">
               <FileText size={15} />
               {es ? `Guardar ${filas.length} personas al centro` : `Save ${filas.length} people to center`}
@@ -415,34 +582,35 @@ export default function ProcesadorProgresivo({ es, instId, instNombre, instTipo,
             <div className="flex items-center justify-center gap-2 py-2">
               <Loader2 size={16} className="animate-spin text-[#2471A3]" />
               <p className="text-sm text-[#2471A3] font-semibold">
-                {es ? 'Guardando, no cierres esta página...' : "Saving, don't close this page..."}
+                {es ? 'Guardando y verificando duplicados...' : 'Saving and checking for duplicates...'}
               </p>
             </div>
           )}
 
-          {completado && errorCount > 0 && (
+          {completado && !itemDuplicadoActual && errorCount > 0 && (
             <button onClick={reintentarErrores} className="w-full bg-[#D48C2E] text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
               <RotateCcw size={14} />
               {es ? `Reintentar ${errorCount} con error` : `Retry ${errorCount} with error`}
             </button>
           )}
 
-          {completado && errorCount === 0 && (
+          {completado && !itemDuplicadoActual && errorCount === 0 && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center space-y-1">
               <p className="text-2xl">🙏</p>
               <p className="text-sm font-bold text-green-800">{es ? '¡Gracias por tu ayuda!' : 'Thank you for your help!'}</p>
               <p className="text-xs text-green-700 leading-relaxed">
                 {es
-                  ? `${okCount} personas registradas bajo "${instNombre}". El centro de apoyo fue actualizado con esta información.`
-                  : `${okCount} people registered under "${instNombre}". The aid center was updated with this information.`}
+                  ? `${okCount} personas registradas bajo "${instNombre}". El centro de apoyo fue actualizado.`
+                  : `${okCount} people registered under "${instNombre}". The aid center was updated.`}
+                {ignoradoCount > 0 && (es ? ` ${ignoradoCount} omitidas.` : ` ${ignoradoCount} skipped.`)}
               </p>
               <p className="text-[11px] text-green-600">
-                {es ? '🔒 Los teléfonos no se publicarán. Solo nombre y condición son visibles.' : '🔒 Phones will not be published. Only name and condition are visible.'}
+                {es ? '🔒 Los teléfonos no se publicarán.' : '🔒 Phones will not be published.'}
               </p>
             </div>
           )}
 
-          {completado && (
+          {completado && !itemDuplicadoActual && (
             <button onClick={reset} className="w-full text-xs text-gray-400 underline py-1 cursor-pointer">
               {es ? 'Subir otro archivo' : 'Upload another file'}
             </button>

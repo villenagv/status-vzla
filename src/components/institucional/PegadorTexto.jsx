@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ClipboardPaste, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { ClipboardPaste, AlertCircle, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import DialogoDuplicado from './DialogoDuplicado';
 
 const CONDICION_MAP = {
   'a salvo': 'a_salvo', 'a_salvo': 'a_salvo', 'safe': 'a_salvo', 'bien': 'a_salvo', 'salvo': 'a_salvo',
@@ -42,6 +43,28 @@ const CONDICION_LABEL = {
   no_sabe: { es: 'No se sabe', en: 'Unknown', color: 'bg-gray-100 text-gray-500' },
 };
 
+// helpers duplicados
+function normNombre(n) {
+  return String(n || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+function nombreSimilar(a, b) {
+  const na = normNombre(a); const nb = normNombre(b);
+  if (na === nb) return true;
+  const wa = na.split(/\s+/).filter(w => w.length >= 3);
+  const wb = nb.split(/\s+/).filter(w => w.length >= 3);
+  return wa.filter(w => wb.includes(w)).length >= 2;
+}
+async function buscarDups(nombre) {
+  const [enCris, enReg] = await Promise.all([
+    base44.entities.PersonaCRIS.filter({}, '-created_date', 200).catch(() => []),
+    base44.entities.PersonaRegistrada.filter({}, '-created_date', 200).catch(() => []),
+  ]);
+  return [
+    ...enCris.filter(p => nombreSimilar(p.nombre, nombre) || nombreSimilar(`${p.nombre} ${p.apellido}`, nombre)),
+    ...enReg.filter(p => nombreSimilar(p.nombre_completo, nombre)),
+  ];
+}
+
 export default function PegadorTexto({ es, instId, instNombre, onGuardado }) {
   const [texto, setTexto] = useState('');
   const [preview, setPreview] = useState([]);
@@ -49,6 +72,9 @@ export default function PegadorTexto({ es, instId, instNombre, onGuardado }) {
   const [progreso, setProgreso] = useState(0);
   const [ok, setOk] = useState(false);
   const [error, setError] = useState('');
+  const [colaDups, setColaDups] = useState([]);
+  const [dupActual, setDupActual] = useState(null);
+  const savedRef = { current: 0 };
 
   const generarPreview = () => {
     const parsed = parseTexto(texto);
@@ -63,32 +89,96 @@ export default function PegadorTexto({ es, instId, instNombre, onGuardado }) {
     setGuardando(true);
     setProgreso(0);
     let saved = 0;
+    const cola = [];
+
     for (let i = 0; i < preview.length; i++) {
       const p = preview[i];
+      let dups = [];
+      try { dups = await buscarDups(p.nombre_completo); } catch {}
+
+      if (dups.length > 0) {
+        cola.push({ idx: i, persona: p, coincidencias: dups });
+        setProgreso(Math.round(((i + 1) / preview.length) * 100));
+        continue;
+      }
+
       try {
         await base44.entities.PersonaRegistrada.create({
-          ...p,
-          institucion_id: instId,
-          institucion_nombre: instNombre,
-          nivel_verificacion: 'institucional',
-          fuente: 'institucional',
+          ...p, institucion_id: instId, institucion_nombre: instNombre,
+          nivel_verificacion: 'institucional', fuente: 'institucional',
         });
         saved++;
       } catch {}
       setProgreso(Math.round(((i + 1) / preview.length) * 100));
       await new Promise(r => setTimeout(r, 120));
     }
+
+    savedRef.current = saved;
     setGuardando(false);
-    setOk(true);
-    if (onGuardado) onGuardado(saved);
+
+    if (cola.length > 0) {
+      setColaDups(cola);
+      setDupActual(0);
+    } else {
+      setOk(true);
+      if (onGuardado) onGuardado(saved);
+    }
+  };
+
+  const handleDecisionDup = async ({ accion, coincidenciaId }) => {
+    const item = colaDups[dupActual];
+    if (accion === 'nuevo') {
+      try {
+        await base44.entities.PersonaRegistrada.create({
+          ...item.persona, institucion_id: instId, institucion_nombre: instNombre,
+          nivel_verificacion: 'institucional', fuente: 'institucional',
+        });
+        savedRef.current++;
+      } catch {}
+    } else if (accion === 'mismo') {
+      try {
+        await base44.entities.PersonaRegistrada.update(coincidenciaId, {
+          condicion: item.persona.condicion, institucion_id: instId,
+          institucion_nombre: instNombre, nivel_verificacion: 'institucional',
+        }).catch(async () => {
+          await base44.entities.PersonaRegistrada.create({
+            ...item.persona, institucion_id: instId, institucion_nombre: instNombre,
+            nivel_verificacion: 'institucional', fuente: 'institucional',
+          });
+          savedRef.current++;
+        });
+        savedRef.current++;
+      } catch {}
+    }
+    // ignorar: no hacer nada
+
+    const sig = dupActual + 1;
+    if (sig < colaDups.length) {
+      setDupActual(sig);
+    } else {
+      setDupActual(null);
+      setColaDups([]);
+      setOk(true);
+      if (onGuardado) onGuardado(savedRef.current);
+    }
   };
 
   const reset = () => {
     setTexto(''); setPreview([]); setOk(false); setProgreso(0); setError('');
   };
 
+  const itemDupActual = dupActual !== null ? colaDups[dupActual] : null;
+
   return (
     <div className="bg-white border border-[#EDEBE8] rounded-xl p-4 space-y-3">
+      {itemDupActual && (
+        <DialogoDuplicado
+          persona={itemDupActual.persona}
+          coincidencias={itemDupActual.coincidencias}
+          es={es}
+          onDecision={handleDecisionDup}
+        />
+      )}
       <div className="flex items-center gap-2">
         <ClipboardPaste size={16} className="text-[#6C3483]" />
         <h3 className="text-sm font-bold text-[#1A1F2E]">
