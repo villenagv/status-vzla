@@ -1,6 +1,6 @@
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
-import { Zap, ZapOff, User } from 'lucide-react';
+import { Zap, ZapOff, User, BarChart2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -26,6 +26,11 @@ export default function TopBar() {
         <span className="text-[10px] text-gray-400 hidden sm:block">{t.tagline}</span>
       </Link>
       <div className="flex items-center gap-2">
+        {user?.role === 'admin' && (
+          <Link to="/dashboard" className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1A1F2E] border border-gray-600 text-gray-300 hover:border-[#D48C2E] hover:text-[#D48C2E] transition-colors" title="Dashboard">
+            <BarChart2 size={14} />
+          </Link>
+        )}
         {user ? (
           <Link
             to={user.role === 'admin' || user.role === 'user' ? '/mi-perfil' : '/mi-perfil'}
