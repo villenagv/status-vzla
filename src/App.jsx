@@ -37,6 +37,7 @@ import Pista from './pages/Pista';
 import Seguimiento from './pages/Seguimiento';
 import Suscripciones from './pages/Suscripciones';
 import SolicitarInfoEdificio from './pages/SolicitarInfoEdificio';
+import AdminDashboard from './pages/AdminDashboard';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -68,6 +69,7 @@ const PublicApp = () => (
     <Route path="/solicitar-info-edificio" element={<SolicitarInfoEdificio />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
+    <Route path="/admin" element={<AdminDashboard />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
