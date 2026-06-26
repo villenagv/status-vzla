@@ -26,6 +26,8 @@ import ZonaAfectada from './pages/ZonaAfectada';
 import FueraZona from './pages/FueraZona';
 import DirectorioEncontrados from './pages/DirectorioEncontrados';
 import CentrosApoyo from './pages/CentrosApoyo';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Personas from './pages/Personas';
 import ReportarDano from './pages/ReportarDano';
 import Edificios from './pages/Edificios';
@@ -62,6 +64,8 @@ const PublicApp = () => (
     <Route path="/pista" element={<Pista />} />
     <Route path="/seguimiento" element={<Seguimiento />} />
     <Route path="/suscripciones" element={<Suscripciones />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
