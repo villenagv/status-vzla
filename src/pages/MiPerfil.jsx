@@ -4,6 +4,7 @@ import { ChevronLeft, LogOut, Loader2, Edit3, Save, X, Bell, BellOff, Trash2, Ex
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
+import Footer from '@/components/svzla/Footer';
 
 const ESTADO_LABEL = {
   buscando: { es: 'Buscando', en: 'Searching', color: 'bg-yellow-100 text-yellow-800' },
@@ -389,6 +390,7 @@ export default function MiPerfil() {
           </Link>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -122,7 +122,17 @@ export default function Institucional() {
         </Link>
 
         <h1 className="text-xl font-bold text-[#1A1F2E] mb-1">{t.inst_title}</h1>
-        <p className="text-sm text-gray-500 mb-5 leading-relaxed">{t.inst_desc}</p>
+        <p className="text-sm text-gray-500 mb-3 leading-relaxed">{t.inst_desc}</p>
+
+        {/* Privacidad */}
+        <div className="flex gap-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5 mb-4">
+          <span className="text-sm flex-shrink-0">🔒</span>
+          <p className="text-xs text-blue-800 leading-relaxed">
+            {lang === 'es'
+              ? 'Tus datos de contacto no se mostrarán públicamente. Solo el nombre del lugar, horarios y servicios serán visibles para la comunidad.'
+              : 'Your contact information will not be shown publicly. Only the place name, hours and services will be visible to the community.'}
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nombre */}

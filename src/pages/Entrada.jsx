@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import ContadoresEntrada from '@/components/svzla/ContadoresEntrada';
 import DirectorioPersonasEntrada from '@/components/svzla/DirectorioPersonasEntrada';
 import DirectorioEdificiosEntrada from '@/components/svzla/DirectorioEdificiosEntrada';
+import Footer from '@/components/svzla/Footer';
 
 const MODOS = [
   { to: '/zona-afectada', icon: '🆘', bg: '#C0392B', label: { es: 'EMERGENCIA', en: 'EMERGENCY' }, titulo: { es: 'Estoy en zona afectada', en: 'I am in the affected area' }, sub: { es: 'Reporta daños · Pide ayuda · Informa refugio', en: 'Report damage · Ask for help · Shelter' } },
@@ -144,6 +145,7 @@ export default function Entrada() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

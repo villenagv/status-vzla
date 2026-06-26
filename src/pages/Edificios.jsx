@@ -75,7 +75,7 @@ export default function Edificios() {
   const { lang } = useLang();
   const es = lang === 'es';
   const params = new URLSearchParams(window.location.search);
-  const initialTab = params.get('tab') || params.get('modo') === 'request' ? 'solicitar' : 'directorio';
+  const initialTab = params.get('tab') || (params.get('modo') === 'request' ? 'solicitar' : 'consultar');
   const [tab, setTab] = useState(initialTab); // 'directorio' | 'consultar' | 'reportar' | 'solicitar'
 
   // ── DIRECTORIO ──

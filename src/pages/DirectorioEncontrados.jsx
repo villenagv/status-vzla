@@ -73,11 +73,21 @@ export default function DirectorioEncontrados() {
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
           🙋 {es ? 'Personas encontradas' : 'Found people'}
         </h1>
-        <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+        <p className="text-sm text-gray-500 mb-3 leading-relaxed">
           {es
             ? 'Directorio de personas vistas, encontradas o reportadas por la comunidad. Si reconoces a alguien, comparte la tarjeta.'
             : 'Directory of people seen, found or reported by the community. If you recognize someone, share the card.'}
         </p>
+
+        {/* Anti-extorsión */}
+        <div className="flex gap-2 bg-[#2A1A20] border border-[#6B2D3E] rounded-xl px-3 py-2.5 mb-4">
+          <span className="text-sm flex-shrink-0">⚠️</span>
+          <p className="text-[11px] text-[#F4A4B8] font-semibold leading-relaxed">
+            {es
+              ? 'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos, rescates privados ni intermediarios anónimos.'
+              : 'Never send money in exchange for information. This platform does not authorize payments, private rescue fees or anonymous intermediaries.'}
+          </p>
+        </div>
 
         {/* Búsqueda */}
         <div className="flex gap-2 mb-3">
