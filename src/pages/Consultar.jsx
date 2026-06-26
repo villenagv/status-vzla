@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
+import Footer from '@/components/svzla/Footer';
 
 const PAGE_SIZE = 10;
 
@@ -334,6 +335,7 @@ export default function Consultar() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

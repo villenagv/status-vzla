@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
+import Footer from '@/components/svzla/Footer';
 import FotosDragDrop from '@/components/svzla/FotosDragDrop';
 
 const TIPOS = ['Edificio dañado', 'Personas atrapadas', 'Riesgo de gas', 'Riesgo eléctrico', 'Incendio', 'Inundación', 'Derrumbe', 'Otro'];
@@ -294,6 +295,7 @@ export default function Reportar() {
           </button>
         </form>
       </div>
+      <Footer />
     </div>
   );
 }

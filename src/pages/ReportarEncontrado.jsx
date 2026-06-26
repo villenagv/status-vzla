@@ -6,6 +6,7 @@ import PostReporteLogin from '@/components/svzla/PostReporteLogin';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
+import Footer from '@/components/svzla/Footer';
 import FotosDragDrop from '@/components/svzla/FotosDragDrop';
 
 const CONDICION = [
@@ -451,6 +452,7 @@ export default function ReportarEncontrado() {
           </p>
         </form>
       </div>
+      <Footer />
     </div>
   );
 }

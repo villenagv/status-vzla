@@ -5,6 +5,7 @@ import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
 import ContadoresBar from '@/components/svzla/ContadoresBar';
+import Footer from '@/components/svzla/Footer';
 
 // Rol selector shown first to reduce cognitive load
 const ROLES = [
@@ -226,6 +227,7 @@ export default function Entrada() {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
