@@ -47,15 +47,14 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#1A1F2E] text-gray-300 mt-auto">
-
-      {/* Franja de misión */}
       <div className="border-t border-gray-700 px-4 py-5 max-w-2xl mx-auto">
+
         <div className="flex items-start gap-3 mb-4">
           <Heart size={16} className="text-[#D48C2E] flex-shrink-0 mt-0.5" />
           <p className="text-xs text-gray-400 leading-relaxed">
             {es
-              ? 'Esta plataforma fue creada de manera voluntaria por venezolanos dentro y fuera del país para apoyar la búsqueda de personas desaparecidas. No solicitamos ni gestionamos dinero, donaciones ni ayudas de ningún tipo. Nuestro único objetivo es facilitar la recopilación y organización de información que pueda contribuir a su localización.'
-              : 'This platform was created voluntarily by Venezuelans inside and outside the country to support the search for missing people. We do not request or manage money, donations, or aid of any kind. Our only goal is to facilitate the collection and organization of information that may help locate them.'}
+              ? 'Esta plataforma fue creada de manera voluntaria por venezolanos dentro y fuera del país para apoyar la búsqueda de personas desaparecidas. No solicitamos ni gestionamos dinero, donaciones ni ayudas de ningún tipo.'
+              : 'This platform was created voluntarily by Venezuelans inside and outside the country to support the search for missing people. We do not request or manage money, donations, or aid of any kind.'}
           </p>
         </div>
 
@@ -63,21 +62,19 @@ export default function Footer() {
           <Shield size={16} className="text-[#D48C2E] flex-shrink-0 mt-0.5" />
           <p className="text-xs text-gray-400 leading-relaxed">
             {es
-              ? 'Esta es una herramienta ciudadana y no partidista. Ante una emergencia médica, llama a los organismos de rescate. Verifica siempre la información antes de difundirla.'
-              : 'This is a citizen and non-partisan tool. In a medical emergency, call rescue services. Always verify information before sharing it.'}
+              ? 'Herramienta ciudadana y no partidista. Ante una emergencia médica, llama a los organismos de rescate. Verifica siempre la información antes de difundirla.'
+              : 'A citizen and non-partisan tool. In a medical emergency, call rescue services. Always verify information before sharing it.'}
           </p>
         </div>
 
-        {/* Anti-extorsión */}
         <div className="bg-[#2A1A20] border border-[#6B2D3E] rounded-xl px-4 py-3 mb-4">
           <p className="text-xs text-[#F4A4B8] font-semibold leading-relaxed">
             ⚠️ {es
               ? 'Nunca envíes dinero a cambio de información. No autorizamos pagos, rescates privados ni intermediarios anónimos. Si alguien pide dinero, es una estafa — repórtalo.'
-              : 'Never send money in exchange for information. We do not authorize payments, private rescue fees, or anonymous intermediaries. If someone asks for money, it\'s a scam — report it.'}
+              : "Never send money in exchange for information. We do not authorize payments, private rescue fees, or anonymous intermediaries. If someone asks for money, it's a scam — report it."}
           </p>
         </div>
 
-        {/* Teléfonos de emergencia — colapsable */}
         <button
           onClick={() => setMostrarTels(v => !v)}
           className="w-full flex items-center justify-between text-xs font-semibold text-[#D48C2E] py-2 border-t border-gray-700"
@@ -114,7 +111,6 @@ export default function Footer() {
         )}
       </div>
 
-      {/* Franja inferior */}
       <div className="border-t border-gray-800 px-4 py-3 max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1">
         <p className="text-[10px] text-gray-600 text-center sm:text-left">
           <span className="font-black text-gray-500">STATUSVZLA<span className="text-[#D48C2E]">.com</span></span>
