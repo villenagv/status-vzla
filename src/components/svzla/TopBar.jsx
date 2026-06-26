@@ -149,6 +149,18 @@ export default function TopBar() {
           )}
         </div>
       )}
+
+      {location.pathname !== '/reportar-encontrado' && (
+        <Link to="/reportar-encontrado" style={{
+          position: 'fixed', right: 14, bottom: 14, zIndex: 80,
+          background: '#15803D', color: '#fff', textDecoration: 'none',
+          borderRadius: 999, padding: '12px 16px', fontSize: 13, fontWeight: 800,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.24)', border: '1px solid rgba(255,255,255,0.18)',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }} aria-label={es ? 'Encontré a alguien' : 'I found someone'}>
+          🙋 {es ? 'Encontré a alguien' : 'I found someone'}
+        </Link>
+      )}
     </header>
   );
 }
