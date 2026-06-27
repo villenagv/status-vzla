@@ -57,7 +57,7 @@ export default function Footer() {
               <div style={{ width: 26, height: 26, borderRadius: 6, background: '#0D2259', border: '2px solid #F5C518', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>📍</div>
               <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>Status<span style={{ color: '#F5C518' }}> Vzla</span></span>
             </div>
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', lineHeight: 1.5, maxWidth: 260, margin: 0 }}>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, maxWidth: 260, margin: 0 }}>
               {t('Plataforma ciudadana de respuesta a emergencias. No partidista · Sin fines de lucro.',
                  'Citizen emergency response platform. Non-partisan · Non-profit.',
                  'Plataforma cidadã de resposta a emergências. Não partidária · Sem fins lucrativos.')}
@@ -69,7 +69,7 @@ export default function Footer() {
         {/* Nav links */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', marginBottom: 20 }}>
           {LINKS.map(l => (
-            <Link key={l.to} to={l.to} style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
+            <Link key={l.to} to={l.to} style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', textDecoration: 'none' }}>
               {es ? l.es : l.en}
             </Link>
           ))}
@@ -82,10 +82,10 @@ export default function Footer() {
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'transparent', border: 'none', cursor: 'pointer', marginBottom: mostrarTels ? 10 : 14,
         }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             📞 {t('Teléfonos de emergencia', 'Emergency phones', 'Telefones de emergência')}
           </span>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.20)' }}>{mostrarTels ? '▲' : '▼'}</span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>{mostrarTels ? '▲' : '▼'}</span>
         </button>
 
         {mostrarTels && (
@@ -122,8 +122,8 @@ export default function Footer() {
         {/* Sugerencias */}
         <div style={{ marginBottom: 16 }}>
           <button onClick={() => setMostrarSugerencia(v => !v)} style={{
-            background: 'transparent', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 8,
-            padding: '7px 13px', cursor: 'pointer', fontSize: 11, color: 'rgba(255,255,255,0.30)',
+            background: 'transparent', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 8,
+            padding: '7px 13px', cursor: 'pointer', fontSize: 11, color: 'rgba(255,255,255,0.60)',
             width: '100%', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <span>💡 {t('Tengo una sugerencia', 'I have a suggestion', 'Tenho uma sugestão')}</span>
@@ -155,10 +155,10 @@ export default function Footer() {
 
         {/* Bottom */}
         <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.18)', margin: 0 }}>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.50)', margin: 0 }}>
             © 2024–2025 Status Vzla · {t('Hecho por venezolanos ♥', 'Made by Venezuelans ♥', 'Feito por venezuelanos ♥')}
           </p>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.14)', margin: 0 }}>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', margin: 0 }}>
             {t('No partidista · Sin fines de lucro', 'Non-partisan · Non-profit', 'Não partidário · Sem fins lucrativos')}
           </p>
         </div>

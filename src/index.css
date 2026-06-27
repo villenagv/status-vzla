@@ -42,8 +42,8 @@
 
     /* — Texto — */
     --text-primary:   #F0F6FC;
-    --text-secondary: #C0C8D2;  /* was #8B949E — raised to 4.8:1 on surface-2 */
-    --text-muted:     #7D8590;  /* was #484F58 — raised to 4.5:1 on surface-2 */
+    --text-secondary: #C0C8D2;  /* 4.8:1 on surface-2 */
+    --text-muted:     #9BA5B0;  /* raised from #7D8590 — 4.5:1 on surface-2 */
 
     /* — Bordes — */
     --border-color:  rgba(255,255,255,0.08);
@@ -82,9 +82,9 @@
     --dano-gris:        #6B7280;
 
     /* — Advertencia amber — */
-    --warn-bg:     rgba(180,83,9,0.12);
-    --warn-border: rgba(251,146,60,0.30);
-    --warn-text:   #FED7AA;
+    --warn-bg:     rgba(180,83,9,0.14);
+    --warn-border: rgba(251,146,60,0.40);
+    --warn-text:   #FDE68A;  /* raised for better contrast on dark bg */
   }
 
   /* Light mode overrides for components that explicitly need white backgrounds */
@@ -189,7 +189,7 @@
   width: 100%;
   transition: border-color 150ms;
 }
-.btn-secondary:hover { border-color: rgba(255,255,255,0.30); }
+.btn-secondary:hover { border-color: rgba(255,255,255,0.45); color: var(--text-primary); }
 
 /* ── Badge ── */
 .badge {

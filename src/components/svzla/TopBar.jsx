@@ -56,7 +56,7 @@ export default function TopBar() {
               return (
                 <Link key={item.to} to={item.to} style={{
                   fontSize: 12, fontWeight: active ? 600 : 400,
-                  color: active ? '#fff' : 'rgba(255,255,255,0.42)',
+                  color: active ? '#fff' : 'rgba(255,255,255,0.65)',
                   padding: '5px 9px', borderRadius: 8, textDecoration: 'none',
                   background: active ? 'rgba(255,255,255,0.09)' : 'transparent',
                   whiteSpace: 'nowrap',
@@ -73,7 +73,7 @@ export default function TopBar() {
             <button onClick={toggleLowBw} title={es ? 'Modo bajo consumo' : 'Low-bandwidth mode'} style={{
               fontSize: 10, fontWeight: 600, padding: '4px 8px', borderRadius: 20, cursor: 'pointer',
               border: `1px solid ${lowBw ? 'rgba(234,179,8,0.5)' : 'rgba(255,255,255,0.13)'}`,
-              color: lowBw ? '#FCD34D' : 'rgba(255,255,255,0.38)',
+              color: lowBw ? '#FCD34D' : 'rgba(255,255,255,0.65)',
               background: lowBw ? 'rgba(234,179,8,0.10)' : 'transparent',
             }}>
               ⚡{lowBw ? ' BW' : ''}
@@ -83,7 +83,7 @@ export default function TopBar() {
             <div style={{ position: 'relative' }}>
               <button onClick={() => setLangOpen(v => !v)} style={{
                 fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 20, cursor: 'pointer',
-                border: '1px solid rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.55)', background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.80)', background: 'transparent',
                 display: 'flex', alignItems: 'center', gap: 3,
               }}>
                 {lang.toUpperCase()} ▾
@@ -99,7 +99,7 @@ export default function TopBar() {
                     <button key={l.code} onClick={() => { setLanguage(l.code); setLangOpen(false); }} style={{
                       display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px',
                       fontSize: 12, fontWeight: lang === l.code ? 700 : 400,
-                      color: lang === l.code ? '#fff' : 'rgba(255,255,255,0.48)',
+                      color: lang === l.code ? '#fff' : 'rgba(255,255,255,0.72)',
                       background: lang === l.code ? 'rgba(255,255,255,0.07)' : 'transparent',
                       border: 'none', cursor: 'pointer',
                     }}>
@@ -157,7 +157,7 @@ export default function TopBar() {
                 width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: menuOpen ? 'rgba(255,255,255,0.09)' : 'transparent',
                 border: '1px solid rgba(255,255,255,0.13)',
-                borderRadius: 8, cursor: 'pointer', color: 'rgba(255,255,255,0.60)', fontSize: 15,
+                borderRadius: 8, cursor: 'pointer', color: 'rgba(255,255,255,0.85)', fontSize: 15,
               }}>
               {menuOpen ? '✕' : '☰'}
             </button>
@@ -186,7 +186,7 @@ export default function TopBar() {
                 <Link key={item.to} to={item.to} style={{
                   display: 'flex', alignItems: 'center', padding: '12px 14px', borderRadius: 10, marginBottom: 2,
                   fontSize: 15, fontWeight: active ? 600 : 400,
-                  color: active ? '#fff' : 'rgba(255,255,255,0.58)',
+                  color: active ? '#fff' : 'rgba(255,255,255,0.78)',
                   background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
                   textDecoration: 'none',
                 }}>
@@ -206,7 +206,7 @@ export default function TopBar() {
             {user?.role === 'admin' && (
               <Link to="/admin" style={{
                 display: 'flex', alignItems: 'center', padding: '12px 14px', borderRadius: 10,
-                fontSize: 13, color: 'rgba(255,255,255,0.28)', textDecoration: 'none', marginTop: 6,
+                fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecoration: 'none', marginTop: 6,
               }}>
                 ⚙️ Admin
               </Link>
@@ -216,7 +216,7 @@ export default function TopBar() {
               fontSize: 13, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
               background: lowBw ? 'rgba(234,179,8,0.10)' : 'rgba(255,255,255,0.04)',
               border: `1px solid ${lowBw ? 'rgba(234,179,8,0.35)' : 'rgba(255,255,255,0.10)'}`,
-              color: lowBw ? '#FCD34D' : 'rgba(255,255,255,0.42)',
+              color: lowBw ? '#FCD34D' : 'rgba(255,255,255,0.70)',
             }}>
               ⚡ {lowBw
                 ? (es ? 'Modo bajo consumo: Activo' : 'Low-BW mode: On')
