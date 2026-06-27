@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+import SubidaMasivaModulo from '@/components/voluntario/SubidaMasivaModulo';
 
 const CONDICION_LABELS = {
   a_salvo: { es: 'A salvo ✅', en: 'Safe ✅', color: 'bg-green-100 text-green-800' },
@@ -436,6 +437,8 @@ export default function PortalVoluntario() {
             )}
           </>
         )}
+
+        <SubidaMasivaModulo es={es} />
       </div>
       <Footer />
     </div>
