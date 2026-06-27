@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Loader2, AlertTriangle, Send, MapPin, Phone } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, AlertTriangle, Send, MapPin, Phone, Camera, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
@@ -47,6 +47,15 @@ const ACCIONES = [
     en: 'I found someone',
     sub_es: 'Vi o ayudé a una persona · Registrar hallazgo',
     sub_en: 'I saw or helped a person · Register the finding',
+  },
+  {
+    id: 'edificio',
+    emoji: '🏗️',
+    bg: '#5D4037',
+    es: 'Reportar edificio o estructura dañada',
+    en: 'Report a damaged building or structure',
+    sub_es: 'Daños visibles · Personas atrapadas · Riesgos',
+    sub_en: 'Visible damage · Trapped people · Hazards',
   },
   {
     id: 'centros',
@@ -307,8 +316,59 @@ export default function ZonaAfectada() {
   const [enviando, setEnviando] = useState(false);
   const [ok, setOk] = useState(null);
   const [error, setError] = useState(false);
-  const [accion, setAccion] = useState(null); // 'reporte' | 'encontre' | 'centros'
+  const [accion, setAccion] = useState(null);
   const formRef = useRef(null);
+
+  // Estado para reporte de edificio
+  const [edificioForm, setEdificioForm] = useState({
+    tipo: '', nombre: '', nivel: '', atrapados: '', gas: false, elect: false, inc: false,
+    direccion: '', ciudad: '', estado_region: '', descripcion: '', nombre_reportante: '', telefono_reportante: '',
+  });
+  const [edificioFotos, setEdificioFotos] = useState([]);
+  const [enviandoEdificio, setEnviandoEdificio] = useState(false);
+  const [edificioOk, setEdificioOk] = useState(false);
+
+  const setEd = (k, v) => setEdificioForm(f => ({ ...f, [k]: v }));
+
+  const subirFotoEdificio = async (file) => {
+    if (edificioFotos.length >= 5) return;
+    const fid = Date.now();
+    setEdificioFotos(prev => [...prev, { id: fid, url: null, uploading: true }]);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setEdificioFotos(p => p.map(f => f.id === fid ? { ...f, url: file_url, uploading: false } : f));
+    } catch { setEdificioFotos(p => p.filter(f => f.id !== fid)); }
+  };
+
+  const handleSubmitEdificio = async () => {
+    if (!edificioForm.nivel || !edificioForm.atrapados || !edificioForm.ciudad) return;
+    setEnviandoEdificio(true);
+    try {
+      const prioridad = (['critico', 'colapsado'].includes(edificioForm.nivel) || edificioForm.atrapados === 'si' || edificioForm.atrapados === 'voces') ? 'critica' : edificioForm.nivel === 'grave' ? 'alta' : 'normal';
+      await base44.entities.ReportesDano.create({
+        tipo_estructura: edificioForm.tipo || 'otro',
+        nombre_lugar: edificioForm.nombre || undefined,
+        nivel_dano: edificioForm.nivel,
+        personas_atrapadas: edificioForm.atrapados,
+        riesgo_gas: edificioForm.gas,
+        riesgo_electrico: edificioForm.elect,
+        riesgo_incendio: edificioForm.inc,
+        direccion: edificioForm.direccion,
+        ciudad: edificioForm.ciudad,
+        estado_region: edificioForm.estado_region,
+        descripcion: edificioForm.descripcion,
+        foto_urls: edificioFotos.filter(f => f.url).map(f => f.url),
+        prioridad,
+        reportante_nombre: edificioForm.nombre_reportante,
+        reportante_telefono: edificioForm.telefono_reportante,
+        estado_verificacion: 'recibido',
+        nivel_verificacion: 'sin_verificar',
+        fuente: 'ciudadano',
+      });
+      setEdificioOk(true);
+    } catch {}
+    setEnviandoEdificio(false);
+  };
 
   const setVal = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
   const toggleArr = (k, val) => setForm(prev => ({
@@ -553,6 +613,188 @@ export default function ZonaAfectada() {
             >
               🙋 {es ? 'Ir al formulario de hallazgo' : 'Go to the found person form'}
             </Link>
+          </div>
+        )}
+
+        {/* ── Modo: Edificio dañado ── */}
+        {accion === 'edificio' && (
+          <div>
+            <button onClick={() => setAccion(null)} className="text-sm text-gray-400 mb-4 flex items-center gap-1 cursor-pointer">
+              <ChevronLeft size={14} /> {es ? 'Cambiar acción' : 'Change action'}
+            </button>
+            <h2 className="text-base font-black text-[#1A1F2E] mb-1">🏗️ {es ? 'Reportar edificio dañado' : 'Report damaged building'}</h2>
+            <p className="text-xs text-gray-500 mb-3 leading-relaxed">
+              {es ? 'Completa solo lo que ves desde un lugar seguro. No entres a estructuras dañadas.' : 'Fill in only what you can see from a safe place. Do not enter damaged structures.'}
+            </p>
+
+            <div className="flex gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 mb-4">
+              <AlertTriangle size={13} className="text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-red-700 font-medium leading-snug">
+                {es ? 'Si hay personas atrapadas, llama al 171 (Protección Civil) o 911/112 (Bomberos) de inmediato.' : 'If there are trapped people, call 171 (Civil Protection) or 911/112 (Firefighters) immediately.'}
+              </p>
+            </div>
+
+            {edificioOk ? (
+              <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-5 text-center space-y-3">
+                <div className="text-4xl">✅</div>
+                <p className="font-black text-green-800 text-base">{es ? '¡Reporte enviado!' : 'Report submitted!'}</p>
+                <p className="text-xs text-green-700 leading-relaxed">
+                  {es ? 'Gracias. Tu reporte ayuda a que otras personas eviten el peligro y a coordinar rescates.' : 'Thank you. Your report helps others avoid danger and coordinate rescues.'}
+                </p>
+                <div className="flex flex-col gap-2">
+                  <Link to="/edificios" className="block bg-[#1A1F2E] text-white font-bold py-3 rounded-xl text-sm no-underline text-center">
+                    {es ? 'Ver directorio de edificios →' : 'View buildings directory →'}
+                  </Link>
+                  <button onClick={() => { setEdificioOk(false); setEdificioForm({ tipo: '', nombre: '', nivel: '', atrapados: '', gas: false, elect: false, inc: false, direccion: '', ciudad: '', estado_region: '', descripcion: '', nombre_reportante: '', telefono_reportante: '' }); setEdificioFotos([]); }} className="text-sm text-gray-500 underline cursor-pointer">
+                    {es ? 'Reportar otro edificio' : 'Report another building'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Tipo */}
+                <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-bold text-gray-700">{es ? '¿Qué tipo de estructura?' : 'What type of structure?'}</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { val: 'edificio_residencial', es: '🏠 Residencial', en: '🏠 Residential' },
+                      { val: 'hospital',             es: '🏥 Hospital',    en: '🏥 Hospital' },
+                      { val: 'escuela',              es: '🏫 Escuela',     en: '🏫 School' },
+                      { val: 'comercio',             es: '🏪 Comercio',    en: '🏪 Business' },
+                      { val: 'calle_via',            es: '🛣️ Calle/Vía',   en: '🛣️ Street/Road' },
+                      { val: 'otro',                 es: '📋 Otro',        en: '📋 Other' },
+                    ].map(t => (
+                      <button key={t.val} onClick={() => setEd('tipo', t.val)}
+                        className={`py-2 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left ${edificioForm.tipo === t.val ? 'bg-[#5D4037] text-white border-[#5D4037]' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                        {es ? t.es : t.en}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Nombre y ubicación */}
+                <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-bold text-gray-700">📍 {es ? '¿Dónde está?' : 'Where is it?'}</p>
+                  <input value={edificioForm.nombre} onChange={e => setEd('nombre', e.target.value)}
+                    placeholder={es ? 'Nombre del lugar (opcional)' : 'Place name (optional)'}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gray-800 bg-white" />
+                  <input value={edificioForm.direccion} onChange={e => setEd('direccion', e.target.value)}
+                    placeholder={es ? 'Dirección o referencia' : 'Address or landmark'}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gray-800 bg-white" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input value={edificioForm.ciudad} onChange={e => setEd('ciudad', e.target.value)}
+                      placeholder={es ? 'Ciudad *' : 'City *'}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gray-800 bg-white" />
+                    <input value={edificioForm.estado_region} onChange={e => setEd('estado_region', e.target.value)}
+                      placeholder={es ? 'Estado' : 'State'}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gray-800 bg-white" />
+                  </div>
+                </div>
+
+                {/* Nivel de daño */}
+                <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-bold text-gray-700">{es ? 'Nivel de daño visible *' : 'Visible damage level *'}</p>
+                  <div className="flex flex-col gap-1.5">
+                    {[
+                      { val: 'leve',      es: '🟡 Leve — grietas pequeñas, estructura firme',      en: '🟡 Minor — small cracks, structure firm' },
+                      { val: 'moderado',  es: '🟠 Moderado — paredes o piso dañados',              en: '🟠 Moderate — walls or floor damaged' },
+                      { val: 'grave',     es: '🔴 Grave — parte colapsó o riesgo alto',            en: '🔴 Severe — partial collapse or high risk' },
+                      { val: 'critico',   es: '🚨 Crítico — colapso total o personas atrapadas',   en: '🚨 Critical — total collapse or trapped' },
+                      { val: 'no_sabe',   es: '❓ No sé / No pude evaluar',                        en: '❓ Unknown / Could not assess' },
+                    ].map(n => (
+                      <button key={n.val} onClick={() => setEd('nivel', n.val)}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left ${edificioForm.nivel === n.val ? 'bg-red-600 text-white border-red-600' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                        {es ? n.es : n.en}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Personas atrapadas */}
+                <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-bold text-gray-700">{es ? '¿Hay personas atrapadas? *' : 'Are there trapped people? *'}</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { val: 'si',       es: '🚨 Sí, confirmado',         en: '🚨 Yes, confirmed' },
+                      { val: 'voces',    es: '👂 Se escuchan voces',       en: '👂 Voices heard' },
+                      { val: 'no',       es: '✅ No',                      en: '✅ No' },
+                      { val: 'no_sabe',  es: '❓ No sé',                   en: '❓ Unknown' },
+                    ].map(a => (
+                      <button key={a.val} onClick={() => setEd('atrapados', a.val)}
+                        className={`py-2.5 px-2 rounded-xl text-xs font-semibold border cursor-pointer ${edificioForm.atrapados === a.val ? 'bg-gray-800 text-white border-gray-800' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                        {es ? a.es : a.en}
+                      </button>
+                    ))}
+                  </div>
+                  {(edificioForm.atrapados === 'si' || edificioForm.atrapados === 'voces') && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                      <p className="text-xs font-bold text-red-700">🚨 {es ? 'Llama ahora al 171 o 911/112.' : 'Call 171 or 911/112 now.'}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Riesgos */}
+                <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-bold text-gray-700">⚠️ {es ? '¿Hay alguno de estos riesgos?' : 'Any of these hazards?'}</p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { k: 'gas',  icon: '💨', es: 'Olor a gas',     en: 'Gas smell' },
+                      { k: 'elect',icon: '⚡', es: 'Cables caídos',  en: 'Fallen wires' },
+                      { k: 'inc',  icon: '🔥', es: 'Fuego / humo',   en: 'Fire / smoke' },
+                    ].map(r => (
+                      <button key={r.k} onClick={() => setEd(r.k, !edificioForm[r.k])}
+                        className={`py-2.5 rounded-xl text-xs font-semibold border cursor-pointer text-center ${edificioForm[r.k] ? 'bg-orange-600 text-white border-orange-600' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                        {r.icon} {es ? r.es : r.en}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Descripción + datos reportante */}
+                <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-2">
+                  <textarea rows={2} value={edificioForm.descripcion} onChange={e => setEd('descripcion', e.target.value)}
+                    placeholder={es ? 'Describe lo que ves (opcional)...' : 'Describe what you see (optional)...'}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none bg-white" />
+                  <p className="text-[10px] text-gray-400">🔒 {es ? 'Tus datos no se publican' : 'Your data is not published'}</p>
+                  <input value={edificioForm.nombre_reportante} onChange={e => setEd('nombre_reportante', e.target.value)}
+                    placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none bg-white" />
+                  <input value={edificioForm.telefono_reportante} onChange={e => setEd('telefono_reportante', e.target.value)}
+                    placeholder={es ? 'Tu teléfono (opcional)' : 'Your phone (optional)'}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none bg-white" />
+                </div>
+
+                {/* Fotos */}
+                <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-bold text-gray-700">📷 {es ? 'Fotos desde lugar seguro (opcional, máx. 5)' : 'Photos from safe place (optional, max 5)'}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {edificioFotos.map(f => (
+                      <div key={f.id} className="relative w-14 h-14 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                        {f.url && <img src={f.url} alt="" className="w-full h-full object-cover" />}
+                        {f.uploading && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Loader2 size={12} className="animate-spin text-white" /></div>}
+                        {f.url && <button onClick={() => setEdificioFotos(p => p.filter(x => x.id !== f.id))} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer"><X size={8} /></button>}
+                      </div>
+                    ))}
+                    {edificioFotos.length < 5 && (
+                      <label className="w-14 h-14 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-gray-400">
+                        <Camera size={14} className="text-gray-400" />
+                        <input type="file" accept="image/*" className="hidden" onChange={e => { Array.from(e.target.files || []).forEach(subirFotoEdificio); e.target.value = ''; }} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                <button onClick={handleSubmitEdificio}
+                  disabled={enviandoEdificio || !edificioForm.nivel || !edificioForm.atrapados || !edificioForm.ciudad || edificioFotos.some(f => f.uploading)}
+                  className="w-full bg-[#C0392B] hover:bg-[#a93226] text-white font-black py-4 rounded-2xl text-sm disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer">
+                  {enviandoEdificio ? <Loader2 size={16} className="animate-spin" /> : '🏗️'}
+                  {es ? 'Enviar reporte de daño' : 'Submit damage report'}
+                </button>
+                {(!edificioForm.nivel || !edificioForm.atrapados || !edificioForm.ciudad) && (
+                  <p className="text-center text-xs text-gray-400">{es ? 'Completa nivel de daño, atrapados y ciudad.' : 'Fill in damage level, trapped people and city.'}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
