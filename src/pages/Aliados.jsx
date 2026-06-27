@@ -84,8 +84,8 @@ Prioritize areas with the highest needs, detect likely duplicates, flag incomple
           </h2>
           <p className="text-xs text-gray-500 leading-relaxed mb-3">
             {es
-              ? 'Archivo navegable con páginas, subpáginas, procesos, módulos, archivos principales y vistas previas para que un auditor recomiende mejoras.'
-              : 'Navigable file with pages, subpages, processes, modules, main files, and previews so an auditor can recommend improvements.'}
+              ? 'Archivo navegable con páginas, subpáginas, procesos, módulos, archivos principales, capturas visuales bajo demanda, checklist y notas para el auditor.'
+              : 'Navigable file with pages, subpages, processes, modules, main files, on-demand visual captures, checklist, and auditor notes.'}
           </p>
           <a href="/auditoria_cris_visual.html" target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-[#2471A3] text-white text-sm font-black py-3 rounded-xl no-underline">
             {es ? 'Abrir dossier de auditoría' : 'Open audit dossier'}

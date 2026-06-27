@@ -5,59 +5,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CRIS · Dossier visual de auditoría</title>
   <style>
-    :root { --bg:#f4f4f8; --card:#fff; --ink:#1a1f2e; --muted:#5f6675; --line:#e6e8ee; --blue:#2471A3; --green:#0F766E; --red:#C0392B; }
+    :root { --bg:#f4f4f8; --card:#fff; --ink:#1a1f2e; --muted:#5f6675; --line:#e6e8ee; --blue:#2471A3; --green:#0F766E; --red:#C0392B; --amber:#B7791F; --purple:#6C3483; }
     * { box-sizing:border-box; }
     body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; font-size:14px; line-height:1.45; }
     header { background:#111318; color:#fff; padding:22px 16px; }
-    main { max-width:1100px; margin:0 auto; padding:18px 14px 60px; }
+    main { max-width:1180px; margin:0 auto; padding:18px 14px 60px; }
     h1 { margin:0 0 8px; font-size:24px; }
     h2 { font-size:18px; margin:26px 0 10px; }
     h3 { font-size:15px; margin:0 0 6px; }
     p { margin:0; color:var(--muted); }
-    .hero { max-width:1100px; margin:0 auto; }
+    label { font-size:12px; font-weight:800; color:#364152; }
+    select, input, textarea { width:100%; border:1px solid var(--line); border-radius:10px; padding:9px 10px; background:#fff; color:#111318; font:inherit; }
+    textarea { min-height:88px; resize:vertical; }
+    .hero { max-width:1180px; margin:0 auto; }
     .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
-    .btn { border:0; border-radius:10px; padding:10px 12px; font-weight:800; cursor:pointer; color:#fff; background:var(--blue); text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
-    .btn.secondary { background:#fff; color:#111318; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+    .btn { border:0; border-radius:10px; padding:10px 12px; font-weight:900; cursor:pointer; color:#fff; background:var(--blue); text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; }
+    .btn.secondary { background:#fff; color:#111318; border:1px solid var(--line); }
+    .btn.green { background:var(--green); }
+    .btn.red { background:var(--red); }
+    .btn.purple { background:var(--purple); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
     .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; box-shadow:0 1px 0 rgba(0,0,0,.03); }
-    .tag { display:inline-block; border-radius:999px; padding:3px 8px; font-size:11px; font-weight:800; background:#eef4ff; color:#1d4f88; margin:2px 4px 6px 0; }
+    .page-card { display:flex; flex-direction:column; gap:10px; }
+    .top-row { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .tag { display:inline-block; border-radius:999px; padding:3px 8px; font-size:11px; font-weight:900; background:#eef4ff; color:#1d4f88; margin:2px 4px 4px 0; }
     .tag.green { background:#e8f6f0; color:#0f766e; }
     .tag.red { background:#fde8e8; color:#9d2b21; }
+    .tag.amber { background:#fff4db; color:#8a5600; }
+    .tag.purple { background:#f3e8fd; color:#6C3483; }
     .muted { color:var(--muted); font-size:12px; }
-    .route { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:#364152; background:#f2f4f7; border-radius:8px; padding:3px 6px; display:inline-block; margin:4px 0 8px; }
-    .preview { margin-top:10px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#f8fafc; min-height:0; }
-    iframe { width:390px; max-width:100%; height:620px; border:0; background:#fff; display:block; margin:0 auto; }
+    .route { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:#364152; background:#f2f4f7; border-radius:8px; padding:3px 6px; display:inline-block; margin:2px 0 4px; }
+    .preview { margin-top:8px; border:1px solid var(--line); border-radius:12px; overflow:auto; background:#f8fafc; min-height:0; }
+    .frame-mobile { width:390px; height:720px; border:0; background:#fff; display:block; margin:0 auto; }
+    .frame-desktop { width:1024px; height:720px; border:0; background:#fff; display:block; }
+    .filters { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:14px 0; }
+    .audit-fields { display:grid; grid-template-columns:1fr; gap:8px; border-top:1px solid var(--line); padding-top:10px; }
+    .checklist { display:grid; gap:6px; background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:10px; }
+    .checkline { display:flex; align-items:flex-start; gap:7px; font-size:12px; color:#364152; }
+    .checkline input { width:auto; margin-top:2px; }
     details { background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:8px; }
     summary { cursor:pointer; font-weight:900; }
     table { width:100%; border-collapse:collapse; background:#fff; border-radius:14px; overflow:hidden; border:1px solid var(--line); }
     th,td { padding:9px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:12px; }
     th { background:#f8fafc; color:#364152; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
     code { background:#f2f4f7; border-radius:6px; padding:2px 5px; }
-    @media print { .toolbar,.preview-actions { display:none !important; } body { background:#fff; } .card,details,table { break-inside:avoid; } }
+    .empty { display:none; text-align:center; padding:24px; background:#fff; border:1px dashed var(--line); border-radius:16px; color:var(--muted); }
+    @media print { .toolbar,.filters,.preview-actions,.audit-fields textarea,.audit-fields select { display:none !important; } body { background:#fff; } .card,details,table { break-inside:avoid; } .preview iframe { max-width:100%; } }
   </style>
 </head>
 <body>
   <header>
     <div class="hero">
       <h1>CRIS · Dossier visual de auditoría</h1>
-      <p style="color:rgba(255,255,255,.72)">Inventario de páginas, subpáginas, procesos, módulos y archivos para revisión operativa. Las vistas previas se cargan bajo demanda para no consumir datos innecesarios.</p>
+      <p style="color:rgba(255,255,255,.72)">Inventario navegable con capturas visuales bajo demanda, checklist de cumplimiento, estado y notas locales por página. No carga capturas automáticamente para ahorrar datos.</p>
       <div class="toolbar">
         <button class="btn" onclick="window.print()">Guardar como PDF</button>
+        <button class="btn purple" onclick="exportNotes()">Exportar notas JSON</button>
+        <button class="btn red" onclick="clearAudit()">Borrar notas locales</button>
         <a class="btn secondary" href="/aliados">Volver a Aliados</a>
       </div>
     </div>
   </header>
   <main>
     <section class="card">
-      <h2 style="margin-top:0">Cómo usar este archivo</h2>
-      <p>1) Revisa el flujo por proceso. 2) Abre cada ruta. 3) Carga la vista previa móvil solo cuando necesites verla. 4) Anota mejoras de claridad, seguridad, privacidad, bajo consumo y tiempos de respuesta.</p>
+      <h2 style="margin-top:0">Método de revisión</h2>
+      <p>Para cada página: abre la ruta, carga una captura móvil y/o escritorio, revisa los criterios CRIS, asigna estado y deja recomendaciones. Las capturas son vistas vivas dentro del dossier; si necesitas una imagen fija, usa la opción de captura del navegador o guarda este archivo como PDF.</p>
       <div style="margin-top:10px">
-        <span class="tag red">Emergencia real</span><span class="tag green">Mobile-first</span><span class="tag">Bilingüe ES/EN</span><span class="tag">Privacidad por defecto</span><span class="tag">Bajo consumo</span>
+        <span class="tag red">Emergencia real</span><span class="tag green">Mobile-first</span><span class="tag">Bilingüe ES/EN</span><span class="tag amber">Privacidad por defecto</span><span class="tag purple">Bajo consumo</span>
       </div>
     </section>
 
-    <h2>Páginas y subpáginas con vista previa</h2>
+    <section class="filters card">
+      <div><label>Buscar página o archivo</label><input id="q" placeholder="Ej. personas, edificio, CSV..." oninput="renderPages()" /></div>
+      <div><label>Categoría</label><select id="category" onchange="renderPages()"><option value="">Todas</option></select></div>
+      <div><label>Prioridad</label><select id="priority" onchange="renderPages()"><option value="">Todas</option><option value="critica">Crítica</option><option value="alta">Alta</option><option value="media">Media</option></select></div>
+      <div><label>Estado auditoría</label><select id="auditFilter" onchange="renderPages()"><option value="">Todos</option><option value="pendiente">Pendiente</option><option value="cumple">Cumple</option><option value="ajuste">Requiere ajuste</option><option value="critico">Crítico</option></select></div>
+    </section>
+
+    <h2>Páginas y subpáginas con capturas</h2>
     <div id="pages" class="grid"></div>
+    <div id="empty" class="empty">No hay resultados para estos filtros.</div>
 
     <h2>Procesos principales a auditar</h2>
     <div id="processes" class="grid"></div>
@@ -73,39 +100,50 @@
   </main>
 
   <script>
+    const checklist = [
+      'Tiene selector de idioma visible o hereda el TopBar bilingüe',
+      'Tiene Modo bajo consumo visible o respeta el modo bajo consumo',
+      'Usa lenguaje simple y humano',
+      'Explica qué debe hacer el usuario',
+      'Protege teléfonos, correos y datos privados',
+      'Muestra advertencias de seguridad cuando aplica',
+      'Funciona en móvil y evita scroll infinito',
+      'Tiene estados claros y acciones de actualización cuando aplica'
+    ];
+
     const pages = [
-      ['Inicio', '/', 'Entrada principal, navegación rápida, avisos y accesos de emergencia.'],
-      ['Reportar', '/reportar', 'Entrada para reportes ciudadanos.'],
-      ['Consultar', '/consultar', 'Búsqueda unificada de personas, daños y centros.'],
-      ['Personas', '/personas', 'Directorio de personas y registros cruzados.'],
-      ['Buscar persona', '/buscar-persona', 'Formulario para registrar persona desaparecida.'],
-      ['Persona detalle', '/persona', 'Perfil público de una persona, pistas y seguimiento.'],
-      ['Reportar encontrado', '/reportar-encontrado', 'Formulario para reportar persona encontrada.'],
-      ['Directorio encontrados', '/directorio-encontrados', 'Listado de personas encontradas o registradas por centros.'],
-      ['Pista', '/pista', 'Reporte de pista o información sobre una persona.'],
-      ['Seguimiento', '/seguimiento', 'Seguimiento de reportes o casos.'],
-      ['Suscripciones', '/suscripciones', 'Gestión de alertas y actualizaciones.'],
-      ['Edificios', '/edificios', 'Directorio de daños en edificios e infraestructura.'],
-      ['Edificio detalle', '/edificio', 'Ficha de edificio o lugar reportado.'],
-      ['Reportar daño', '/reportar-dano', 'Formulario de reporte de estructura dañada.'],
-      ['Solicitar info edificio', '/solicitar-info-edificio', 'Solicitud de información sobre un edificio.'],
-      ['Centros de apoyo', '/centros-apoyo', 'Refugios, hospitales y puntos de ayuda.'],
-      ['Institucional', '/institucional', 'Entrada para instituciones.'],
-      ['Registro institucional', '/registro-institucional', 'Registro de institución o centro.'],
-      ['Portal institucional', '/portal-institucional', 'Gestión institucional de listados.'],
-      ['Estoy aquí', '/estoy-aqui', 'Autorreporte para avisar que una persona está viva o localizada.'],
-      ['Zona afectada', '/zona-afectada', 'Reporte desde una zona impactada.'],
-      ['Fuera de zona', '/fuera-zona', 'Familiares o contactos fuera del área afectada.'],
-      ['Búsqueda cruzada', '/busqueda-cruzada', 'Cruce de datos entre quien busca y quien reporta.'],
-      ['Voluntario', '/voluntario', 'Entrada para voluntarios.'],
-      ['Portal voluntario', '/portal-voluntario', 'Panel operativo de voluntarios.'],
-      ['Mi perfil', '/mi-perfil', 'Perfil y actividad del usuario.'],
-      ['Dashboard', '/dashboard', 'Panel de datos generales.'],
-      ['Admin', '/admin', 'Administración y revisión interna.'],
-      ['Aliados', '/aliados', 'Descarga de base CSV y herramientas para aliados.'],
-      ['Contáctanos', '/contactanos', 'Canal de contacto y envío de listados.'],
-      ['Login', '/login', 'Acceso de usuarios.'],
-      ['Registro', '/register', 'Registro de usuarios.']
+      {name:'Inicio', route:'/', category:'Navegación', priority:'critica', file:'pages/Entrada', purpose:'Entrada principal, navegación rápida, avisos y accesos de emergencia.'},
+      {name:'Reportar', route:'/reportar', category:'Emergencia', priority:'alta', file:'pages/Reportar', purpose:'Entrada para reportes ciudadanos.'},
+      {name:'Consultar', route:'/consultar', category:'Consulta', priority:'critica', file:'pages/Consultar', purpose:'Búsqueda unificada de personas, daños y centros.'},
+      {name:'Personas', route:'/personas', category:'Personas', priority:'critica', file:'pages/Personas', purpose:'Directorio de personas y registros cruzados.'},
+      {name:'Buscar persona', route:'/buscar-persona', category:'Personas', priority:'critica', file:'pages/BuscarPersona', purpose:'Formulario para registrar persona desaparecida.'},
+      {name:'Persona detalle', route:'/persona', category:'Personas', priority:'critica', file:'pages/PersonaDetalle', purpose:'Perfil público de una persona, pistas y seguimiento. Requiere id para caso real.'},
+      {name:'Reportar encontrado', route:'/reportar-encontrado', category:'Personas', priority:'critica', file:'pages/ReportarEncontrado', purpose:'Formulario para reportar persona encontrada.'},
+      {name:'Directorio encontrados', route:'/directorio-encontrados', category:'Personas', priority:'alta', file:'pages/DirectorioEncontrados', purpose:'Listado de personas encontradas o registradas por centros.'},
+      {name:'Pista', route:'/pista', category:'Personas', priority:'alta', file:'pages/Pista', purpose:'Reporte de pista o información sobre una persona.'},
+      {name:'Seguimiento', route:'/seguimiento', category:'Comunicación', priority:'media', file:'pages/Seguimiento', purpose:'Seguimiento de reportes o casos.'},
+      {name:'Suscripciones', route:'/suscripciones', category:'Comunicación', priority:'alta', file:'pages/Suscripciones', purpose:'Gestión de alertas y actualizaciones.'},
+      {name:'Edificios', route:'/edificios', category:'Edificios', priority:'critica', file:'pages/Edificios', purpose:'Directorio de daños en edificios e infraestructura.'},
+      {name:'Edificio detalle', route:'/edificio', category:'Edificios', priority:'critica', file:'pages/EdificioDetalle', purpose:'Ficha de edificio o lugar reportado. Requiere id para caso real.'},
+      {name:'Reportar daño', route:'/reportar-dano', category:'Edificios', priority:'critica', file:'pages/ReportarDano', purpose:'Formulario de reporte de estructura dañada.'},
+      {name:'Solicitar info edificio', route:'/solicitar-info-edificio', category:'Edificios', priority:'media', file:'pages/SolicitarInfoEdificio', purpose:'Solicitud de información sobre un edificio.'},
+      {name:'Centros de apoyo', route:'/centros-apoyo', category:'Centros', priority:'critica', file:'pages/CentrosApoyo', purpose:'Refugios, hospitales y puntos de ayuda.'},
+      {name:'Institucional', route:'/institucional', category:'Institucional', priority:'alta', file:'pages/Institucional', purpose:'Entrada para instituciones.'},
+      {name:'Registro institucional', route:'/registro-institucional', category:'Institucional', priority:'alta', file:'pages/RegistroInstitucional', purpose:'Registro de institución o centro.'},
+      {name:'Portal institucional', route:'/portal-institucional', category:'Institucional', priority:'alta', file:'pages/PortalInstitucional', purpose:'Gestión institucional de listados.'},
+      {name:'Estoy aquí', route:'/estoy-aqui', category:'Personas', priority:'critica', file:'pages/EstoyAqui', purpose:'Autorreporte para avisar que una persona está viva o localizada.'},
+      {name:'Zona afectada', route:'/zona-afectada', category:'Emergencia', priority:'critica', file:'pages/ZonaAfectada', purpose:'Reporte desde una zona impactada.'},
+      {name:'Fuera de zona', route:'/fuera-zona', category:'Personas', priority:'alta', file:'pages/FueraZona', purpose:'Familiares o contactos fuera del área afectada.'},
+      {name:'Búsqueda cruzada', route:'/busqueda-cruzada', category:'Personas', priority:'alta', file:'pages/BusquedaCruzada', purpose:'Cruce de datos entre quien busca y quien reporta.'},
+      {name:'Voluntario', route:'/voluntario', category:'Voluntarios', priority:'media', file:'pages/Voluntario', purpose:'Entrada para voluntarios.'},
+      {name:'Portal voluntario', route:'/portal-voluntario', category:'Voluntarios', priority:'alta', file:'pages/PortalVoluntario', purpose:'Panel operativo de voluntarios.'},
+      {name:'Mi perfil', route:'/mi-perfil', category:'Cuenta', priority:'media', file:'pages/MiPerfil', purpose:'Perfil y actividad del usuario.'},
+      {name:'Dashboard', route:'/dashboard', category:'Administración', priority:'media', file:'pages/Dashboard', purpose:'Panel de datos generales.'},
+      {name:'Admin', route:'/admin', category:'Administración', priority:'alta', file:'pages/AdminDashboard', purpose:'Administración y revisión interna.'},
+      {name:'Aliados', route:'/aliados', category:'Aliados', priority:'alta', file:'pages/Aliados.jsx', purpose:'Descarga de base CSV, prompt y dossier auditoría.'},
+      {name:'Contáctanos', route:'/contactanos', category:'Comunicación', priority:'media', file:'pages/Contactanos', purpose:'Canal de contacto y envío de listados.'},
+      {name:'Login', route:'/login', category:'Cuenta', priority:'media', file:'pages/Login', purpose:'Acceso de usuarios.'},
+      {name:'Registro', route:'/register', category:'Cuenta', priority:'media', file:'pages/Register', purpose:'Registro de usuarios.'}
     ];
 
     const processes = [
@@ -130,60 +168,67 @@
     ];
 
     const files = [
-      ['Router', 'App.jsx', 'Mapa de rutas públicas y subpáginas.'],
-      ['Diseño', 'index.css', 'Tokens, bajo consumo visual, botones, tarjetas y estados.'],
-      ['Diseño', 'tailwind.config.js', 'Clases y tokens de Tailwind.'],
-      ['Página', 'pages/Entrada', 'Inicio y accesos principales.'],
-      ['Página', 'pages/Aliados.jsx', 'Descarga CSV, prompt y dossier auditoría.'],
-      ['Página', 'pages/Personas', 'Directorio de personas.'],
-      ['Página', 'pages/PersonaDetalle', 'Detalle de caso.'],
-      ['Página', 'pages/CentrosApoyo', 'Directorio de centros.'],
-      ['Página', 'pages/Edificios', 'Directorio de estructuras.'],
-      ['Página', 'pages/ReportarDano', 'Reporte de daño.'],
-      ['Página', 'pages/ReportarEncontrado', 'Reporte de persona encontrada.'],
-      ['Página', 'pages/BuscarPersona', 'Registro de persona buscada.'],
-      ['Página', 'pages/PortalInstitucional', 'Gestión institucional.'],
-      ['Página', 'pages/PortalVoluntario', 'Gestión voluntaria.'],
-      ['Entidad', 'entities/PersonaCRIS.json', 'Registro unificado de persona CRIS.'],
-      ['Entidad', 'entities/PersonasBuscadas.json', 'Personas reportadas como buscadas.'],
-      ['Entidad', 'entities/PersonasEncontradas.json', 'Personas encontradas.'],
-      ['Entidad', 'entities/PersonaRegistrada.json', 'Listados institucionales.'],
-      ['Entidad', 'entities/PuntosAyuda.json', 'Centros, refugios y hospitales.'],
-      ['Entidad', 'entities/ReportesDano.json', 'Daños en estructuras.'],
-      ['Función', 'functions/actualizarBaseAliadosCsv', 'Genera el CSV público cada 6 horas.'],
-      ['Función', 'functions/notificarActualizacion', 'Notificaciones por actualizaciones de personas.'],
-      ['Función', 'functions/notificarActualizacionEdificio', 'Notificaciones de edificios.'],
-      ['Función', 'functions/indexarListaInstitucional', 'Procesamiento de listas institucionales.'],
-      ['Función', 'functions/cruceBusqueda', 'Cruce de búsquedas y coincidencias.']
+      ['Router', 'App.jsx', 'Mapa de rutas públicas y subpáginas.'], ['Diseño', 'index.css', 'Tokens, bajo consumo visual, botones, tarjetas y estados.'], ['Diseño', 'tailwind.config.js', 'Clases y tokens de Tailwind.'],
+      ['Página', 'pages/Entrada', 'Inicio y accesos principales.'], ['Página', 'pages/Aliados.jsx', 'Descarga CSV, prompt y dossier auditoría.'], ['Página', 'pages/Personas', 'Directorio de personas.'], ['Página', 'pages/PersonaDetalle', 'Detalle de caso.'], ['Página', 'pages/CentrosApoyo', 'Directorio de centros.'], ['Página', 'pages/Edificios', 'Directorio de estructuras.'], ['Página', 'pages/ReportarDano', 'Reporte de daño.'], ['Página', 'pages/ReportarEncontrado', 'Reporte de persona encontrada.'], ['Página', 'pages/BuscarPersona', 'Registro de persona buscada.'], ['Página', 'pages/PortalInstitucional', 'Gestión institucional.'], ['Página', 'pages/PortalVoluntario', 'Gestión voluntaria.'],
+      ['Entidad', 'entities/PersonaCRIS.json', 'Registro unificado de persona CRIS.'], ['Entidad', 'entities/PersonasBuscadas.json', 'Personas reportadas como buscadas.'], ['Entidad', 'entities/PersonasEncontradas.json', 'Personas encontradas.'], ['Entidad', 'entities/PersonaRegistrada.json', 'Listados institucionales.'], ['Entidad', 'entities/PuntosAyuda.json', 'Centros, refugios y hospitales.'], ['Entidad', 'entities/ReportesDano.json', 'Daños en estructuras.'],
+      ['Función', 'functions/actualizarBaseAliadosCsv', 'Genera el CSV público cada 6 horas.'], ['Función', 'functions/notificarActualizacion', 'Notificaciones por actualizaciones de personas.'], ['Función', 'functions/notificarActualizacionEdificio', 'Notificaciones de edificios.'], ['Función', 'functions/indexarListaInstitucional', 'Procesamiento de listas institucionales.'], ['Función', 'functions/cruceBusqueda', 'Cruce de búsquedas y coincidencias.']
     ];
 
+    function key(route, field) { return 'cris-audit:' + route + ':' + field; }
+    function get(route, field, fallback='') { return localStorage.getItem(key(route, field)) || fallback; }
+    function set(route, field, value) { localStorage.setItem(key(route, field), value); }
+    function esc(str) { return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+
     function renderPages() {
-      document.getElementById('pages').innerHTML = pages.map((p, i) => `
-        <article class="card">
-          <h3>${p[0]}</h3>
-          <span class="route">${p[1]}</span>
-          <p>${p[2]}</p>
-          <div class="preview-actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <a class="btn" href="${p[1]}" target="_blank">Abrir página</a>
-            <button class="btn secondary" onclick="loadPreview('${p[1]}','preview-${i}')">Ver captura/vista</button>
+      const q = document.getElementById('q').value.toLowerCase();
+      const category = document.getElementById('category').value;
+      const priority = document.getElementById('priority').value;
+      const auditFilter = document.getElementById('auditFilter').value;
+      const filtered = pages.filter(p => {
+        const status = get(p.route, 'status', 'pendiente');
+        const hay = [p.name,p.route,p.category,p.file,p.purpose].join(' ').toLowerCase().includes(q);
+        return hay && (!category || p.category === category) && (!priority || p.priority === priority) && (!auditFilter || status === auditFilter);
+      });
+      document.getElementById('empty').style.display = filtered.length ? 'none' : 'block';
+      document.getElementById('pages').innerHTML = filtered.map((p, i) => {
+        const id = 'page-' + pages.indexOf(p);
+        const status = get(p.route, 'status', 'pendiente');
+        return `<article class="card page-card">
+          <div class="top-row"><div><h3>${esc(p.name)}</h3><span class="route">${esc(p.route)}</span></div><span class="tag ${p.priority === 'critica' ? 'red' : p.priority === 'alta' ? 'amber' : ''}">${esc(p.priority)}</span></div>
+          <p>${esc(p.purpose)}</p>
+          <div><span class="tag green">${esc(p.category)}</span><span class="tag">${esc(p.file)}</span><span class="tag purple">Estado: ${esc(status)}</span></div>
+          <div class="preview-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+            <a class="btn" href="${p.route}" target="_blank">Abrir página</a>
+            <button class="btn green" onclick="loadPreview('${p.route}','${id}','mobile')">Captura móvil</button>
+            <button class="btn secondary" onclick="loadPreview('${p.route}','${id}','desktop')">Captura escritorio</button>
+            <button class="btn secondary" onclick="clearPreview('${id}')">Cerrar captura</button>
           </div>
-          <div id="preview-${i}" class="preview"></div>
-        </article>`).join('');
+          <div id="${id}" class="preview"></div>
+          <div class="audit-fields">
+            <div><label>Estado de auditoría</label><select onchange="set('${p.route}','status',this.value); renderPages()"><option value="pendiente" ${status==='pendiente'?'selected':''}>Pendiente</option><option value="cumple" ${status==='cumple'?'selected':''}>Cumple</option><option value="ajuste" ${status==='ajuste'?'selected':''}>Requiere ajuste</option><option value="critico" ${status==='critico'?'selected':''}>Crítico</option></select></div>
+            <div class="checklist">${checklist.map((c, n) => `<label class="checkline"><input type="checkbox" ${get(p.route,'check'+n)==='1'?'checked':''} onchange="set('${p.route}','check${n}',this.checked?'1':'0')" /> ${esc(c)}</label>`).join('')}</div>
+            <div><label>Recomendaciones del auditor</label><textarea placeholder="Escribe observaciones de claridad, seguridad, privacidad, bajo consumo o mejoras de proceso..." oninput="set('${p.route}','notes',this.value)">${esc(get(p.route,'notes'))}</textarea></div>
+          </div>
+        </article>`;
+      }).join('');
     }
-    function renderCards(id, items) {
-      document.getElementById(id).innerHTML = items.map(item => `<article class="card"><h3>${item[0]}</h3><span class="route">${item[1]}</span><p>${item[2]}</p></article>`).join('');
-    }
-    function renderFiles() {
-      document.getElementById('files').innerHTML = files.map(f => `<tr><td><strong>${f[0]}</strong></td><td><code>${f[1]}</code></td><td>${f[2]}</td></tr>`).join('');
-    }
-    function loadPreview(route, id) {
+
+    function loadPreview(route, id, mode) {
       const box = document.getElementById(id);
-      if (!box.dataset.loaded) {
-        box.innerHTML = `<iframe src="${route}" title="Vista previa ${route}" loading="lazy"></iframe>`;
-        box.dataset.loaded = 'true';
-      }
+      const cls = mode === 'desktop' ? 'frame-desktop' : 'frame-mobile';
+      box.innerHTML = `<iframe class="${cls}" src="${route}" title="Captura visual ${route}" loading="lazy"></iframe>`;
     }
-    renderPages(); renderCards('processes', processes); renderCards('modules', modules); renderFiles();
+    function clearPreview(id) { document.getElementById(id).innerHTML = ''; }
+    function renderCards(id, items) { document.getElementById(id).innerHTML = items.map(item => `<article class="card"><h3>${esc(item[0])}</h3><span class="route">${esc(item[1])}</span><p>${esc(item[2])}</p></article>`).join(''); }
+    function renderFiles() { document.getElementById('files').innerHTML = files.map(f => `<tr><td><strong>${esc(f[0])}</strong></td><td><code>${esc(f[1])}</code></td><td>${esc(f[2])}</td></tr>`).join(''); }
+    function renderCategories() { const cats = [...new Set(pages.map(p => p.category))].sort(); document.getElementById('category').innerHTML += cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join(''); }
+    function exportNotes() {
+      const data = pages.map(p => ({ route:p.route, name:p.name, status:get(p.route,'status','pendiente'), checks:checklist.map((c,n)=>({label:c, ok:get(p.route,'check'+n)==='1'})), notes:get(p.route,'notes') }));
+      const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'auditoria_cris_notas.json'; a.click(); URL.revokeObjectURL(a.href);
+    }
+    function clearAudit() { if (confirm('¿Borrar notas y estados locales de auditoría?')) { Object.keys(localStorage).filter(k => k.startsWith('cris-audit:')).forEach(k => localStorage.removeItem(k)); renderPages(); } }
+    renderCategories(); renderPages(); renderCards('processes', processes); renderCards('modules', modules); renderFiles();
   </script>
 </body>
 </html>
