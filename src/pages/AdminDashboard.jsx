@@ -8,6 +8,7 @@ import AdminStats from '@/components/admin/AdminStats';
 import AdminDataPanel from '@/components/admin/AdminDataPanel';
 import CentrosOperativosPanel from '@/components/admin/centros/CentrosOperativosPanel';
 import GestionVoluntarios from '@/components/admin/GestionVoluntarios';
+import SubidaMasivaEdificios from '@/components/admin/SubidaMasivaEdificios';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
@@ -56,6 +57,7 @@ const AdminDashboard = () => {
       { key: 'voluntarios', label: '🤝 Voluntarios' },
       { key: 'centros', label: '🏥 Centros operativos' },
       { key: 'manage', label: '⚙️ Gestión de datos' },
+      { key: 'edificios_masivo', label: '🏗️ Carga Edificios' },
       { key: 'dossier', label: '📊 Dossier visual' },
   ];
 
@@ -84,6 +86,11 @@ const AdminDashboard = () => {
             {tab === 'voluntarios' && <GestionVoluntarios es={true} />}
             {tab === 'centros' && <CentrosOperativosPanel />}
             {tab === 'manage' && <AdminDataPanel />}
+            {tab === 'edificios_masivo' && (
+              <div style={{ maxWidth: 680, margin: '0 auto' }}>
+                <SubidaMasivaEdificios />
+              </div>
+            )}
             {tab === 'dossier' && (
               <div>
                 <p className="text-sm text-gray-500 mb-4">Dossier visual de auditoría interna del sistema CRIS. Solo visible para administradores.</p>
