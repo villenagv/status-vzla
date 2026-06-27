@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, FileSpreadsheet, Download, Loader2, ShieldCheck, AlertTriangle, Eye, Check, Copy, ChevronDown, ChevronUp } from 'lucide-react';
+import { Upload, FileSpreadsheet, Download, Loader2, ShieldCheck, AlertTriangle, Eye, Check, Copy, ChevronDown, ChevronUp, XCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 // ── Plantilla CSV de ejemplo ──────────────────────────────────────────────────
@@ -64,7 +64,7 @@ function BtnCopiar({ texto }) {
   );
 }
 
-// ── Sección de herramientas (plantilla + prompt) ──────────────────────────────
+// ── Sección de herramientas ──────────────────────────────────────────────────
 function SeccionHerramientas() {
   const [tab, setTab] = useState('plantilla');
   const [abierto, setAbierto] = useState(false);
@@ -85,7 +85,6 @@ function SeccionHerramientas() {
 
       {abierto && (
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Tabs */}
           <div style={{ display: 'flex', borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.10)' }}>
             {[{ k: 'plantilla', icon: '📄', label: 'Plantilla CSV' }, { k: 'prompt', icon: '🤖', label: 'Prompt IA' }].map(t => (
               <button key={t.k} onClick={() => setTab(t.k)}
@@ -143,30 +142,61 @@ function SeccionHerramientas() {
   );
 }
 
-// ── Tabla de preview ──────────────────────────────────────────────────────────
-function PreviewTabla({ edificios }) {
+// ── Tabla de preview (con duplicados marcados) ──────────────────────────────
+function PreviewTabla({ edificios, duplicadosDetalle }) {
   const [pag, setPag] = useState(0);
   const PER = 5;
   const slice = edificios.slice(pag * PER, (pag + 1) * PER);
   const total = Math.ceil(edificios.length / PER);
 
+  // Índice de nombres de duplicados (rápido lookup)
+  const nombresDup = new Set((duplicadosDetalle || []).map(d => normalizarStr(d.nombre)));
+
   return (
     <div>
       <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', marginBottom: 8 }}>
         Vista previa — {edificios.length} edificios detectados
+        {duplicadosDetalle?.length > 0 && (
+          <span style={{ color: '#FB923C', marginLeft: 6 }}>
+            · {duplicadosDetalle.length} duplicado(s) detectados
+          </span>
+        )}
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {slice.map((e, i) => {
           const cfg = DANO_COLOR[e.nivel_dano] || DANO_COLOR.no_evaluado;
+          const esDuplicado = nombresDup.has(normalizarStr(e.nombre_lugar));
+          const dupInfo = duplicadosDetalle?.find(d => normalizarStr(d.nombre) === normalizarStr(e.nombre_lugar));
           return (
-            <div key={i} style={{ background: '#1C2128', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <div key={i} style={{
+              background: esDuplicado ? 'rgba(180,83,9,0.10)' : '#1C2128',
+              border: `1px solid ${esDuplicado ? 'rgba(251,146,60,0.35)' : 'rgba(255,255,255,0.08)'}`,
+              borderRadius: 10, padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start',
+            }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {e.nombre_lugar}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {esDuplicado && <span style={{ color: '#FB923C', fontSize: 11, flexShrink: 0 }}>🔁</span>}
+                  <p style={{
+                    fontSize: 13, fontWeight: 700,
+                    color: esDuplicado ? '#FB923C' : '#fff',
+                    marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {e.nombre_lugar}
+                    {esDuplicado && <span style={{ color: '#FB923C', fontSize: 10, fontWeight: 400, marginLeft: 6 }}>(duplicado)</span>}
+                  </p>
+                </div>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginBottom: 4 }}>
                   {e.ciudad}, {e.estado_region} · {e.tipo_estructura}
                 </p>
+                {dupInfo && (
+                  <div style={{ background: 'rgba(251,146,60,0.10)', border: '1px solid rgba(251,146,60,0.20)', borderRadius: 6, padding: '6px 8px', marginTop: 4 }}>
+                    <p style={{ fontSize: 9, color: '#FDBA74', margin: 0, lineHeight: 1.4 }}>
+                      🔁 Coincide con: <strong>{dupInfo.coincideCon?.nombre || '—'}</strong>
+                      {dupInfo.coincideCon?.direccion && <> · {dupInfo.coincideCon.direccion}</>}
+                      · Reportado: {dupInfo.coincideCon?.creado ? new Date(dupInfo.coincideCon.creado).toLocaleDateString() : '—'}
+                    </p>
+                  </div>
+                )}
                 {e.descripcion && (
                   <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                     {e.descripcion}
@@ -200,6 +230,73 @@ function PreviewTabla({ edificios }) {
   );
 }
 
+function normalizarStr(str) {
+  return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').trim();
+}
+
+// ── Componente panel de duplicados ────────────────────────────────────────────
+function PanelDuplicados({ duplicadosDetalle }) {
+  const [expandido, setExpandido] = useState(false);
+
+  if (!duplicadosDetalle || duplicadosDetalle.length === 0) return null;
+
+  return (
+    <div style={{
+      background: 'rgba(180,83,9,0.08)', border: '1px solid rgba(251,146,60,0.25)',
+      borderRadius: 12, padding: '14px 16px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: expandido ? 10 : 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <AlertTriangle size={16} color="#FB923C" />
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 800, color: '#FDBA74', margin: 0 }}>
+              {duplicadosDetalle.length} edificio(s) duplicado(s) omitidos
+            </p>
+            <p style={{ fontSize: 10, color: 'rgba(251,191,54,0.60)', margin: 0, marginTop: 2 }}>
+              Ya existen en la plataforma con nombres o direcciones similares — no se crearon duplicados.
+            </p>
+          </div>
+        </div>
+        <button onClick={() => setExpandido(v => !v)}
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
+          {expandido ? '▲' : '▼'}
+        </button>
+      </div>
+
+      {expandido && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {duplicadosDetalle.map((d, i) => (
+            <div key={i} style={{
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 8, padding: '8px 10px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#FDBA74', margin: 0 }}>
+                    🔁 {d.nombre}
+                  </p>
+                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', margin: '2px 0' }}>
+                    {d.direccion}{d.direccion && d.ciudad ? ' · ' : ''}{d.ciudad} · {d.nivel_dano}
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.30)' }}>Coincide con:</span>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.60)', margin: 0 }}>
+                    {d.coincideCon?.nombre || '—'}
+                  </p>
+                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.30)', margin: 0 }}>
+                    {d.coincideCon?.creado ? new Date(d.coincideCon.creado).toLocaleDateString() : ''}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function SubidaMasivaEdificios() {
   const [archivo, setArchivo] = useState(null);
@@ -218,7 +315,13 @@ export default function SubidaMasivaEdificios() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: archivo });
       const resp = await base44.functions.invoke('indexarEdificiosMasivo', { file_url, solo_parsear: true });
       if (resp.data?.error) throw new Error(resp.data.error);
-      setPreview(resp.data.edificios || []);
+      setPreview({
+        edificios: resp.data.edificios || [],
+        duplicados: resp.data.duplicados || 0,
+        duplicadosDetalle: resp.data.duplicados_detalle || [],
+        unicos: resp.data.unicos || 0,
+        total: resp.data.total || 0,
+      });
     } catch (e) {
       setError(e.message || 'Error al procesar el archivo');
     }
@@ -255,7 +358,7 @@ export default function SubidaMasivaEdificios() {
             Carga masiva de edificios
           </h2>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.5 }}>
-            Sube CSV o Excel con datos de edificios dañados. El sistema normaliza automáticamente los niveles de daño y acceso.
+            Sube CSV o Excel con datos de edificios dañados. El sistema normaliza automáticamente y detecta duplicados por nombre y dirección.
           </p>
         </div>
       </div>
@@ -264,21 +367,22 @@ export default function SubidaMasivaEdificios() {
       <div style={{ background: 'rgba(180,83,9,0.12)', border: '1px solid rgba(180,83,9,0.35)', borderRadius: 10, padding: '10px 14px', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
         <AlertTriangle size={14} color="#FCD34D" style={{ flexShrink: 0, marginTop: 1 }} />
         <p style={{ fontSize: 11, color: '#FCD34D', margin: 0, lineHeight: 1.5 }}>
-          <strong>Acceso exclusivo para administradores.</strong> Todos los registros se marcarán como <em>carga masiva admin</em> y quedan disponibles públicamente de inmediato.
+          <strong>Acceso exclusivo para administradores.</strong> Los registros nuevos se marcan como <em>carga masiva admin</em>. Los duplicados se omiten automáticamente.
         </p>
       </div>
 
       {/* Pasos visuales */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 6 }}>
         {[
-          { n: '1', icon: '📄', label: 'Prepara el CSV con la plantilla oficial' },
-          { n: '2', icon: '👁️', label: 'Previsualiza los datos antes de guardar' },
-          { n: '3', icon: '✅', label: 'Confirma y sube a la plataforma' },
+          { n: '1', icon: '📄', label: 'Prepara el CSV' },
+          { n: '2', icon: '🔍', label: 'Detección de duplicados' },
+          { n: '3', icon: '👁️', label: 'Previsualiza' },
+          { n: '4', icon: '✅', label: 'Confirma y sube' },
         ].map(p => (
           <div key={p.n} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4 }}>
             <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#B45309', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.n}</div>
             <span style={{ fontSize: 18 }}>{p.icon}</span>
-            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.50)', margin: 0, lineHeight: 1.4 }}>{p.label}</p>
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.50)', margin: 0, lineHeight: 1.3 }}>{p.label}</p>
           </div>
         ))}
       </div>
@@ -306,41 +410,78 @@ export default function SubidaMasivaEdificios() {
       {/* Preview */}
       {preview && (
         <>
-          <PreviewTabla edificios={preview} />
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => { setPreview(null); setArchivo(null); }}
-              style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '13px 0', fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.60)', cursor: 'pointer' }}>
-              Cancelar
-            </button>
-            <button onClick={confirmarSubida} disabled={procesando}
-              style={{ flex: 2, background: '#B45309', color: '#fff', border: 'none', borderRadius: 12, padding: '13px 0', fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: procesando ? 0.6 : 1 }}>
-              {procesando ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-              {procesando ? 'Guardando...' : `Confirmar y subir ${preview.length} edificios`}
-            </button>
-          </div>
+          {preview.duplicados > 0 && <PanelDuplicados duplicadosDetalle={preview.duplicadosDetalle} />}
+
+          {preview.unicos > 0 && (
+            <>
+              <PreviewTabla edificios={preview.edificios} duplicadosDetalle={preview.duplicadosDetalle} />
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => { setPreview(null); setArchivo(null); }}
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '13px 0', fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.60)', cursor: 'pointer' }}>
+                  Cancelar
+                </button>
+                <button onClick={confirmarSubida} disabled={procesando}
+                  style={{ flex: 2, background: '#B45309', color: '#fff', border: 'none', borderRadius: 12, padding: '13px 0', fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: procesando ? 0.6 : 1 }}>
+                  {procesando ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                  {procesando ? 'Guardando...' : `Subir ${preview.unicos} edificio(s) nuevo(s)`}
+                </button>
+              </div>
+            </>
+          )}
+
+          {preview.unicos === 0 && (
+            <div style={{ background: 'rgba(180,83,9,0.08)', border: '1px solid rgba(251,146,60,0.25)', borderRadius: 12, padding: '16px', textAlign: 'center' }}>
+              <XCircle size={24} color="#FB923C" style={{ marginBottom: 8 }} />
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#FDBA74', margin: 0, marginBottom: 4 }}>
+                Todos los registros son duplicados
+              </p>
+              <p style={{ fontSize: 11, color: 'rgba(251,191,54,0.60)', margin: 0 }}>
+                No hay edificios nuevos para agregar. Los {preview.total} registro(s) ya existen en la plataforma.
+              </p>
+              <button onClick={() => { setPreview(null); setArchivo(null); }}
+                style={{ marginTop: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 20px', fontWeight: 600, fontSize: 12, color: 'rgba(255,255,255,0.60)', cursor: 'pointer' }}>
+                Cargar otro archivo
+              </button>
+            </div>
+          )}
         </>
       )}
 
-      {/* Resultado */}
+      {/* Resultado posterior a subida */}
       {resultado && (
-        <div style={{ background: 'rgba(20,83,45,0.25)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <ShieldCheck size={18} color="#86EFAC" style={{ flexShrink: 0, marginTop: 1 }} />
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 800, color: '#86EFAC', margin: 0, marginBottom: 4 }}>
-              ✅ Carga completada
-            </p>
-            <p style={{ fontSize: 12, color: 'rgba(134,239,172,0.80)', margin: 0 }}>
-              {resultado.guardados} edificios guardados de {resultado.total} detectados.
-              {resultado.errores > 0 && ` ${resultado.errores} con errores.`}
-            </p>
-            {resultado.detalles_errores?.length > 0 && (
-              <div style={{ marginTop: 8 }}>
-                {resultado.detalles_errores.slice(0, 3).map((e, i) => (
-                  <p key={i} style={{ fontSize: 10, color: '#FCA5A5', margin: '2px 0' }}>⚠️ {e.nombre}: {e.error}</p>
-                ))}
-              </div>
-            )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ background: 'rgba(20,83,45,0.25)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <ShieldCheck size={18} color="#86EFAC" style={{ flexShrink: 0, marginTop: 1 }} />
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 800, color: '#86EFAC', margin: 0, marginBottom: 4 }}>
+                ✅ Carga completada
+              </p>
+              <p style={{ fontSize: 12, color: 'rgba(134,239,172,0.80)', margin: 0 }}>
+                {resultado.guardados} edificios guardados de {resultado.total} detectados.
+                {resultado.duplicados > 0 && ` ${resultado.duplicados} duplicados omitidos.`}
+                {resultado.errores > 0 && ` ${resultado.errores} con errores.`}
+              </p>
+            </div>
           </div>
+
+          {resultado.duplicados > 0 && (
+            <PanelDuplicados duplicadosDetalle={resultado.duplicados_detalle} />
+          )}
+
+          {resultado.detalles_errores?.length > 0 && (
+            <div style={{ background: 'rgba(192,57,43,0.10)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10, padding: '10px 14px' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#FCA5A5', marginBottom: 4 }}>⚠️ Errores de guardado:</p>
+              {resultado.detalles_errores.slice(0, 5).map((e, i) => (
+                <p key={i} style={{ fontSize: 10, color: '#FCA5A5', margin: '2px 0' }}>{e.nombre}: {e.error}</p>
+              ))}
+            </div>
+          )}
+
+          <button onClick={() => { setResultado(null); setArchivo(null); }}
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 0', fontWeight: 600, fontSize: 12, color: 'rgba(255,255,255,0.60)', cursor: 'pointer' }}>
+            Subir otro archivo
+          </button>
         </div>
       )}
 

@@ -3,6 +3,40 @@ import * as XLSX from 'npm:xlsx@0.18.5';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
+// ── Normalización de texto (misma lógica que el frontend) ──
+function normalizar(str) {
+  return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function similitud(a, b) {
+  const na = normalizar(a), nb = normalizar(b);
+  if (!na || !nb) return 0;
+  if (na === nb) return 1;
+  if (na.includes(nb) || nb.includes(na)) return 0.85;
+  const wA = na.split(' '), wB = nb.split(' ');
+  return wA.filter(w => w.length > 3 && wB.includes(w)).length / Math.max(wA.length, wB.length);
+}
+
+function mismoEdificio(nuevo, existente) {
+  // Dos edificios son el mismo si coinciden FUERTEMENTE en nombre + dirección
+  const simNombre = similitud(nuevo.nombre_lugar || '', existente.nombre_lugar || '');
+  const simDir = similitud(nuevo.direccion || '', existente.direccion || '');
+  const simNomDir = similitud(nuevo.nombre_lugar || '', existente.direccion || '');
+  const simDirNom = similitud(nuevo.direccion || '', existente.nombre_lugar || '');
+  const mismaCiudad = normalizar(nuevo.ciudad || '') === normalizar(existente.ciudad || '');
+
+  // Reglas de decisión:
+  // 1. Nombre casi idéntico + misma ciudad + dirección similar
+  if (simNombre > 0.8 && mismaCiudad && (simDir > 0.5 || normalizar(nuevo.direccion || '').includes(normalizar(existente.direccion || '').slice(0, 12)) || normalizar(existente.direccion || '').includes(normalizar(nuevo.direccion || '').slice(0, 12)))) return true;
+  // 2. Dirección casi idéntica (cambia el nombre pero es el mismo lugar)
+  if (simDir > 0.8 && mismaCiudad) return true;
+  // 3. Nombre se cruza con dirección del otro (ej: "Hotel Eduard's" vs "Hotel Eduard's Macuto")
+  if ((simNombre > 0.75 || simNomDir > 0.75 || simDirNom > 0.75) && mismaCiudad) return true;
+  // 4. Si ambos están en la misma dirección exacta
+  if (normalizar(nuevo.direccion || '') && normalizar(nuevo.direccion || '') === normalizar(existente.direccion || '')) return true;
+  return false;
+}
+
 // Mapas de normalización
 const TIPO_MAP = {
   'hotel': 'otro', 'hostal': 'otro', 'posada': 'otro',
@@ -76,7 +110,6 @@ function getField(row, ...keys) {
 
 function parseFotoUrls(val) {
   if (!val) return [];
-  // Soporta múltiples URLs separadas por coma o punto y coma
   return String(val).split(/[,;]+/).map(u => u.trim()).filter(u => u.startsWith('http'));
 }
 
@@ -92,7 +125,6 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Solo el admin autorizado puede usar este endpoint
     if (user.email !== ADMIN_EMAIL) {
       return Response.json({ error: 'Acceso denegado. Solo el administrador puede usar esta función.' }, { status: 403 });
     }
@@ -103,7 +135,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'file_url es requerido' }, { status: 400 });
     }
 
-    // Descargar el archivo
+    // ── 1. DESCARGAR ARCHIVO ──
     const fileResp = await fetch(file_url);
     if (!fileResp.ok) return Response.json({ error: 'No se pudo descargar el archivo' }, { status: 422 });
 
@@ -113,7 +145,6 @@ Deno.serve(async (req) => {
     try {
       rows = parseXlsxBuffer(new Uint8Array(buffer));
     } catch {
-      // Fallback a CSV texto plano
       const text = new TextDecoder().decode(buffer);
       const lines = text.split('\n').filter(l => l.trim().length > 1);
       if (lines.length < 2) return Response.json({ error: 'Archivo vacío o no reconocido' }, { status: 422 });
@@ -141,7 +172,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No se encontraron filas con nombres válidos.' }, { status: 422 });
     }
 
-    const edificios = rows.map(r => {
+    // ── 2. NORMALIZAR DATOS DEL ARCHIVO ──
+    const edificiosNuevos = rows.map(r => {
       const nivelDano = normDano(getField(r, 'NivelDano', 'nivel_dano', 'nivel dano', 'nivel daño', 'damage', 'daño', 'dano', 'estado'));
       const tipo = normTipo(getField(r, 'Tipo', 'tipo_estructura', 'tipo estructura', 'type', 'categoria'));
       const verif = normVerif(getField(r, 'Verificacion', 'verificacion', 'verificación', 'estado_verificacion', 'verification', 'confirmado'));
@@ -179,14 +211,56 @@ Deno.serve(async (req) => {
       };
     });
 
-    if (solo_parsear) {
-      return Response.json({ status: 'success', edificios, total: edificios.length });
+    // ── 3. CARGAR EDIFICIOS EXISTENTES PARA DETECCIÓN DE DUPLICADOS ──
+    const existentes = await base44.asServiceRole.entities.ReportesDano.list('-created_date', 5000);
+    const existentesRelevantes = existentes || [];
+
+    // ── 4. FILTRAR DUPLICADOS ──
+    const unicos = [];
+    const duplicados = [];
+    const erroresParseo = [];
+
+    for (const e of edificiosNuevos) {
+      // Buscar coincidencias con existentes
+      const match = existentesRelevantes.find(ext => mismoEdificio(e, ext));
+
+      if (match) {
+        duplicados.push({
+          nombre: e.nombre_lugar,
+          direccion: e.direccion,
+          ciudad: e.ciudad,
+          nivel_dano: e.nivel_dano,
+          coincideCon: {
+            id: match.id,
+            nombre: match.nombre_lugar,
+            direccion: match.direccion,
+            ciudad: match.ciudad,
+            nivel_dano: match.nivel_dano,
+            creado: match.created_date,
+          },
+        });
+      } else {
+        unicos.push(e);
+      }
     }
 
-    // Guardar en base de datos
+    // Si solo es vista previa, devolver todo (sin guardar) con info de duplicados
+    if (solo_parsear) {
+      return Response.json({
+        status: 'success',
+        edificios: edificiosNuevos,
+        total: edificiosNuevos.length,
+        unicos: unicos.length,
+        duplicados: duplicados.length,
+        duplicados_detalle: duplicados,
+      });
+    }
+
+    // ── 5. GUARDAR SOLO LOS ÚNICOS ──
     const creados = [];
     const errores = [];
-    for (const e of edificios) {
+
+    for (const e of unicos) {
       try {
         const creado = await base44.asServiceRole.entities.ReportesDano.create(e);
         creados.push(creado);
@@ -197,8 +271,10 @@ Deno.serve(async (req) => {
 
     return Response.json({
       status: 'success',
-      total: edificios.length,
+      total: edificiosNuevos.length,
       guardados: creados.length,
+      duplicados: duplicados.length,
+      duplicados_detalle: duplicados,
       errores: errores.length,
       detalles_errores: errores,
     });
