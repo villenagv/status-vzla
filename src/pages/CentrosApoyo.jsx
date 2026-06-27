@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Phone, MapPin, Clock, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronLeft, Phone, MapPin, Clock, Users, ChevronDown, ChevronUp, Search } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
@@ -61,6 +61,7 @@ export default function CentrosApoyo() {
   const [personasPorCentro, setPersonasPorCentro] = useState({});
   const [expandidos, setExpandidos] = useState({});
   const [cargandoPersonas, setCargandoPersonas] = useState({});
+  const [busquedasPersonas, setBusquedasPersonas] = useState({});
 
   useEffect(() => {
     base44.entities.PuntosAyuda.list('-updated_date', 200)
@@ -104,6 +105,19 @@ export default function CentrosApoyo() {
 
   const visibles = filtrados.slice(0, page * PAGE_SIZE);
   const hayMas = filtrados.length > visibles.length;
+
+  const buscarPersonasCentro = (centroId) => {
+    const lista = personasPorCentro[centroId] || [];
+    const q = (busquedasPersonas[centroId] || '').toLowerCase().trim();
+    if (!q) return lista;
+    return lista.filter(p =>
+      (p.nombre_completo || '').toLowerCase().includes(q) ||
+      (p.nombre_o_descripcion || '').toLowerCase().includes(q) ||
+      (p.condicion || '').toLowerCase().includes(q) ||
+      (p.edad_aprox || '').toLowerCase().includes(q) ||
+      (p.sexo || '').toLowerCase().includes(q)
+    );
+  };
 
   // Estadísticas rápidas
   const emergencia24h = centros.filter(c => ['bomberos','proteccion_civil'].includes(c.tipo_lugar)).length;
@@ -214,6 +228,8 @@ export default function CentrosApoyo() {
             const tipoConf = TIPO_CONFIG[c.tipo_lugar] || { emoji: '📍', es: c.tipo_lugar, en: c.tipo_lugar, color: 'bg-gray-100 text-gray-600' };
             const estadoConf = ESTADO_CONFIG[c.estado_operativo] || ESTADO_CONFIG['no_verificado'];
             const necesitaActualizacion = c.requiere_actualizacion;
+            const personasCentro = personasPorCentro[c.id] || [];
+            const personasFiltradasCentro = buscarPersonasCentro(c.id);
 
             return (
               <div key={c.id} className={`bg-white rounded-2xl border px-4 py-4 ${necesitaActualizacion ? 'border-[#E6C195]' : 'border-[#EDEBE8]'}`}>
@@ -338,54 +354,69 @@ export default function CentrosApoyo() {
                       </div>
                     ) : (
                       <div>
-                        <div className="bg-gray-50 border-b border-[#EDEBE8] px-3 py-2">
+                        <div className="bg-gray-50 border-b border-[#EDEBE8] px-3 py-2 space-y-2">
                           <p className="text-[11px] font-bold text-gray-600">
-                            👤 {personasPorCentro[c.id].length} {es ? 'personas registradas' : 'registered people'}
+                            👤 {personasCentro.length} {es ? 'personas registradas' : 'registered people'}
                             {' · '}
                             <span className="font-normal text-gray-400">
                               {es ? '🔒 Datos privados no son visibles' : '🔒 Private data not visible'}
                             </span>
                           </p>
+                          <div className="relative">
+                            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                              value={busquedasPersonas[c.id] || ''}
+                              onChange={e => setBusquedasPersonas(prev => ({ ...prev, [c.id]: e.target.value }))}
+                              placeholder={es ? 'Buscar en este centro: nombre, condición, edad...' : 'Search this center: name, condition, age...'}
+                              className="w-full border border-[#EDEBE8] rounded-lg pl-8 pr-3 py-2 text-xs bg-white focus:outline-none focus:border-[#2471A3]"
+                            />
+                          </div>
                         </div>
-                        <div className="max-h-48 overflow-y-auto">
-                          <table className="w-full text-xs">
-                            <thead className="bg-white border-b border-[#EDEBE8] sticky top-0">
-                              <tr>
-                                <th className="text-left px-3 py-1.5 text-gray-400 font-semibold">{es ? 'Nombre' : 'Name'}</th>
-                                <th className="text-left px-3 py-1.5 text-gray-400 font-semibold">{es ? 'Condición' : 'Condition'}</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[#EDEBE8]">
-                              {personasPorCentro[c.id].slice(0, 50).map(p => {
-                                const COND = {
-                                  a_salvo: { label: { es: 'A salvo', en: 'Safe' }, cls: 'bg-green-100 text-green-700' },
-                                  herido_leve: { label: { es: 'Herido leve', en: 'Minor injury' }, cls: 'bg-yellow-100 text-yellow-700' },
-                                  herido_grave: { label: { es: 'Herido grave', en: 'Serious injury' }, cls: 'bg-orange-100 text-orange-700' },
-                                  fallecido_reportado: { label: { es: 'Fallecido', en: 'Death rep.' }, cls: 'bg-gray-200 text-gray-600' },
-                                  no_sabe: { label: { es: 'No se sabe', en: 'Unknown' }, cls: 'bg-gray-100 text-gray-500' },
-                                };
-                                const cond = COND[p.condicion] || COND.no_sabe;
-                                return (
-                                  <tr key={p.id} className="hover:bg-gray-50">
-                                    <td className="px-3 py-2 font-medium text-[#1A1F2E] truncate max-w-[150px]">{p.nombre_completo}</td>
-                                    <td className="px-3 py-2">
-                                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cond.cls}`}>
-                                        {es ? cond.label.es : cond.label.en}
-                                      </span>
+                        {personasFiltradasCentro.length === 0 ? (
+                          <div className="text-center py-4 text-xs text-gray-400">
+                            {es ? 'No hay personas que coincidan en este centro.' : 'No matching people in this center.'}
+                          </div>
+                        ) : (
+                          <div className="max-h-48 overflow-y-auto">
+                            <table className="w-full text-xs">
+                              <thead className="bg-white border-b border-[#EDEBE8] sticky top-0">
+                                <tr>
+                                  <th className="text-left px-3 py-1.5 text-gray-400 font-semibold">{es ? 'Nombre' : 'Name'}</th>
+                                  <th className="text-left px-3 py-1.5 text-gray-400 font-semibold">{es ? 'Condición' : 'Condition'}</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-[#EDEBE8]">
+                                {personasFiltradasCentro.slice(0, 50).map(p => {
+                                  const COND = {
+                                    a_salvo: { label: { es: 'A salvo', en: 'Safe' }, cls: 'bg-green-100 text-green-700' },
+                                    herido_leve: { label: { es: 'Herido leve', en: 'Minor injury' }, cls: 'bg-yellow-100 text-yellow-700' },
+                                    herido_grave: { label: { es: 'Herido grave', en: 'Serious injury' }, cls: 'bg-orange-100 text-orange-700' },
+                                    fallecido_reportado: { label: { es: 'Fallecido', en: 'Death rep.' }, cls: 'bg-gray-200 text-gray-600' },
+                                    no_sabe: { label: { es: 'No se sabe', en: 'Unknown' }, cls: 'bg-gray-100 text-gray-500' },
+                                  };
+                                  const cond = COND[p.condicion] || COND.no_sabe;
+                                  return (
+                                    <tr key={p.id} className="hover:bg-gray-50">
+                                      <td className="px-3 py-2 font-medium text-[#1A1F2E] truncate max-w-[150px]">{p.nombre_completo}</td>
+                                      <td className="px-3 py-2">
+                                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cond.cls}`}>
+                                          {es ? cond.label.es : cond.label.en}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                                {personasFiltradasCentro.length > 50 && (
+                                  <tr>
+                                    <td colSpan={2} className="text-center py-2 text-[10px] text-gray-400">
+                                      +{personasFiltradasCentro.length - 50} {es ? 'más' : 'more'}
                                     </td>
                                   </tr>
-                                );
-                              })}
-                              {personasPorCentro[c.id].length > 50 && (
-                                <tr>
-                                  <td colSpan={2} className="text-center py-2 text-[10px] text-gray-400">
-                                    +{personasPorCentro[c.id].length - 50} {es ? 'más' : 'more'}
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
