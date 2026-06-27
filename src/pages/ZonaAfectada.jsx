@@ -31,6 +31,15 @@ const ACCIONES = [
     sub_en: 'Trapped people · Damaged building · Request help',
   },
   {
+    id: 'aqui',
+    emoji: '📍',
+    bg: '#784212',
+    es: 'Estoy aquí — avisa que estás vivo/a',
+    en: 'I am here — let people know you are alive',
+    sub_es: 'Regístrate · Actualiza tu ficha · Que te encuentren',
+    sub_en: 'Register · Update your record · Be found',
+  },
+  {
     id: 'encontre',
     emoji: '🙋',
     bg: '#1A7A4A',
@@ -493,6 +502,28 @@ export default function ZonaAfectada() {
                 </div>
               )}
             </form>
+          </div>
+        )}
+
+        {/* ── Modo: Estoy aquí ── */}
+        {accion === 'aqui' && (
+          <div>
+            <button onClick={() => setAccion(null)} className="text-sm text-gray-400 mb-4 flex items-center gap-1 cursor-pointer">
+              <ChevronLeft size={14} /> {es ? 'Cambiar acción' : 'Change action'}
+            </button>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mb-4">
+              <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                📍 {es
+                  ? 'Avisa que estás vivo/a y dónde estás. Si ya tienes una ficha, búscala para actualizarla. Evita duplicados.'
+                  : 'Let people know you are alive and where you are. If you already have a record, find and update it. Avoid duplicates.'}
+              </p>
+            </div>
+            <Link
+              to="/estoy-aqui"
+              className="block w-full bg-[#784212] text-white font-black py-5 rounded-2xl text-center text-base no-underline"
+            >
+              📍 {es ? 'Ir a "Estoy aquí / Encuéntrame"' : 'Go to "I am here / Find me"'}
+            </Link>
           </div>
         )}
 

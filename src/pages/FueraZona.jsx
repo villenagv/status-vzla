@@ -39,6 +39,15 @@ const ACCIONES = [
     sub_en: "I'm safe · I want them to know where I am",
   },
   {
+    id: 'encuéntrame',
+    emoji: '📍',
+    bg: '#784212',
+    es: 'Busco a alguien que dijo "Estoy aquí"',
+    en: 'Looking for someone who said "I am here"',
+    sub_es: 'Busca por nombre en el directorio CRIS',
+    sub_en: 'Search by name in the CRIS directory',
+  },
+  {
     id: 'ayudar',
     emoji: '🤝',
     bg: '#7B3A9E',
@@ -464,6 +473,32 @@ export default function FueraZona() {
                 : 'Register that you are looking for someone. If your family member uses CRIS, we can connect you.'}
             </p>
             <FormMensajeFamiliar es={es} onBack={() => setAccion(null)} />
+          </div>
+        )}
+
+        {/* ── Buscar "Estoy aquí" ── */}
+        {accion === 'encuéntrame' && (
+          <div>
+            <button onClick={() => setAccion(null)} className="text-sm text-gray-400 mb-4 flex items-center gap-1 cursor-pointer">
+              <ChevronLeft size={14} /> {es ? 'Cambiar acción' : 'Change action'}
+            </button>
+            <h2 className="text-base font-black text-[#1A1F2E] mb-1">
+              📍 {es ? 'Buscar persona que dijo "Estoy aquí"' : 'Search for someone who said "I am here"'}
+            </h2>
+            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+              {es
+                ? 'Si alguien registró su ubicación en CRIS, puedes encontrarlos buscando por nombre en el directorio de personas.'
+                : 'If someone registered their location on CRIS, you can find them by searching by name in the people directory.'}
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mb-4">
+              <p className="text-xs text-amber-800 font-semibold">⚠️ {es ? 'Nunca pagues dinero por información.' : 'Never pay money for information.'}</p>
+            </div>
+            <Link to="/personas" className="block w-full bg-[#1A1F2E] text-white font-black py-5 rounded-2xl text-center text-base no-underline mb-2">
+              👤 {es ? 'Ir al directorio de personas' : 'Go to people directory'}
+            </Link>
+            <Link to="/buscar-persona" className="block w-full border-2 border-[#6C3483] text-[#6C3483] font-bold py-4 rounded-2xl text-center text-sm no-underline bg-white">
+              🔎 {es ? 'Registrar búsqueda activa' : 'Register active search'}
+            </Link>
           </div>
         )}
 

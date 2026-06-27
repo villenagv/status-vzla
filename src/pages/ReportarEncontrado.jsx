@@ -81,18 +81,30 @@ export default function ReportarEncontrado() {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const buscarEnLista = async () => {
-    if (busquedaNombre.trim().length < 2) return;
+  const buscarEnLista = async (nombre) => {
+    const q = (nombre || busquedaNombre).trim();
+    if (q.length < 2) return;
     setBuscando(true);
     try {
       const todas = await base44.entities.PersonasBuscadas.list();
-      const q = busquedaNombre.toLowerCase();
+      const ql = q.toLowerCase();
       setPosiblesCoincidencias(todas.filter(p =>
-        p.nombre_completo?.toLowerCase().includes(q) ||
-        p.apodo?.toLowerCase().includes(q)
+        p.nombre_completo?.toLowerCase().includes(ql) ||
+        p.apodo?.toLowerCase().includes(ql)
       ));
     } catch {}
     setBuscando(false);
+  };
+
+  // Búsqueda automática de duplicados al escribir nombre en modo rápido
+  const onNombreChange = (val) => {
+    set('nombre_o_descripcion', val);
+    if (val.trim().length >= 3) {
+      clearTimeout(window._crisDebounce);
+      window._crisDebounce = setTimeout(() => buscarEnLista(val), 600);
+    } else {
+      setPosiblesCoincidencias([]);
+    }
   };
 
   const vincular = (persona) => {
@@ -231,8 +243,36 @@ export default function ReportarEncontrado() {
           {modoRapido && (
             <div className="bg-white rounded-2xl border-2 border-[#D48C2E] p-4 space-y-3">
               <p className="text-xs font-bold text-[#1A1F2E]">{es ? '⚡ Modo rápido — solo lo esencial' : '⚡ Quick mode — only essentials'}</p>
-              <input required value={form.nombre_o_descripcion} onChange={e => set('nombre_o_descripcion', e.target.value)}
-                placeholder={es ? 'Nombre o descripción' : 'Name or description'} className={`${inputCls} mb-2`} />
+              <div>
+                <input required value={form.nombre_o_descripcion} onChange={e => onNombreChange(e.target.value)}
+                  placeholder={es ? 'Nombre o descripción (el sistema buscará duplicados)' : 'Name or description (system will check for duplicates)'} className={`${inputCls} mb-2`} />
+                {buscando && <p className="text-[11px] text-gray-400 mt-1">🔍 {es ? 'Buscando en el directorio...' : 'Searching the directory...'}</p>}
+                {posiblesCoincidencias.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs font-bold text-[#D48C2E]">⚠️ {es ? 'Posibles coincidencias — ¿es alguna de estas?' : 'Possible matches — is it one of these?'}</p>
+                    {posiblesCoincidencias.map(p => (
+                      <div key={p.id} className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#1A1F2E] truncate">{p.nombre_completo}</p>
+                          <p className="text-[10px] text-gray-500">{p.ciudad} · {p.edad_aprox || '—'}</p>
+                        </div>
+                        <button type="button" onClick={() => vincular(p)} className="bg-green-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg flex-shrink-0 cursor-pointer">
+                          ✓ {es ? 'Esta' : 'This one'}
+                        </button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => setPosiblesCoincidencias([])} className="text-[10px] text-gray-400 underline cursor-pointer">
+                      {es ? 'No está en la lista — continuar sin vincular' : 'Not on list — continue without linking'}
+                    </button>
+                  </div>
+                )}
+                {personaVinculada && (
+                  <div className="mt-2 bg-green-50 border border-green-200 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold text-green-700">✅ {es ? 'Vinculada:' : 'Linked:'} {personaVinculada.nombre_completo}</p>
+                    <button type="button" onClick={() => setPersonaVinculada(null)} className="text-[10px] text-gray-400 underline cursor-pointer">{es ? 'Cambiar' : 'Change'}</button>
+                  </div>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {CONDICION.map((c, i) => (
                   <button key={c.val} type="button" onClick={() => set('condicion', c.val)}
@@ -248,7 +288,11 @@ export default function ReportarEncontrado() {
                   placeholder={es ? 'Estado' : 'State'} className={inputCls} />
               </div>
               <input value={form.reportado_por_telefono} onChange={e => set('reportado_por_telefono', e.target.value)}
-                placeholder={es ? 'Tu teléfono, email o WhatsApp (opcional)' : 'Your phone, email or WhatsApp (optional)'} className={inputCls} />
+                placeholder={es ? 'Tu teléfono o WhatsApp (opcional)' : 'Your phone or WhatsApp (optional)'} className={inputCls} />
+              <input type="email" value={form.reportado_por_email} onChange={e => set('reportado_por_email', e.target.value)}
+                placeholder={es ? 'Tu email de contacto (opcional, privado)' : 'Your contact email (optional, private)'} className={inputCls} />
+              <input value={form.email_contacto} onChange={e => set('email_contacto', e.target.value)}
+                placeholder={es ? 'Email del lugar donde está la persona (opcional)' : 'Email of the place where the person is (optional)'} className={inputCls} />
               {!lowBw && (
                 <div>
                   <p className="text-xs font-bold text-[#1A1F2E] mb-1">📷 {es ? 'Foto opcional (máx. 2)' : 'Optional photo (max 2)'}</p>
