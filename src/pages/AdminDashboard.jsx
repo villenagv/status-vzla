@@ -53,7 +53,8 @@ const AdminDashboard = () => {
   const tabs = [
       { key: 'analytics', label: 'Analítica' },
       { key: 'centros', label: '🏥 Centros operativos' },
-      { key: 'manage', label: '⚙️ Gestión de datos' }
+      { key: 'manage', label: '⚙️ Gestión de datos' },
+      { key: 'dossier', label: '📊 Dossier visual' },
   ];
 
   return (
@@ -80,6 +81,17 @@ const AdminDashboard = () => {
             {tab === 'analytics' && <AdminStats />}
             {tab === 'centros' && <CentrosOperativosPanel />}
             {tab === 'manage' && <AdminDataPanel />}
+            {tab === 'dossier' && (
+              <div>
+                <p className="text-sm text-gray-500 mb-4">Dossier visual de auditoría interna del sistema CRIS. Solo visible para administradores.</p>
+                <iframe
+                  src="/auditoria_cris_visual.html"
+                  title="Dossier visual CRIS"
+                  className="w-full rounded-xl border border-gray-200"
+                  style={{ height: '80vh' }}
+                />
+              </div>
+            )}
         </div>
       </main>
       <Footer />

@@ -43,6 +43,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PortalVoluntario from './pages/PortalVoluntario';
 import Contactanos from './pages/Contactanos';
 import Aliados from './pages/Aliados';
+import Directorio from './pages/Directorio';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -80,6 +81,7 @@ const PublicApp = () => (
     <Route path="/portal-voluntario" element={<PortalVoluntario />} />
     <Route path="/contactanos" element={<Contactanos />} />
     <Route path="/aliados" element={<Aliados />} />
+    <Route path="/directorio" element={<Directorio />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
