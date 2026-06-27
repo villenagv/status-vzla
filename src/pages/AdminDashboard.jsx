@@ -6,6 +6,7 @@ import Footer from '@/components/svzla/Footer';
 import { Loader2, ShieldAlert } from 'lucide-react';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminDataPanel from '@/components/admin/AdminDataPanel';
+import CentrosOperativosPanel from '@/components/admin/centros/CentrosOperativosPanel';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
@@ -19,7 +20,7 @@ const AdminDashboard = () => {
     base44.auth.me()
       .then(u => {
         setUser(u);
-        if (u?.email !== ADMIN_EMAIL) {
+        if (u?.role !== 'admin' && u?.email !== ADMIN_EMAIL) {
           navigate('/');
         }
         setLoading(false);
@@ -38,7 +39,7 @@ const AdminDashboard = () => {
     );
   }
 
-  if (user?.email !== ADMIN_EMAIL) {
+  if (user?.role !== 'admin' && user?.email !== ADMIN_EMAIL) {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center px-4">
             <p className="text-4xl mb-2">🔒</p>
@@ -51,6 +52,7 @@ const AdminDashboard = () => {
   
   const tabs = [
       { key: 'analytics', label: 'Analítica' },
+      { key: 'centros', label: '🏥 Centros operativos' },
       { key: 'manage', label: '⚙️ Gestión de datos' }
   ];
 
@@ -76,6 +78,7 @@ const AdminDashboard = () => {
 
         <div className="py-8">
             {tab === 'analytics' && <AdminStats />}
+            {tab === 'centros' && <CentrosOperativosPanel />}
             {tab === 'manage' && <AdminDataPanel />}
         </div>
       </main>
