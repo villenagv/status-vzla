@@ -162,6 +162,16 @@ export default function Edificios() {
   const [riesgoGas, setRiesgoGas] = useState(false);
   const [riesgoElec, setRiesgoElec] = useState(false);
   const [riesgoIncendio, setRiesgoIncendio] = useState(false);
+  const [accesoCalle, setAccesoCalle] = useState('');
+  const [accesoVehiculos, setAccesoVehiculos] = useState('');
+  const [notasAcceso, setNotasAcceso] = useState('');
+  const [electricidad, setElectricidad] = useState('');
+  const [agua, setAgua] = useState('');
+  const [gas, setGas] = useState('');
+  const [racionamientoAgua, setRacionamientoAgua] = useState(false);
+  const [racionamientoElec, setRacionamientoElec] = useState(false);
+  const [horarioAgua, setHorarioAgua] = useState('');
+  const [horarioElec, setHorarioElec] = useState('');
   const [direccion, setDireccion] = useState('');
   const [ciudad, setCiudad] = useState('');
   const [estado, setEstado] = useState('');
@@ -217,6 +227,10 @@ export default function Edificios() {
   const resetForm = () => {
     setTipo(''); setNombreLugar(''); setNivel(''); setAtrapados('');
     setRiesgoGas(false); setRiesgoElec(false); setRiesgoIncendio(false);
+    setAccesoCalle(''); setAccesoVehiculos(''); setNotasAcceso('');
+    setElectricidad(''); setAgua(''); setGas('');
+    setRacionamientoAgua(false); setRacionamientoElec(false);
+    setHorarioAgua(''); setHorarioElec('');
     setDireccion(''); setCiudad(''); setEstado(''); setDescripcion('');
     setRepNombre(''); setRepTelefono(''); setRepEmail('');
     setFotos([]); setContactosAcceso([]); setCheckDup(false); setDecisionDup(null); setPosiblesDups([]);
@@ -232,6 +246,12 @@ export default function Edificios() {
         tipo_estructura: tipo || 'otro', nombre_lugar: nombreLugar,
         nivel_dano: nivel || 'no_evaluado', personas_atrapadas: atrapados || 'no_sabe',
         riesgo_gas: riesgoGas, riesgo_electrico: riesgoElec, riesgo_incendio: riesgoIncendio,
+        acceso_calle: accesoCalle || 'no_sabe',
+        acceso_vehiculos: accesoVehiculos || 'no_sabe',
+        notas_acceso: notasAcceso,
+        electricidad: electricidad || 'no_confirmado',
+        agua: agua || 'no_confirmado',
+        gas: gas || 'no_confirmado',
         direccion, ciudad, estado_region: estado, descripcion, foto_urls, prioridad,
         reportante_nombre: repNombre, reportante_telefono: repTelefono, reportante_email: repEmail,
         contactos_acceso: contactosFiltrados,
@@ -857,9 +877,152 @@ export default function Edificios() {
                       </div>
                     </div>
 
-                    {/* 6. Fotos */}
+                    {/* 6. Acceso */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+                      <h3 className="text-sm font-semibold text-gray-800">6. {t('Acceso al lugar', 'Access to the site', 'Acesso ao local')}</h3>
+
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-2">🚶 {t('¿Cómo está la calle para llegar?', 'How is the street to get there?', 'Como está a rua para chegar?')}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { val: 'normal',        es: '✅ Libre, sin problema',          en: '✅ Clear, no issues'          },
+                            { val: 'dificultad',    es: '⚠️ Se puede, con dificultad',     en: '⚠️ Passable, with difficulty' },
+                            { val: 'solo_peatonal', es: '🚶 Solo a pie',                    en: '🚶 On foot only'              },
+                            { val: 'bloqueada',     es: '🚫 Bloqueada — no pasa nadie',    en: '🚫 Blocked — no one passes'  },
+                            { val: 'insegura',      es: '☠️ Peligrosa — no intentes',      en: '☠️ Dangerous — do not try'   },
+                            { val: 'no_sabe',       es: '❓ No sé',                          en: '❓ Unknown'                   },
+                          ].map(a => (
+                            <button key={a.val} onClick={() => setAccesoCalle(a.val)}
+                              className={`py-2 px-3 rounded-lg text-xs font-medium border text-left cursor-pointer transition-colors ${accesoCalle === a.val ? 'bg-gray-800 text-white border-gray-800' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'}`}>
+                              {es ? a.es : a.en}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-2">🚗 {t('¿Qué vehículo puede llegar?', 'What vehicle can reach it?', 'Que veículo pode chegar?')}</p>
+                        <p className="text-[10px] text-gray-400 mb-2">{t('Ayuda a coordinar ambulancias y rescatistas.', 'Helps coordinate ambulances and rescue teams.', 'Ajuda a coordenar ambulâncias e equipes de resgate.')}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { val: 'carros',      es: '🚗 Carros normales',                en: '🚗 Regular cars'              },
+                            { val: 'ambulancias', es: '🚑 Ambulancias',                    en: '🚑 Ambulances'                },
+                            { val: 'solo_motos',  es: '🏍️ Solo motos',                    en: '🏍️ Motorcycles only'          },
+                            { val: 'bloqueado',   es: '🚫 Nada puede pasar',               en: '🚫 Nothing can pass'          },
+                            { val: 'no_sabe',     es: '❓ No sé',                          en: '❓ Unknown'                   },
+                          ].map(a => (
+                            <button key={a.val} onClick={() => setAccesoVehiculos(a.val)}
+                              className={`py-2 px-3 rounded-lg text-xs font-medium border text-left cursor-pointer transition-colors ${accesoVehiculos === a.val ? 'bg-gray-800 text-white border-gray-800' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'}`}>
+                              {es ? a.es : a.en}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">📝 {t('Nota sobre acceso (opcional)', 'Access note (optional)', 'Nota de acesso (opcional)')}</label>
+                        <input value={notasAcceso} onChange={e => setNotasAcceso(e.target.value)}
+                          placeholder={t('Ej: Hay escombros en la entrada, acera rota...', 'E.g.: Debris at entrance, broken sidewalk...', 'Ex: Escombros na entrada, calçada quebrada...')}
+                          className={inputCls} />
+                      </div>
+                    </div>
+
+                    {/* 7. Servicios básicos */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+                      <h3 className="text-sm font-semibold text-gray-800">7. {t('Servicios básicos', 'Basic services', 'Serviços básicos')}</h3>
+                      <p className="text-xs text-gray-400 -mt-2">{t('Marca solo lo que sabes con certeza. Ayuda a evaluar el impacto.', 'Only mark what you know for sure. Helps assess the impact.', 'Marque apenas o que sabe com certeza. Ajuda a avaliar o impacto.')}</p>
+
+                      {/* Electricidad */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-2">⚡ {t('Electricidad', 'Electricity', 'Eletricidade')}</p>
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          {[
+                            { val: 'disponible',    es: '✅ Hay luz',       en: '✅ Has power'    },
+                            { val: 'intermitente',  es: '⚡ Intermitente',  en: '⚡ Intermittent' },
+                            { val: 'no_disponible', es: '❌ Sin luz',       en: '❌ No power'     },
+                            { val: 'no_confirmado', es: '❓ No sé',         en: '❓ Unknown'      },
+                          ].map(o => (
+                            <button key={o.val} onClick={() => setElectricidad(o.val)}
+                              className={`py-2 px-3 rounded-lg text-xs font-medium border text-left cursor-pointer transition-colors ${electricidad === o.val ? 'bg-yellow-600 text-white border-yellow-600' : 'bg-white border-gray-200 text-gray-700 hover:border-yellow-300'}`}>
+                              {es ? o.es : o.en}
+                            </button>
+                          ))}
+                        </div>
+                        {electricidad === 'intermitente' && (
+                          <div className="space-y-2 mt-1">
+                            <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+                              <input type="checkbox" checked={racionamientoElec} onChange={e => setRacionamientoElec(e.target.checked)} className="rounded" />
+                              {t('Hay racionamiento eléctrico', 'Electricity is rationed', 'Há racionamento elétrico')}
+                            </label>
+                            {racionamientoElec && (
+                              <input value={horarioElec} onChange={e => setHorarioElec(e.target.value)}
+                                placeholder={t('Horario: ej. 6am-10am y 6pm-10pm', 'Schedule: e.g. 6am-10am and 6pm-10pm', 'Horário: ex. 6h-10h e 18h-22h')}
+                                className={inputCls} />
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Agua */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-2">💧 {t('Agua corriente', 'Running water', 'Água corrente')}</p>
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          {[
+                            { val: 'disponible',    es: '✅ Hay agua',      en: '✅ Has water'    },
+                            { val: 'intermitente',  es: '💧 Intermitente',  en: '💧 Intermittent' },
+                            { val: 'no_disponible', es: '❌ Sin agua',      en: '❌ No water'     },
+                            { val: 'no_confirmado', es: '❓ No sé',         en: '❓ Unknown'      },
+                          ].map(o => (
+                            <button key={o.val} onClick={() => setAgua(o.val)}
+                              className={`py-2 px-3 rounded-lg text-xs font-medium border text-left cursor-pointer transition-colors ${agua === o.val ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}>
+                              {es ? o.es : o.en}
+                            </button>
+                          ))}
+                        </div>
+                        {agua === 'intermitente' && (
+                          <div className="space-y-2 mt-1">
+                            <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+                              <input type="checkbox" checked={racionamientoAgua} onChange={e => setRacionamientoAgua(e.target.checked)} className="rounded" />
+                              {t('Hay racionamiento de agua', 'Water is rationed', 'Há racionamento de água')}
+                            </label>
+                            {racionamientoAgua && (
+                              <input value={horarioAgua} onChange={e => setHorarioAgua(e.target.value)}
+                                placeholder={t('Horario: ej. Martes y viernes 5am-8am', 'Schedule: e.g. Tue & Fri 5am-8am', 'Horário: ex. Ter e Sex 5h-8h')}
+                                className={inputCls} />
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Gas */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-2">🔥 {t('Gas doméstico', 'Gas service', 'Gás doméstico')}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { val: 'disponible',     es: '✅ Gas normal',    en: '✅ Gas on'     },
+                            { val: 'suspendido',     es: '🚫 Gas cortado',   en: '🚫 Gas cut'   },
+                            { val: 'fuga_reportada', es: '☠️ FUGA de gas',   en: '☠️ GAS LEAK'  },
+                            { val: 'no_disponible',  es: '❌ Sin gas',       en: '❌ No gas'    },
+                            { val: 'no_confirmado',  es: '❓ No sé',         en: '❓ Unknown'   },
+                          ].map(o => (
+                            <button key={o.val} onClick={() => setGas(o.val)}
+                              className={`py-2 px-3 rounded-lg text-xs font-medium border text-left cursor-pointer transition-colors ${gas === o.val ? (o.val === 'fuga_reportada' ? 'bg-red-700 text-white border-red-700' : 'bg-orange-600 text-white border-orange-600') : 'bg-white border-gray-200 text-gray-700 hover:border-orange-300'}`}>
+                              {es ? o.es : o.en}
+                            </button>
+                          ))}
+                        </div>
+                        {gas === 'fuga_reportada' && (
+                          <div className="mt-2 flex gap-2 bg-red-50 border-2 border-red-300 rounded-xl px-3 py-2">
+                            <AlertTriangle size={13} className="text-red-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-red-700 font-bold">{t('🚨 URGENTE: Evacúa el área. Llama a Bomberos.', '🚨 URGENT: Evacuate the area. Call Firefighters.', '🚨 URGENTE: Evacue a área. Ligue para os Bombeiros.')}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 8. Fotos */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-1">6. {t('Fotos del daño (máx. 5, opcional)', 'Photos of damage (max 5, optional)', 'Fotos do dano (máx. 5, opcional)')}</h3>
+                      <h3 className="text-sm font-semibold text-gray-800 mb-1">8. {t('Fotos del daño (máx. 5, opcional)', 'Photos of damage (max 5, optional)', 'Fotos do dano (máx. 5, opcional)')}</h3>
                       <p className="text-xs text-gray-400 mb-3">{t('Solo desde un lugar seguro. No entres al edificio para tomar fotos.', 'Only from a safe location. Do not enter the building to take photos.', 'Somente de um lugar seguro. Não entre no edifício para tirar fotos.')}</p>
                       {fotos.length < MAX_FOTOS && (
                         <label className="flex items-center gap-3 border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors mb-3">
@@ -889,7 +1052,7 @@ export default function Edificios() {
                     {/* 7. Contactos de acceso para inspección */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
                       <div>
-                        <h3 className="text-sm font-semibold text-gray-800">7. {t('¿Quién puede dar acceso para inspección?', 'Who can grant access for inspection?', 'Quem pode dar acesso para inspeção?')}</h3>
+                        <h3 className="text-sm font-semibold text-gray-800">9. {t('¿Quién puede dar acceso para inspección?', 'Who can grant access for inspection?', 'Quem pode dar acesso para inspeção?')}</h3>
                         <p className="text-xs text-gray-500 mt-0.5">
                           {t('Agrega personas (conserje, propietario, vecino) que puedan contactarse cuando un ingeniero o rescatista necesite entrar. Sus datos son privados — no se muestran públicamente.',
                              'Add people (caretaker, owner, neighbor) who can be contacted when an engineer or rescuer needs access. Their data is private — not shown publicly.',
@@ -941,7 +1104,7 @@ export default function Edificios() {
 
                     {/* 8. Descripción y datos */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-                      <h3 className="text-sm font-semibold text-gray-800">8. {t('Descripción y tus datos', 'Description and your info', 'Descrição e seus dados')}</h3>
+                      <h3 className="text-sm font-semibold text-gray-800">10. {t('Descripción y tus datos', 'Description and your info', 'Descrição e seus dados')}</h3>
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Describe lo que ves (opcional)', 'Describe what you see (optional)', 'Descreva o que você vê (opcional)')}</label>
                         <textarea rows={3} value={descripcion} onChange={e => setDescripcion(e.target.value)} maxLength={200}
@@ -949,15 +1112,22 @@ export default function Edificios() {
                           className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-600 resize-none placeholder-gray-400" />
                         <p className="text-right text-xs text-gray-400">{descripcion.length}/200</p>
                       </div>
-                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-2">
-                        <p className="text-xs font-bold text-gray-500">🔒 {t('Tus datos de contacto (privados)', 'Your contact info (private)', 'Seus dados de contato (privados)')}</p>
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
+                        <p className="text-xs font-bold text-blue-800">🔒 {t('Tus datos de contacto (privados)', 'Your contact info (private)', 'Seus dados de contato (privados)')}</p>
+                        <div className="bg-white border border-blue-100 rounded-lg px-3 py-2">
+                          <p className="text-[11px] text-blue-700 leading-relaxed font-medium">
+                            🏠 {t('Si vives en este edificio, trataremos de contactarte para ayudarte a coordinar la inspección.',
+                                 'If you live in this building, we will try to contact you to help coordinate the inspection.',
+                                 'Se você mora neste edifício, tentaremos contatá-lo para ajudar a coordenar a inspeção.')}
+                          </p>
+                        </div>
                         <input value={repNombre} onChange={e => setRepNombre(e.target.value)} placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')} className={inputCls} />
-                        <input value={repTelefono} onChange={e => setRepTelefono(e.target.value)} placeholder={t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)', 'Telefone / WhatsApp (opcional)')} className={inputCls} />
-                        <input value={repEmail} onChange={e => setRepEmail(e.target.value)} placeholder={t('Email (opcional)', 'Email (optional)', 'Email (opcional)')} className={inputCls} />
-                        <p className="text-[10px] text-gray-400 leading-relaxed">
-                          {t('✅ Tus datos no se muestran públicamente. Solo los usa una institución si necesita verificar el reporte.',
-                             '✅ Your data is not displayed publicly. Only used if an institution needs to verify the report.',
-                             '✅ Seus dados não são exibidos publicamente. Usados apenas se uma instituição precisar verificar o relatório.')}
+                        <input value={repTelefono} onChange={e => setRepTelefono(e.target.value)} placeholder={t('Teléfono / WhatsApp — para coordinar inspección', 'Phone / WhatsApp — to coordinate inspection', 'Telefone / WhatsApp — para coordenar inspeção')} className={inputCls} />
+                        <input value={repEmail} onChange={e => setRepEmail(e.target.value)} placeholder={t('Email — para coordinar inspección', 'Email — to coordinate inspection', 'Email — para coordenar inspeção')} className={inputCls} />
+                        <p className="text-[10px] text-gray-500 leading-relaxed">
+                          {t('✅ Tus datos no se muestran públicamente. Solo los usamos si un ingeniero o voluntario necesita coordinarse para la inspección.',
+                             '✅ Your data is not displayed publicly. Only used if an engineer or volunteer needs to coordinate for the inspection.',
+                             '✅ Seus dados não são exibidos publicamente. Usados apenas se um engenheiro ou voluntário precisar coordenar a inspeção.')}
                         </p>
                       </div>
                     </div>
