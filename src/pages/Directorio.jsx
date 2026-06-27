@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, ChevronLeft, Loader2, LayoutGrid, List, Share2, Pencil } from 'lucide-react';
+import { Search, MapPin, ChevronLeft, Loader2, LayoutGrid, List } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
-import NotificarmeEmail from '@/components/svzla/NotificarmeEmail';
+import FichaAccionesModal from '@/components/svzla/FichaAccionesModal';
 
 const PAGE_SIZE = 12;
 
@@ -72,6 +72,8 @@ export default function Directorio() {
   const [page, setPage] = useState(1);
   const [vistaPersonas, setVistaPersonas] = useState('grid'); // 'grid' | 'lista'
   const [vistaEdificios, setVistaEdificios] = useState('lista'); // 'grid' | 'lista'
+  const [fichaSeleccionada, setFichaSeleccionada] = useState(null); // { item, tipo }
+
 
   useEffect(() => {
     Promise.all([
@@ -318,16 +320,14 @@ export default function Directorio() {
                 const badge = FUENTE_BADGE[p._fuente] || FUENTE_BADGE.busqueda;
                 const esCritico = p.estado_caso === 'buscando';
                 return (
-                  <div key={p.id} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 ${esCritico ? 'border-l-4 border-l-red-400' : ''}`}>
+                  <div key={p.id}
+                    onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })}
+                    className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-400' : ''}`}>
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
                       {p._fuente === 'encontrada' ? '🙋' : p._fuente === 'cris' ? '📍' : '👤'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      {p._fuente === 'busqueda' ? (
-                        <Link to={`/persona?id=${p.id}`} className="font-bold text-sm text-[#1A1F2E] hover:underline no-underline block truncate">{p._nombre}</Link>
-                      ) : (
-                        <p className="font-bold text-sm text-[#1A1F2E] truncate">{p._nombre}</p>
-                      )}
+                      <p className="font-bold text-sm text-[#1A1F2E] truncate">{p._nombre}</p>
                       <p className="text-xs text-gray-400 truncate flex items-center gap-1">
                         <MapPin size={9} />{[p.ultima_ubicacion_conocida, p.ciudad].filter(Boolean).join(' · ')}
                       </p>
@@ -336,6 +336,7 @@ export default function Directorio() {
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${st.cls}`}>{es ? st.es : st.en}</span>
                       <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{es ? badge.es : badge.en}</span>
                     </div>
+                    <span className="text-gray-300 text-xs flex-shrink-0">›</span>
                   </div>
                 );
               })}
@@ -347,21 +348,13 @@ export default function Directorio() {
                 const st = PERSONA_ESTADO[p.estado_caso] || PERSONA_ESTADO['buscando'];
                 const badge = FUENTE_BADGE[p._fuente] || FUENTE_BADGE.busqueda;
                 const esCritico = p.estado_caso === 'buscando';
-                const compartirPersona = () => {
-                  const url = `${window.location.origin}/persona?id=${p.id}`;
-                  const texto = es ? `🔴 ¿Lo/la has visto? ${p._nombre} · Última vez en ${p.ciudad || '?'}. ${url}` : `🔴 Have you seen them? ${p._nombre} · Last seen in ${p.ciudad || '?'}. ${url}`;
-                  if (navigator.share) navigator.share({ title: `CRIS · ${p._nombre}`, text: texto });
-                  else navigator.clipboard?.writeText(texto);
-                };
                 return (
-                  <div key={p.id} className={`bg-white rounded-2xl border-2 p-4 space-y-2.5 ${esCritico ? 'border-red-200' : 'border-gray-100'}`}>
+                  <div key={p.id}
+                    onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })}
+                    className={`bg-white rounded-2xl border-2 p-4 space-y-2 cursor-pointer hover:shadow-md active:scale-[0.98] transition-all ${esCritico ? 'border-red-200' : 'border-gray-100'}`}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        {p._fuente === 'busqueda' ? (
-                          <Link to={`/persona?id=${p.id}`} className="font-black text-sm text-[#1A1F2E] leading-tight hover:underline no-underline block">{p._nombre}</Link>
-                        ) : (
-                          <p className="font-black text-sm text-[#1A1F2E] leading-tight">{p._nombre}</p>
-                        )}
+                        <p className="font-black text-sm text-[#1A1F2E] leading-tight">{p._nombre}</p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {p.edad_aprox && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{p.edad_aprox} {es ? 'años' : 'yrs'}</span>}
                           {p.sexo && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full capitalize">{p.sexo}</span>}
@@ -375,30 +368,10 @@ export default function Directorio() {
                         {[p.ultima_ubicacion_conocida, p.ciudad, p.estado_region].filter(Boolean).join(' · ')}
                       </p>
                     )}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between pt-1 border-t border-gray-100">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.cls}`}>{es ? badge.es : badge.en}</span>
-                      {p._fuente === 'busqueda' && (
-                        <Link to={`/persona?id=${p.id}`} className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full no-underline">
-                          {es ? 'Ver →' : 'View →'}
-                        </Link>
-                      )}
+                      <span className="text-[10px] text-gray-400 font-semibold">{es ? 'Toca para acciones →' : 'Tap for actions →'}</span>
                     </div>
-                    {/* Acciones disponibles para fichas de búsqueda */}
-                    {p._fuente === 'busqueda' && (
-                      <div className="pt-1 space-y-1.5 border-t border-gray-100">
-                        <NotificarmeEmail entidadId={p.id} tipoReporte="persona" />
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <Link to={`/reportar-encontrado?persona=${p.id}`}
-                            className="text-[10px] font-bold text-center text-green-700 bg-green-50 border border-green-200 px-2 py-1.5 rounded-lg no-underline">
-                            ✋ {es ? 'La encontré' : 'Found them'}
-                          </Link>
-                          <button onClick={compartirPersona}
-                            className="text-[10px] font-bold text-gray-600 bg-gray-50 border border-gray-200 px-2 py-1.5 rounded-lg cursor-pointer flex items-center justify-center gap-1">
-                            <Share2 size={10} /> {es ? 'Compartir' : 'Share'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -411,9 +384,9 @@ export default function Directorio() {
           const EdificioCard = ({ e, compact }) => {
             const dano = DANO_CONFIG[e.nivel_dano] || DANO_CONFIG.no_evaluado;
             const esCritico = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano) || e.hayAtrapados;
-            const editId = e._rawId || e.id;
+            const abrir = () => setFichaSeleccionada({ item: e, tipo: 'edificio' });
             if (compact) return (
-              <div className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 ${esCritico ? 'border-l-4 border-l-red-500' : ''}`}>
+              <div onClick={abrir} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-500' : ''}`}>
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
                   {e.hayAtrapados ? '🆘' : esCritico ? '🚫' : '🏗️'}
                 </div>
@@ -425,16 +398,12 @@ export default function Directorio() {
                 </div>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${dano.cls}`}>{es ? dano.es : dano.en}</span>
-                  {editId && (
-                    <Link to={`/edificio?id=${editId}`} className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full no-underline">
-                      {es ? 'Ver →' : 'View →'}
-                    </Link>
-                  )}
                 </div>
+                <span className="text-gray-300 text-xs flex-shrink-0">›</span>
               </div>
             );
             return (
-              <div className={`bg-white rounded-2xl border-2 p-4 space-y-2 ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
+              <div onClick={abrir} className={`bg-white rounded-2xl border-2 p-4 space-y-2 cursor-pointer hover:shadow-md active:scale-[0.98] transition-all ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
                 {e.hayAtrapados && <div className="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">🆘 {es ? 'PERSONAS ATRAPADAS' : 'TRAPPED PEOPLE'}</div>}
                 {esCritico && !e.hayAtrapados && <div className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-bold px-3 py-1.5 rounded-lg">🚫 {es ? 'NO ENTRAR — Estructura comprometida' : 'DO NOT ENTER — Compromised structure'}</div>}
                 <div className="flex items-start justify-between gap-2">
@@ -454,20 +423,8 @@ export default function Directorio() {
                   {e.riesgo_electrico && <span className="text-[10px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1.5 py-0.5 rounded-full">⚡ Eléctrico</span>}
                   {e.riesgo_incendio && <span className="text-[10px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded-full">🔥 Incendio</span>}
                 </div>
-                {/* Acciones */}
-                <div className="pt-1 space-y-1.5 border-t border-gray-100">
-                  <NotificarmeEmail entidadId={e.id} tipoReporte="dano" />
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <Link to={`/reportar?edificio=${e.id}`}
-                      className="text-[10px] font-bold text-center text-blue-700 bg-blue-50 border border-blue-200 px-2 py-1.5 rounded-lg no-underline flex items-center justify-center gap-1">
-                      <Pencil size={10} /> {es ? 'Actualizar' : 'Update'}
-                    </Link>
-                    {editId && (
-                      <Link to={`/edificio?id=${editId}`} className="text-[10px] font-bold text-center text-gray-700 bg-gray-50 border border-gray-200 px-2 py-1.5 rounded-lg no-underline">
-                        {es ? 'Ver detalle →' : 'View detail →'}
-                      </Link>
-                    )}
-                  </div>
+                <div className="pt-1 border-t border-gray-100">
+                  <span className="text-[10px] text-gray-400 font-semibold">{es ? 'Toca para ver acciones →' : 'Tap for actions →'}</span>
                 </div>
               </div>
             );
@@ -509,6 +466,15 @@ export default function Directorio() {
         </div>
       </div>
       <Footer />
+
+      {/* Modal de acciones */}
+      {fichaSeleccionada && (
+        <FichaAccionesModal
+          item={fichaSeleccionada.item}
+          tipo={fichaSeleccionada.tipo}
+          onClose={() => setFichaSeleccionada(null)}
+        />
+      )}
     </div>
   );
 }
