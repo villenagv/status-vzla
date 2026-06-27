@@ -10,6 +10,7 @@ const NAV = [
   { to: '/personas',      es: 'Personas',  en: 'People' },
   { to: '/edificios',     es: 'Edificios', en: 'Buildings' },
   { to: '/centros-apoyo', es: 'Centros',   en: 'Centers' },
+  { to: '/aliados',       es: 'Aliados',   en: 'Partners' },
 ];
 
 

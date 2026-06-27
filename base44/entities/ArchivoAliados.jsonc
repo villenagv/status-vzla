@@ -1,0 +1,32 @@
+{
+  "name": "ArchivoAliados",
+  "type": "object",
+  "properties": {
+    "clave": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "total_records": {
+      "type": "number"
+    },
+    "total_rows": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "default": "activo"
+    },
+    "summary_json": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "clave",
+    "file_url"
+  ]
+}
