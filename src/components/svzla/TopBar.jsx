@@ -5,12 +5,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
 const NAV = [
-  { to: '/',              es: 'Inicio',    en: 'Home' },
-  { to: '/consultar',     es: 'Consultar', en: 'Search' },
-  { to: '/personas',      es: 'Personas',  en: 'People' },
-  { to: '/edificios',     es: 'Edificios', en: 'Buildings' },
-  { to: '/centros-apoyo', es: 'Centros',   en: 'Centers' },
-  { to: '/aliados',       es: 'Aliados',   en: 'Partners' },
+  { to: '/',              es: 'Inicio',          en: 'Home' },
+  { to: '/consultar',     es: 'Consultar',       en: 'Search' },
+  { to: '/directorio',    es: 'Directorio',      en: 'Directory' },
+  { to: '/personas',      es: 'Personas',        en: 'People' },
+  { to: '/edificios',     es: 'Edificios',       en: 'Buildings' },
+  { to: '/centros-apoyo', es: 'Centros de ayuda',en: 'Help Centers' },
+  { to: '/aliados',       es: 'Aliados',         en: 'Partners' },
 ];
 
 
