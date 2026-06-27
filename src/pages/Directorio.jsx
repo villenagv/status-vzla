@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, ChevronLeft, Loader2, LayoutGrid, List } from 'lucide-react';
+import { Search, MapPin, ChevronLeft, Loader2, LayoutGrid, List, Share2, Pencil } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+import NotificarmeEmail from '@/components/svzla/NotificarmeEmail';
 
 const PAGE_SIZE = 12;
 
@@ -346,6 +347,12 @@ export default function Directorio() {
                 const st = PERSONA_ESTADO[p.estado_caso] || PERSONA_ESTADO['buscando'];
                 const badge = FUENTE_BADGE[p._fuente] || FUENTE_BADGE.busqueda;
                 const esCritico = p.estado_caso === 'buscando';
+                const compartirPersona = () => {
+                  const url = `${window.location.origin}/persona?id=${p.id}`;
+                  const texto = es ? `🔴 ¿Lo/la has visto? ${p._nombre} · Última vez en ${p.ciudad || '?'}. ${url}` : `🔴 Have you seen them? ${p._nombre} · Last seen in ${p.ciudad || '?'}. ${url}`;
+                  if (navigator.share) navigator.share({ title: `CRIS · ${p._nombre}`, text: texto });
+                  else navigator.clipboard?.writeText(texto);
+                };
                 return (
                   <div key={p.id} className={`bg-white rounded-2xl border-2 p-4 space-y-2.5 ${esCritico ? 'border-red-200' : 'border-gray-100'}`}>
                     <div className="flex items-start justify-between gap-2">
@@ -376,6 +383,22 @@ export default function Directorio() {
                         </Link>
                       )}
                     </div>
+                    {/* Acciones disponibles para fichas de búsqueda */}
+                    {p._fuente === 'busqueda' && (
+                      <div className="pt-1 space-y-1.5 border-t border-gray-100">
+                        <NotificarmeEmail entidadId={p.id} tipoReporte="persona" />
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <Link to={`/reportar-encontrado?persona=${p.id}`}
+                            className="text-[10px] font-bold text-center text-green-700 bg-green-50 border border-green-200 px-2 py-1.5 rounded-lg no-underline">
+                            ✋ {es ? 'La encontré' : 'Found them'}
+                          </Link>
+                          <button onClick={compartirPersona}
+                            className="text-[10px] font-bold text-gray-600 bg-gray-50 border border-gray-200 px-2 py-1.5 rounded-lg cursor-pointer flex items-center justify-center gap-1">
+                            <Share2 size={10} /> {es ? 'Compartir' : 'Share'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -413,7 +436,7 @@ export default function Directorio() {
             return (
               <div className={`bg-white rounded-2xl border-2 p-4 space-y-2 ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
                 {e.hayAtrapados && <div className="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">🆘 {es ? 'PERSONAS ATRAPADAS' : 'TRAPPED PEOPLE'}</div>}
-                {esCritico && !e.hayAtrapados && <div className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-bold px-3 py-1.5 rounded-lg">🚫 {es ? 'NO ENTRAR' : 'DO NOT ENTER'}</div>}
+                {esCritico && !e.hayAtrapados && <div className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-bold px-3 py-1.5 rounded-lg">🚫 {es ? 'NO ENTRAR — Estructura comprometida' : 'DO NOT ENTER — Compromised structure'}</div>}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-sm text-[#1A1F2E] leading-tight">{e._nombre}</p>
@@ -430,11 +453,21 @@ export default function Directorio() {
                   {e.riesgo_gas && <span className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
                   {e.riesgo_electrico && <span className="text-[10px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1.5 py-0.5 rounded-full">⚡ Eléctrico</span>}
                   {e.riesgo_incendio && <span className="text-[10px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded-full">🔥 Incendio</span>}
-                  {editId && (
-                    <Link to={`/edificio?id=${editId}`} className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full no-underline ml-auto">
-                      {es ? 'Ver detalle →' : 'View detail →'}
+                </div>
+                {/* Acciones */}
+                <div className="pt-1 space-y-1.5 border-t border-gray-100">
+                  <NotificarmeEmail entidadId={e.id} tipoReporte="dano" />
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Link to={`/reportar?edificio=${e.id}`}
+                      className="text-[10px] font-bold text-center text-blue-700 bg-blue-50 border border-blue-200 px-2 py-1.5 rounded-lg no-underline flex items-center justify-center gap-1">
+                      <Pencil size={10} /> {es ? 'Actualizar' : 'Update'}
                     </Link>
-                  )}
+                    {editId && (
+                      <Link to={`/edificio?id=${editId}`} className="text-[10px] font-bold text-center text-gray-700 bg-gray-50 border border-gray-200 px-2 py-1.5 rounded-lg no-underline">
+                        {es ? 'Ver detalle →' : 'View detail →'}
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
             );

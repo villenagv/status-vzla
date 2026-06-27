@@ -7,6 +7,7 @@ import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import FichaPersonaDescargable from '@/components/svzla/FichaPersonaDescargable';
 import ActualizarPersonaPerfil from '@/components/svzla/ActualizarPersonaPerfil';
+import NotificarmeEmail from '@/components/svzla/NotificarmeEmail';
 
 const ESTADO_CONFIG = {
   buscando:             { es: '🔴 Sin contacto',          en: '🔴 Missing',              cls: 'bg-red-100 text-red-800 border-red-200' },
@@ -53,9 +54,6 @@ export default function PersonaDetalle() {
   const [eventos, setEventos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [copiado, setCopiado] = useState(false);
-  const [telSub, setTelSub] = useState('');
-  const [suscrito, setSuscrito] = useState(false);
-  const [suscribiendo, setSuscribiendo] = useState(false);
   const [tabActiva, setTabActiva] = useState('info'); // 'info' | 'historial' | 'contactos'
 
   useEffect(() => {
@@ -89,19 +87,6 @@ export default function PersonaDetalle() {
     } else {
       navigator.clipboard.writeText(texto);
     }
-  };
-
-  const suscribirse = async () => {
-    if (!telSub.trim() || !id) return;
-    setSuscribiendo(true);
-    try {
-      await base44.entities.SuscriptoresSeguimiento.create({
-        reporte_id: id, tipo_reporte: 'persona',
-        telefono_whatsapp: telSub.trim(), activo: true,
-      });
-      setSuscrito(true);
-    } catch {}
-    setSuscribiendo(false);
   };
 
   // Combinar pistas + eventos en un timeline unificado
@@ -326,22 +311,7 @@ export default function PersonaDetalle() {
             </div>
 
             {/* Suscripción */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-4">
-              <h2 className="text-sm font-medium text-gray-700 mb-1">🔔 {es ? 'Notificarme si hay novedades' : 'Notify me of updates'}</h2>
-              <p className="text-xs text-gray-400 mb-3">{es ? 'Sin cuenta. Tu número no se publica.' : 'No account needed. Your number is not published.'}</p>
-              {suscrito ? (
-                <p className="text-sm text-green-700 font-semibold">✅ {es ? 'Suscrito.' : 'Subscribed.'}</p>
-              ) : (
-                <div className="flex gap-2">
-                  <input value={telSub} onChange={e => setTelSub(e.target.value)} placeholder="+58..."
-                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
-                  <button onClick={suscribirse} disabled={suscribiendo || !telSub.trim()}
-                    className="bg-blue-600 text-white text-sm font-bold px-4 py-2 rounded-xl disabled:opacity-40 cursor-pointer">
-                    {es ? 'Avisar' : 'Notify'}
-                  </button>
-                </div>
-              )}
-            </div>
+            <NotificarmeEmail entidadId={id} tipoReporte="persona" />
           </div>
         )}
 
