@@ -234,6 +234,10 @@ export default function EdificioDetalle() {
   const noEntrar = ['grave', 'critico', 'colapsado'].includes(edificio.nivel_dano);
   const esCritico = noEntrar || edificio.personas_atrapadas === 'si' || edificio.prioridad === 'critica';
   const totalReportes = actualizaciones.length + 1;
+  const reportesPersonas = actualizaciones.filter(a => ['personas_atrapadas', 'persona_herida_recuperada', 'persona_fallecida_recuperada'].includes(a.tipo_accion));
+  const reportesAtrapados = reportesPersonas.filter(a => a.tipo_accion === 'personas_atrapadas');
+  const reportesHeridos = reportesPersonas.filter(a => a.tipo_accion === 'persona_herida_recuperada');
+  const reportesFallecidos = reportesPersonas.filter(a => a.tipo_accion === 'persona_fallecida_recuperada');
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -340,6 +344,61 @@ export default function EdificioDetalle() {
             <GaleriaFotos urls={edificio.foto_urls} />
           </div>
         )}
+
+        {/* ── PERSONAS / CUERPOS REPORTADOS EN EL SITIO ── */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">👥 {es ? 'Personas reportadas aquí' : 'People reported here'}</p>
+              <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                {es ? 'Historial sensible según actualizaciones ciudadanas o institucionales.' : 'Sensitive history based on citizen or institutional updates.'}
+              </p>
+            </div>
+            <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-1 rounded-full flex-shrink-0">
+              {reportesPersonas.length} {es ? 'eventos' : 'events'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="text-center bg-red-50 border border-red-100 rounded-xl p-2">
+              <p className="text-lg font-black text-red-700">{reportesAtrapados.length}</p>
+              <p className="text-[10px] text-red-700 leading-tight">{es ? 'Atrapados' : 'Trapped'}</p>
+            </div>
+            <div className="text-center bg-amber-50 border border-amber-100 rounded-xl p-2">
+              <p className="text-lg font-black text-amber-700">{reportesHeridos.length}</p>
+              <p className="text-[10px] text-amber-700 leading-tight">{es ? 'Heridos recuperados' : 'Injured recovered'}</p>
+            </div>
+            <div className="text-center bg-gray-100 border border-gray-200 rounded-xl p-2">
+              <p className="text-lg font-black text-gray-700">{reportesFallecidos.length}</p>
+              <p className="text-[10px] text-gray-600 leading-tight">{es ? 'Fallecidos recuperados' : 'Deceased recovered'}</p>
+            </div>
+          </div>
+
+          {reportesPersonas.length > 0 ? (
+            <div className="space-y-2">
+              {reportesPersonas.slice(0, 5).map(a => {
+                const s = ACCION_ESTILOS[a.tipo_accion] || { icon: '📋', color: '#555' };
+                const lbl = ACCION_LABELS[a.tipo_accion];
+                return (
+                  <div key={`persona-${a.id}`} className="border border-gray-100 rounded-xl px-3 py-2 bg-gray-50">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold" style={{ color: s.color }}>{s.icon} {lbl ? (es ? lbl.es : lbl.en) : a.tipo_accion}</p>
+                      <span className="text-[10px] text-gray-400">{tiempoRelativo(a.created_date, es)}</span>
+                    </div>
+                    {a.descripcion && <p className="text-xs text-gray-600 mt-1 leading-relaxed">{a.descripcion}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
+              {es ? 'Aún no hay reportes de personas atrapadas, heridas recuperadas o fallecidos recuperados en esta ficha.' : 'No trapped, injured recovered, or deceased recovered reports yet on this record.'}
+            </p>
+          )}
+          <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mt-3 leading-relaxed">
+            ⚠️ {es ? 'No publiques nombres, documentos ni datos médicos sensibles en reportes públicos.' : 'Do not publish names, IDs, or sensitive medical details in public reports.'}
+          </p>
+        </div>
 
         {/* ── TRES BOTONES PRINCIPALES ── */}
         <div className="grid grid-cols-1 gap-2 mb-4">
