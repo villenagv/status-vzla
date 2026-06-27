@@ -54,6 +54,8 @@ export default function Personas() {
       const buscadasNorm = buscadas.map(p => ({ ...p, _fuente: 'busqueda', _orden: p.updated_date || p.created_date }));
       const regNorm = registradas.map(r => ({
         id: `inst-${r.id}`,
+        _rawId: r.id,
+        condicion: r.condicion,
         nombre_completo: r.nombre_completo,
         ciudad: r.ciudad,
         estado_region: r.estado_region,
@@ -71,6 +73,7 @@ export default function Personas() {
       }));
       const crisNorm = cris.map(r => ({
         id: `cris-${r.id}`,
+        _rawId: r.id,
         nombre_completo: [r.nombre, r.apellido].filter(Boolean).join(' ') || r.apodo || (es ? 'Persona registrada' : 'Registered person'),
         apodo: r.apodo,
         ciudad: r.ciudad,
@@ -88,6 +91,7 @@ export default function Personas() {
       }));
       const cruceNorm = cruces.map(r => ({
         id: `cruce-${r.id}`,
+        _rawId: r.id,
         nombre_completo: r.nombre_creador || (es ? 'Persona registrada' : 'Registered person'),
         ciudad: r.ciudad,
         estado_region: r.estado_region,
@@ -334,9 +338,9 @@ export default function Personas() {
                   {p._fuente === 'busqueda' ? (
                     <BotonNotificarme personaId={p.id} nombre={p.nombre_completo} />
                   ) : p._fuente === 'institucional' ? (
-                    <Link to="/centros-apoyo" className="flex items-center justify-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold py-2.5 rounded-xl">
-                      🏥 {es ? 'Ver centros' : 'View centers'}
-                    </Link>
+                    <button onClick={() => setPersonaActualizar({ ...p, _modo: 'actualizacion' })} className="flex items-center justify-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold py-2.5 rounded-xl">
+                      ✍️ {es ? 'Actualizar' : 'Update'}
+                    </button>
                   ) : (
                     <button onClick={() => setPersonaActualizar(p)} className="flex items-center justify-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-bold py-2.5 rounded-xl">
                       ✍️ {es ? 'Actualizar datos' : 'Update info'}
