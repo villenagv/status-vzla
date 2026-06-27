@@ -164,7 +164,7 @@ export default function Personas() {
           <div className="grid grid-cols-3 gap-2">
             <Link to="/reportar-encontrado"
               className="flex items-center justify-center gap-1 bg-[#D48C2E] text-white font-bold py-3.5 rounded-2xl text-xs no-underline text-center">
-              🙋 {es ? 'Vi a alguien' : 'Saw someone'}
+              🙋 {es ? 'Encontré a alguien' : 'I found someone'}
             </Link>
             <Link to="/directorio-encontrados"
               className="flex items-center justify-center gap-1 bg-white border-2 border-[#1A1F2E] text-[#1A1F2E] font-bold py-3.5 rounded-2xl text-xs no-underline text-center">

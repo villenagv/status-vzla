@@ -193,12 +193,12 @@ export default function ReportarEncontrado() {
         </Link>
 
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
-          🙋 {es ? 'Vi o encontré a alguien' : 'I found or saw someone'}
+          🙋 {es ? 'Encontré a alguien' : 'I found someone'}
         </h1>
         <p className="text-sm text-gray-500 mb-4 leading-relaxed">
           {es
-            ? 'Usa este formulario si viste, encontraste o tienes información real sobre una persona. Escribe datos verificables. No publiques rumores.'
-            : 'Use this form if you saw, found or have real information about a person. Write verifiable data. Do not post rumors.'}
+            ? 'Usa este formulario si encontraste o tienes información real sobre una persona. Escribe datos verificables. No publiques rumores.'
+            : 'Use this form if you found or have real information about a person. Write verifiable data. Do not post rumors.'}
         </p>
 
         <div className="flex rounded-2xl overflow-hidden border-2 border-[#EDEBE8] mb-4 bg-white">
@@ -400,7 +400,7 @@ export default function ReportarEncontrado() {
             )}
 
             <div>
-              <FieldLabel label={es ? '¿Cuándo lo/la viste?' : 'When did you see them?'}
+              <FieldLabel label={es ? '¿Cuándo lo/la encontraste?' : 'When did you find them?'}
                 hint={es ? 'Aproximado está bien.' : 'Approximate is fine.'} />
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={fechaVisto} onChange={e => setFechaVisto(e.target.value)} className={inputCls} />
