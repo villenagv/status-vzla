@@ -40,7 +40,7 @@ export default function TopBar() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex" style={{ display: 'flex', gap: 2, flex: 1, justifyContent: 'center' }}>
+        <nav className="hidden md:flex" style={{ gap: 2, flex: 1, justifyContent: 'center' }}>
           {NAV.map(item => {
             const active = isActive(item.to);
             return (

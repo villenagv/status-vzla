@@ -74,6 +74,9 @@
     "reportado_por_email": {
       "type": "string"
     },
+    "reportante_contacto_privado": {
+      "type": "string"
+    },
     "nivel_verificacion": {
       "type": "string",
       "default": "comunidad"
