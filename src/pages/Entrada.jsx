@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import ContadoresEntrada from '@/components/svzla/ContadoresEntrada';
 import DirectorioPersonasEntrada from '@/components/svzla/DirectorioPersonasEntrada';
 import DirectorioEdificiosEntrada from '@/components/svzla/DirectorioEdificiosEntrada';
+import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 
 const DANO_BADGE = {
@@ -38,10 +39,8 @@ export default function Entrada() {
   const { lang, toggle: toggleLang } = useLang();
   const { lowBw } = useLowBw();
   const es = lang === 'es';
-  const [user, setUser] = useState(null);
   const [edificiosGrid, setEdificiosGrid] = useState([]);
 
-  useEffect(() => { base44.auth.me().then(u => setUser(u)).catch(() => setUser(null)); }, []);
   useEffect(() => {
     base44.entities.ReportesDano.list('-created_date', 15)
       .then(d => setEdificiosGrid(d))
@@ -52,34 +51,7 @@ export default function Entrada() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="border-b border-gray-100 bg-white fixed top-0 left-0 right-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          <div>
-            <span className="text-xl font-bold text-gray-900 tracking-tight">
-              Status<span className="text-amber-600">Vzla</span>
-            </span>
-            <span className="hidden sm:inline ml-2 text-xs text-gray-400 font-medium tracking-widest uppercase">StatusVenezuela.com</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden md:flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
-              <span className={`w-2 h-2 rounded-full bg-red-500 ${!lowBw ? 'animate-pulse' : ''} flex-shrink-0`} />
-              <p className="text-xs font-semibold text-red-700">{es ? 'Terremoto activo · La Guaira, Caracas, Yaracuy' : 'Active earthquake · La Guaira, Caracas, Yaracuy'}</p>
-            </div>
-            {user ? (
-              <Link to="/mi-perfil" className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center text-white text-xs font-bold no-underline">
-                {user.full_name?.[0]?.toUpperCase() || '?'}
-              </Link>
-            ) : (
-              <>
-                <Link to="/login" className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-600 text-white no-underline hover:bg-red-700 cursor-pointer">{es ? 'Entrar' : 'Login'}</Link>
-                <Link to="/register" className="hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer no-underline">{es ? 'Registro' : 'Sign up'}</Link>
-              </>
-            )}
-            <button onClick={toggleLang} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer">{es ? 'EN' : 'ES'}</button>
-          </div>
-        </div>
-      </header>
-      <div className="h-[57px] flex-shrink-0" />
+      <TopBar />
 
       <div className="md:hidden bg-red-600 text-white px-4 py-2.5 flex items-center gap-2">
         <span className={`w-2 h-2 rounded-full bg-white ${!lowBw ? 'animate-pulse' : ''} flex-shrink-0`} />
