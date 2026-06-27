@@ -12,6 +12,8 @@ const NAV = [
   { to: '/centros-apoyo', es: 'Centros',   en: 'Centers' },
 ];
 
+const CONTACT_EMAIL = 'villenagv@gmail.com';
+
 export default function TopBar() {
   const { lang, toggle: toggleLang } = useLang();
   const { lowBw, toggle: toggleLowBw } = useLowBw();
@@ -54,6 +56,13 @@ export default function TopBar() {
               </Link>
             );
           })}
+          <a href={`mailto:${CONTACT_EMAIL}`} style={{
+            fontSize: 12, fontWeight: 500,
+            color: 'rgba(255,255,255,0.55)',
+            padding: '5px 10px', borderRadius: 20, textDecoration: 'none',
+          }}>
+            {es ? 'Contáctanos' : 'Contact us'}
+          </a>
         </nav>
 
         {/* Controls */}
@@ -143,6 +152,14 @@ export default function TopBar() {
               </Link>
             );
           })}
+          <a href={`mailto:${CONTACT_EMAIL}`} style={{
+            display: 'block', padding: '11px 12px', borderRadius: 8, marginBottom: 2,
+            fontSize: 14, fontWeight: 500,
+            color: 'rgba(255,255,255,0.55)',
+            textDecoration: 'none',
+          }}>
+            ✉️ {es ? 'Contáctanos' : 'Contact us'}
+          </a>
           {user?.role === 'admin' && (
             <Link to="/dashboard" style={{ display: 'block', padding: '11px 12px', borderRadius: 8, fontSize: 14, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
               Dashboard

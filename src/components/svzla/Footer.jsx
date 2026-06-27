@@ -79,6 +79,15 @@ export default function Footer() {
           </div>
         </div>
 
+        <div style={{ background: 'rgba(36,113,163,0.12)', border: '0.5px solid rgba(36,113,163,0.28)', borderRadius: 6, padding: '8px 12px', marginBottom: 10 }}>
+          <p style={{ fontSize: 11, color: '#9cc8e6', lineHeight: 1.4 }}>
+            ✉️ {es
+              ? '¿Tienes varios archivos o listados? Envíalos por correo a '
+              : 'Have several files or lists? Send them by email to '}
+            <a href="mailto:villenagv@gmail.com" style={{ color: '#cfe9ff', fontWeight: 600 }}>villenagv@gmail.com</a>
+          </p>
+        </div>
+
         {/* Formulario de sugerencias */}
         <div style={{ marginBottom: 10 }}>
           <button onClick={() => setMostrarSugerencia(v => !v)} style={{
