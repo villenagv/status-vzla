@@ -43,9 +43,9 @@ export default function TopBar() {
 
           {/* Brand */}
           <Link to="/" style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🆘</div>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
-              CRIS<span style={{ color: 'rgba(255,255,255,0.32)', fontWeight: 400, fontSize: 13 }}> · Venezuela</span>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: '#0D2259', border: '2px solid #F5C518', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>📍</div>
+            <span style={{ fontSize: 15, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
+              Status<span style={{ color: '#F5C518' }}> Vzla</span>
             </span>
           </Link>
 
@@ -166,7 +166,7 @@ export default function TopBar() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div style={{ background: '#0D1117', borderTop: '1px solid rgba(255,255,255,0.07)', padding: '12px 16px 20px' }}>
+          <div style={{ background: '#0A1628', borderTop: '1px solid rgba(245,197,24,0.15)', padding: '12px 16px 20px' }}>
             {!user && (
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                 <Link to="/login" style={{ flex: 1, textAlign: 'center', padding: '12px 0', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#fff', background: '#C0392B', textDecoration: 'none' }}>

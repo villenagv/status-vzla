@@ -54,8 +54,8 @@ export default function Footer() {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 12 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 24, height: 24, borderRadius: 6, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🆘</div>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>CRIS · Status Venezuela</span>
+              <div style={{ width: 26, height: 26, borderRadius: 6, background: '#0D2259', border: '2px solid #F5C518', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>📍</div>
+              <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>Status<span style={{ color: '#F5C518' }}> Vzla</span></span>
             </div>
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', lineHeight: 1.5, maxWidth: 260, margin: 0 }}>
               {t('Plataforma ciudadana de respuesta a emergencias. No partidista · Sin fines de lucro.',
@@ -156,7 +156,7 @@ export default function Footer() {
         {/* Bottom */}
         <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.18)', margin: 0 }}>
-            © 2024–2025 Status Venezuela · {t('Hecho por venezolanos ♥', 'Made by Venezuelans ♥', 'Feito por venezuelanos ♥')}
+            © 2024–2025 Status Vzla · {t('Hecho por venezolanos ♥', 'Made by Venezuelans ♥', 'Feito por venezuelanos ♥')}
           </p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.14)', margin: 0 }}>
             {t('No partidista · Sin fines de lucro', 'Non-partisan · Non-profit', 'Não partidário · Sem fins lucrativos')}

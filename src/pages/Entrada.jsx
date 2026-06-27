@@ -38,9 +38,9 @@ export default function Entrada() {
         <div className="pt-1">
           <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(192,57,43,0.18)', color: '#F87171', border: '1px solid rgba(192,57,43,0.35)' }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse inline-block" />
-              {es ? 'CRIS · Sistema Activo' : 'CRIS · System Active'}
+              style={{ background: 'rgba(13,34,89,0.6)', color: '#F5C518', border: '1px solid rgba(245,197,24,0.45)' }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse inline-block" style={{ background: '#F5C518' }} />
+              {es ? 'Status Vzla · Sistema Activo' : 'Status Vzla · System Active'}
             </span>
           </div>
           <h1 className="text-3xl font-black text-white leading-tight mb-2" style={{ letterSpacing: '-0.02em' }}>
