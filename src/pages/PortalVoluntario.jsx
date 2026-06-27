@@ -232,7 +232,19 @@ export default function PortalVoluntario() {
 
   useEffect(() => {
     base44.auth.me()
-      .then(u => { setUser(u); return u; })
+      .then(async u => {
+        setUser(u);
+        // Verificar si el usuario tiene solicitud aprobada (a menos que sea admin)
+        if (u && u.role !== 'admin') {
+          const sols = await base44.entities.SolicitudVoluntario.filter({ user_id: u.id }).catch(() => []);
+          const aprobada = sols?.find(s => s.estado === 'aprobado');
+          if (!aprobada) {
+            window.location.href = '/voluntario';
+            return;
+          }
+        }
+        return u;
+      })
       .catch(() => { window.location.href = '/login'; })
       .finally(() => setCargando(false));
   }, []);

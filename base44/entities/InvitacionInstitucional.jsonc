@@ -1,0 +1,47 @@
+{
+  "name": "InvitacionInstitucional",
+  "type": "object",
+  "properties": {
+    "token": {
+      "type": "string"
+    },
+    "institucion_nombre": {
+      "type": "string"
+    },
+    "institucion_tipo": {
+      "type": "string"
+    },
+    "dominio_email": {
+      "type": "string"
+    },
+    "rol_asignado": {
+      "type": "string",
+      "default": "voluntario"
+    },
+    "max_usos": {
+      "type": "number",
+      "default": 100
+    },
+    "usos_actuales": {
+      "type": "number",
+      "default": 0
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "expira_en": {
+      "type": "string"
+    },
+    "creado_por": {
+      "type": "string"
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "token",
+    "institucion_nombre"
+  ]
+}

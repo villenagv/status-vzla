@@ -108,12 +108,12 @@ export default function TopBar() {
             )}
           </div>
 
-          {user?.role === 'voluntario' && (
-            <Link to="/portal-voluntario" style={{
+          {user && (
+            <Link to="/voluntario" style={{
               fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 20,
               color: '#fff', background: '#0F766E', textDecoration: 'none', whiteSpace: 'nowrap',
             }}>
-              🤝 {pt ? 'Meu portal' : es ? 'Mi portal' : 'My portal'}
+              🤝 {pt ? 'Portal' : es ? 'Portal' : 'Portal'}
             </Link>
           )}
           {user ? (

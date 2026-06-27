@@ -1,0 +1,57 @@
+{
+  "name": "SolicitudVoluntario",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "user_nombre": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "aprobado",
+        "rechazado"
+      ],
+      "default": "pendiente"
+    },
+    "rol_solicitado": {
+      "type": "string",
+      "default": "voluntario"
+    },
+    "institucion_nombre": {
+      "type": "string"
+    },
+    "institucion_tipo": {
+      "type": "string"
+    },
+    "foto_id_url": {
+      "type": "string"
+    },
+    "token_invitacion": {
+      "type": "string"
+    },
+    "pre_aprobado": {
+      "type": "boolean",
+      "default": false
+    },
+    "motivo_rechazo": {
+      "type": "string"
+    },
+    "revisado_por": {
+      "type": "string"
+    },
+    "notas_admin": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "user_email"
+  ]
+}
