@@ -54,6 +54,60 @@
         "posible"
       ]
     },
+    "acceso_calle": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "dificultad",
+        "solo_peatonal",
+        "bloqueada",
+        "insegura",
+        "no_sabe"
+      ]
+    },
+    "acceso_vehiculos": {
+      "type": "string",
+      "enum": [
+        "carros",
+        "ambulancias",
+        "camiones",
+        "solo_motos",
+        "bloqueado",
+        "no_sabe"
+      ]
+    },
+    "notas_acceso": {
+      "type": "string"
+    },
+    "electricidad": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "no_disponible",
+        "intermitente",
+        "no_confirmado"
+      ]
+    },
+    "agua": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "no_disponible",
+        "intermitente",
+        "no_confirmado"
+      ]
+    },
+    "gas": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "no_disponible",
+        "suspendido",
+        "intermitente",
+        "fuga_reportada",
+        "no_confirmado"
+      ]
+    },
     "riesgo_gas": {
       "type": "boolean",
       "default": false

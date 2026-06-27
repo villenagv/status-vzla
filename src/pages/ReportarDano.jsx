@@ -37,14 +37,45 @@ const ATRAPADOS = [
   { val: 'familiares',es:'Familiares reportan personas dentro',  en: 'Family reports people inside', color: 'border-orange-400 bg-orange-50 text-orange-800' },
 ];
 
-const ACCESO = [
-  { val: 'accesible',   es: '✅ Sí, accesible',          en: '✅ Yes, accessible' },
-  { val: 'pie',         es: '🚶 Solo a pie',             en: '🚶 On foot only' },
-  { val: 'bloqueado',   es: '🚧 Calle bloqueada',        en: '🚧 Blocked street' },
-  { val: 'maquinaria',  es: '🚛 Requiere maquinaria',    en: '🚛 Requires machinery' },
-  { val: 'electrico',   es: '⚡ Riesgo eléctrico',        en: '⚡ Electrical hazard' },
-  { val: 'gas',         es: '💨 Riesgo de gas',           en: '💨 Gas hazard' },
-  { val: 'incendio',    es: '🔥 Riesgo de incendio',     en: '🔥 Fire hazard' },
+const ACCESO_CALLE = [
+  { val: 'normal',        es: '✅ Calle libre — se llega sin problema',   en: '✅ Clear road — no issues' },
+  { val: 'dificultad',    es: '⚠️ Se puede pasar, con dificultad',       en: '⚠️ Passable, but with difficulty' },
+  { val: 'solo_peatonal', es: '🚶 Solo a pie — vehículos no pasan',      en: '🚶 On foot only — no vehicles' },
+  { val: 'bloqueada',     es: '🚫 Calle bloqueada — no se puede pasar',  en: '🚫 Blocked road — cannot pass' },
+  { val: 'insegura',      es: '☠️ Peligrosa — no intentes pasar',        en: '☠️ Dangerous — do not attempt' },
+  { val: 'no_sabe',       es: '❓ No sé',                                 en: '❓ Unknown' },
+];
+
+const ACCESO_VEHICULOS = [
+  { val: 'carros',      es: '🚗 Sí llegan carros normales',             en: '🚗 Regular cars can reach it' },
+  { val: 'ambulancias', es: '🚑 Sí llegan ambulancias',                 en: '🚑 Ambulances can reach it' },
+  { val: 'solo_motos',  es: '🏍️ Solo motos — carros no pasan',          en: '🏍️ Motorcycles only — no cars' },
+  { val: 'bloqueado',   es: '🚫 Nada pasa — vía completamente cerrada', en: '🚫 Nothing passes — road closed' },
+  { val: 'no_sabe',     es: '❓ No sé',                                  en: '❓ Unknown' },
+];
+
+const SERVICIOS_INIT = { electricidad: '', agua: '', gas: '' };
+
+const SERVICIO_OPTS = [
+  { key: 'electricidad', icon: '⚡', es: 'Electricidad', en: 'Electricity', opts: [
+    { val: 'disponible',    es: '✅ Hay luz',        en: '✅ Has power'    },
+    { val: 'intermitente',  es: '⚡ A veces',        en: '⚡ Intermittent' },
+    { val: 'no_disponible', es: '❌ Sin luz',        en: '❌ No power'     },
+    { val: 'no_sabe',       es: '❓ No sé',          en: '❓ Unknown'      },
+  ]},
+  { key: 'agua', icon: '💧', es: 'Agua corriente', en: 'Running water', opts: [
+    { val: 'disponible',    es: '✅ Hay agua',       en: '✅ Has water'    },
+    { val: 'intermitente',  es: '💧 A ratos',        en: '💧 Intermittent' },
+    { val: 'no_disponible', es: '❌ Sin agua',       en: '❌ No water'     },
+    { val: 'no_sabe',       es: '❓ No sé',          en: '❓ Unknown'      },
+  ]},
+  { key: 'gas', icon: '🔥', es: 'Gas doméstico', en: 'Gas service', opts: [
+    { val: 'disponible',     es: '✅ Gas normal',    en: '✅ Gas on'       },
+    { val: 'suspendido',     es: '🚫 Gas cortado',  en: '🚫 Gas cut'      },
+    { val: 'fuga_reportada', es: '☠️ FUGA de gas',  en: '☠️ GAS LEAK'     },
+    { val: 'no_disponible',  es: '❌ Sin gas',       en: '❌ No gas'       },
+    { val: 'no_sabe',        es: '❓ No sé',         en: '❓ Unknown'      },
+  ]},
 ];
 
 const ROL = [
@@ -77,13 +108,15 @@ export default function ReportarDano() {
   const [tipo, setTipo] = useState('');
   const [nivel, setNivel] = useState('');
   const [atrapados, setAtrapados] = useState('');
-  const [acceso, setAcceso] = useState([]);
-  const [form, setForm] = useState({ direccion: '', ciudad: '', estado_region: '', referencia: '', descripcion: '', nombre: '', contacto: '', rol: '' });
+  const [accesoCalle, setAccesoCalle] = useState('');
+  const [accesoVehiculos, setAccesoVehiculos] = useState('');
+  const [servicios, setServicios] = useState(SERVICIOS_INIT);
+  const [form, setForm] = useState({ direccion: '', ciudad: '', estado_region: '', referencia: '', notas_acceso: '', descripcion: '', nombre: '', contacto: '', rol: '' });
   const [enviando, setEnviando] = useState(false);
   const [codigo, setCodigo] = useState('');
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const toggleAcceso = (v) => setAcceso(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const setSrv = (k, v) => setServicios(s => ({ ...s, [k]: v }));
 
   const esCritico = CRITICOS.includes(tipo) || CRITICOS_ATRAPADOS.includes(atrapados) || nivel === 'critico';
 
@@ -102,11 +135,16 @@ export default function ReportarDano() {
         tipo_estructura: tipo || 'otro',
         nivel_dano: nivel || 'no_evaluado',
         personas_atrapadas: atrapados || 'no_sabe',
-        acceso_sitio: acceso,
+        acceso_calle: accesoCalle || 'no_sabe',
+        acceso_vehiculos: accesoVehiculos || 'no_sabe',
+        electricidad: servicios.electricidad || 'no_confirmado',
+        agua: servicios.agua || 'no_confirmado',
+        gas: servicios.gas || 'no_confirmado',
         direccion: form.direccion,
         ciudad: form.ciudad,
         estado_region: form.estado_region,
         referencia: form.referencia,
+        notas_acceso: form.notas_acceso,
         descripcion: form.descripcion,
         reportante_nombre: form.nombre,
         reportante_telefono: form.contacto,
@@ -115,6 +153,15 @@ export default function ReportarDano() {
         nivel_verificacion: 'sin_verificar',
         fuente: 'ciudadano',
       });
+      // Si hay fuga de gas, registrar urgencia adicional
+      if (servicios.gas === 'fuga_reportada') {
+        await base44.entities.ActualizacionesSitios.create({
+          sitio_id: codigoNuevo, tipo_sitio: 'edificio',
+          tipo_accion: 'riesgo_marcado',
+          descripcion: es ? 'Fuga de gas reportada en reporte inicial' : 'Gas leak reported in initial report',
+          fuente: 'ciudadano',
+        }).catch(() => {});
+      }
       setCodigo(codigoNuevo);
     } catch {}
     setEnviando(false);
@@ -255,28 +302,88 @@ export default function ReportarDano() {
             </div>
           )}
 
-          {/* PASO 4: Acceso y ubicación */}
+          {/* PASO 4: Acceso, servicios y ubicación */}
           {paso >= 4 && (
-            <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-4">
+            <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-5">
               <h3 className="text-sm font-black text-[#1A1F2E]">
-                4. {es ? 'Acceso y ubicación' : 'Access and location'} <span className="text-[#B83A52]">*</span>
+                4. {es ? 'Acceso, servicios y ubicación' : 'Access, services & location'} <span className="text-[#B83A52]">*</span>
               </h3>
 
+              {/* Acceso a pie */}
               <div>
-                <p className="text-xs font-semibold text-gray-600 mb-2">{es ? '¿El sitio es accesible?' : 'Is the site accessible?'}</p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {ACCESO.map(a => (
-                    <button key={a.val} type="button" onClick={() => toggleAcceso(a.val)}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border-2 text-left cursor-pointer ${acceso.includes(a.val) ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-700'}`}>
+                <p className="text-xs font-bold text-gray-700 mb-1.5">🚶 {es ? '¿Cómo está la calle para llegar?' : 'How is the street to get there?'}</p>
+                <div className="flex flex-col gap-1.5">
+                  {ACCESO_CALLE.map(a => (
+                    <button key={a.val} type="button" onClick={() => setAccesoCalle(a.val)}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-bold border-2 text-left cursor-pointer transition-colors ${accesoCalle === a.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-700'}`}>
                       {es ? a.es : a.en}
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* Acceso vehicular */}
+              <div>
+                <p className="text-xs font-bold text-gray-700 mb-1.5">🚗 {es ? '¿Qué tipo de vehículo puede llegar?' : 'What type of vehicle can reach it?'}</p>
+                <p className="text-[10px] text-gray-400 mb-1.5">{es ? 'Esto ayuda a coordinar ambulancias y rescatistas.' : 'This helps coordinate ambulances and rescue teams.'}</p>
+                <div className="flex flex-col gap-1.5">
+                  {ACCESO_VEHICULOS.map(a => (
+                    <button key={a.val} type="button" onClick={() => setAccesoVehiculos(a.val)}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-bold border-2 text-left cursor-pointer transition-colors ${accesoVehiculos === a.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-700'}`}>
+                      {es ? a.es : a.en}
+                    </button>
+                  ))}
+                </div>
+                {accesoVehiculos === 'bloqueado' && (
+                  <div className="mt-2 flex gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                    <AlertTriangle size={12} className="text-red-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-red-700 font-semibold">{es ? 'Información crítica para rescatistas. Gracias por reportarlo.' : 'Critical info for rescue teams. Thank you.'}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Nota de calle */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  📝 {es ? 'Nota sobre la calle (opcional)' : 'Street note (optional)'}
+                </label>
+                <input value={form.notas_acceso} onChange={e => set('notas_acceso', e.target.value)}
+                  placeholder={es ? 'Ej: Hay escombros en la entrada, la acera está rota...' : 'E.g.: Debris at entrance, sidewalk is broken...'}
+                  className={inputCls} />
+              </div>
+
+              {/* Servicios básicos */}
+              <div>
+                <p className="text-xs font-bold text-gray-700 mb-1">⚡ {es ? 'Servicios básicos (si lo sabes)' : 'Basic services (if you know)'}</p>
+                <p className="text-[10px] text-gray-400 mb-2">{es ? 'Marca solo lo que sabes con certeza.' : 'Only mark what you know for sure.'}</p>
+                <div className="space-y-3">
+                  {SERVICIO_OPTS.map(srv => (
+                    <div key={srv.key}>
+                      <p className="text-[11px] font-bold text-gray-600 mb-1">{srv.icon} {es ? srv.es : srv.en}</p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {srv.opts.map(opt => (
+                          <button key={opt.val} type="button" onClick={() => setSrv(srv.key, opt.val)}
+                            className={`py-2 px-2 rounded-xl text-[11px] font-bold border-2 cursor-pointer text-left transition-colors
+                              ${servicios[srv.key] === opt.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-700'}`}>
+                            {es ? opt.es : opt.en}
+                          </button>
+                        ))}
+                      </div>
+                      {srv.key === 'gas' && servicios.gas === 'fuga_reportada' && (
+                        <div className="mt-1.5 flex gap-2 bg-red-50 border-2 border-red-300 rounded-xl px-3 py-2">
+                          <AlertTriangle size={12} className="text-red-600 flex-shrink-0 mt-0.5" />
+                          <p className="text-[10px] text-red-700 font-bold">{es ? '🚨 URGENTE: Se marcará como peligro inmediato. Evacúa ya.' : '🚨 URGENT: Will be flagged as immediate danger. Evacuate now.'}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Ubicación */}
               <div>
                 <label className="block text-xs font-bold text-[#1A1F2E] mb-1.5">
-                  {es ? 'Dirección o referencia' : 'Address or reference'} <span className="text-[#B83A52]">*</span>
+                  📍 {es ? 'Dirección o referencia' : 'Address or reference'} <span className="text-[#B83A52]">*</span>
                 </label>
                 <input value={form.direccion} onChange={e => set('direccion', e.target.value)} required
                   placeholder={es ? 'Ej: Edif. Las Torres, Av. Principal, frente al metro' : 'E.g: Las Torres building, Main Ave, next to metro'}
