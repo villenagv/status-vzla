@@ -145,6 +145,30 @@
         "type": "string"
       }
     },
+    "contactos_acceso": {
+      "type": "array",
+      "description": "Personas autorizadas que pueden dar acceso al edificio para inspecci\u00f3n",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "rol": {
+            "type": "string"
+          },
+          "notas": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "prioridad": {
       "type": "string",
       "enum": [
@@ -178,6 +202,9 @@
       "type": "string"
     },
     "reportante_telefono": {
+      "type": "string"
+    },
+    "reportante_email": {
       "type": "string"
     },
     "fuente": {

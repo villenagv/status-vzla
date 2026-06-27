@@ -169,6 +169,11 @@ export default function Edificios() {
   const [repNombre, setRepNombre] = useState('');
   const [repTelefono, setRepTelefono] = useState('');
   const [repEmail, setRepEmail] = useState('');
+  const [contactosAcceso, setContactosAcceso] = useState([]);
+  const CONTACTO_VACIO = { nombre: '', telefono: '', email: '', rol: '' };
+  const agregarContacto = () => setContactosAcceso(prev => [...prev, { ...CONTACTO_VACIO }]);
+  const quitarContacto = (i) => setContactosAcceso(prev => prev.filter((_, idx) => idx !== i));
+  const setContacto = (i, k, v) => setContactosAcceso(prev => prev.map((c, idx) => idx === i ? { ...c, [k]: v } : c));
   const [fotos, setFotos] = useState([]);
   const [posiblesDups, setPosiblesDups] = useState([]);
   const [checkDup, setCheckDup] = useState(false);
@@ -214,7 +219,7 @@ export default function Edificios() {
     setRiesgoGas(false); setRiesgoElec(false); setRiesgoIncendio(false);
     setDireccion(''); setCiudad(''); setEstado(''); setDescripcion('');
     setRepNombre(''); setRepTelefono(''); setRepEmail('');
-    setFotos([]); setCheckDup(false); setDecisionDup(null); setPosiblesDups([]);
+    setFotos([]); setContactosAcceso([]); setCheckDup(false); setDecisionDup(null); setPosiblesDups([]);
   };
 
   const handleSubmit = async () => {
@@ -222,12 +227,14 @@ export default function Edificios() {
     try {
       const prioridad = (nivel === 'critico' || nivel === 'colapsado' || atrapados === 'si' || atrapados === 'voces') ? 'critica' : nivel === 'grave' ? 'alta' : 'normal';
       const foto_urls = fotos.filter(f => f.url).map(f => f.url);
+      const contactosFiltrados = contactosAcceso.filter(c => c.nombre.trim() || c.telefono.trim() || c.email.trim());
       const nuevo = await base44.entities.ReportesDano.create({
         tipo_estructura: tipo || 'otro', nombre_lugar: nombreLugar,
         nivel_dano: nivel || 'no_evaluado', personas_atrapadas: atrapados || 'no_sabe',
         riesgo_gas: riesgoGas, riesgo_electrico: riesgoElec, riesgo_incendio: riesgoIncendio,
         direccion, ciudad, estado_region: estado, descripcion, foto_urls, prioridad,
-        reportante_nombre: repNombre, reportante_telefono: repTelefono,
+        reportante_nombre: repNombre, reportante_telefono: repTelefono, reportante_email: repEmail,
+        contactos_acceso: contactosFiltrados,
         estado_verificacion: 'recibido', nivel_verificacion: 'sin_verificar', fuente: 'ciudadano',
       });
       setTodos(prev => [nuevo, ...prev]);
@@ -879,9 +886,62 @@ export default function Edificios() {
                       )}
                     </div>
 
-                    {/* 7. Descripción y datos */}
+                    {/* 7. Contactos de acceso para inspección */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-                      <h3 className="text-sm font-semibold text-gray-800">7. {t('Descripción y tus datos', 'Description and your info', 'Descrição e seus dados')}</h3>
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-800">7. {t('¿Quién puede dar acceso para inspección?', 'Who can grant access for inspection?', 'Quem pode dar acesso para inspeção?')}</h3>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {t('Agrega personas (conserje, propietario, vecino) que puedan contactarse cuando un ingeniero o rescatista necesite entrar. Sus datos son privados — no se muestran públicamente.',
+                             'Add people (caretaker, owner, neighbor) who can be contacted when an engineer or rescuer needs access. Their data is private — not shown publicly.',
+                             'Adicione pessoas (zelador, proprietário, vizinho) que possam ser contatadas quando um engenheiro ou resgatista precisar entrar. Dados privados.')}
+                        </p>
+                      </div>
+                      {contactosAcceso.length === 0 && (
+                        <p className="text-xs text-gray-400 italic">{t('Ningún contacto agregado. Opcional pero muy útil para inspecciones.', 'No contacts added. Optional but very useful for inspections.', 'Nenhum contato adicionado. Opcional mas muito útil.')}</p>
+                      )}
+                      <div className="space-y-3">
+                        {contactosAcceso.map((c, i) => (
+                          <div key={i} className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs font-bold text-gray-700">👤 {t(`Contacto ${i + 1}`, `Contact ${i + 1}`, `Contato ${i + 1}`)}</p>
+                              <button onClick={() => quitarContacto(i)} className="text-red-400 hover:text-red-600 text-xs font-bold cursor-pointer px-1">✕</button>
+                            </div>
+                            <input value={c.nombre} onChange={e => setContacto(i, 'nombre', e.target.value)}
+                              placeholder={t('Nombre completo *', 'Full name *', 'Nome completo *')}
+                              className={inputCls} />
+                            <div className="grid grid-cols-2 gap-2">
+                              <input value={c.telefono} onChange={e => setContacto(i, 'telefono', e.target.value)}
+                                placeholder={t('Teléfono / WhatsApp', 'Phone / WhatsApp', 'Telefone / WhatsApp')}
+                                className={inputCls} />
+                              <input value={c.email} onChange={e => setContacto(i, 'email', e.target.value)}
+                                placeholder="Email"
+                                className={inputCls} />
+                            </div>
+                            <input value={c.rol} onChange={e => setContacto(i, 'rol', e.target.value)}
+                              placeholder={t('Rol: conserje, propietario, vecino...', 'Role: caretaker, owner, neighbor...', 'Papel: zelador, proprietário, vizinho...')}
+                              className={inputCls} />
+                          </div>
+                        ))}
+                      </div>
+                      {contactosAcceso.length < 5 && (
+                        <button onClick={agregarContacto}
+                          className="w-full py-2.5 text-sm text-blue-700 border border-blue-200 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 font-semibold">
+                          + {t('Agregar contacto de acceso', 'Add access contact', 'Adicionar contato de acesso')}
+                        </button>
+                      )}
+                      <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                        <span className="text-amber-600 text-xs flex-shrink-0 mt-0.5">🔒</span>
+                        <p className="text-[10px] text-amber-800 leading-relaxed">
+                          {t('Los datos de contacto son privados. Solo los verán los voluntarios e ingenieros autorizados para inspección.',
+                             'Contact data is private. Only authorized volunteers and engineers for inspection will see it.',
+                             'Os dados de contato são privados. Apenas voluntários e engenheiros autorizados para inspeção os verão.')}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 8. Descripción y datos */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+                      <h3 className="text-sm font-semibold text-gray-800">8. {t('Descripción y tus datos', 'Description and your info', 'Descrição e seus dados')}</h3>
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Describe lo que ves (opcional)', 'Describe what you see (optional)', 'Descreva o que você vê (opcional)')}</label>
                         <textarea rows={3} value={descripcion} onChange={e => setDescripcion(e.target.value)} maxLength={200}
@@ -910,7 +970,7 @@ export default function Edificios() {
                     )}
 
                     <button onClick={handleSubmit}
-                      disabled={enviando || !tipo || !nivel || !atrapados || !direccion || !ciudad || !estado || fotos.some(f => f.uploading)}
+                      disabled={enviando || !tipo || !nivel || !atrapados || !direccion || !ciudad || !estado || fotos.some(f => f.uploading) || contactosAcceso.some(c => !c.nombre.trim() && (c.telefono.trim() || c.email.trim()))}
                       className={`w-full py-4 rounded-xl text-base font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 transition-colors ${esCritico ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-700 hover:bg-blue-800 text-white'}`}>
                       {enviando ? <Loader2 size={18} className="animate-spin" /> : (esCritico ? '🚨' : '📋')}
                       {fotos.some(f => f.uploading) ? t('Subiendo fotos...', 'Uploading photos...', 'Enviando fotos...')
