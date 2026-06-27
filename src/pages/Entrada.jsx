@@ -12,15 +12,52 @@ const TELS = [
   { num: '911', op: 'Movistar' },
 ];
 
-const QUICK = [
-  { to: '/personas',            emoji: '👤', es: 'Personas buscadas',      en: 'Missing people',       color: '#7C3AED' },
-  { to: '/edificios',           emoji: '🏗️', es: 'Estado de edificios',    en: 'Building status',      color: '#B45309' },
-  { to: '/centros-apoyo',       emoji: '🏥', es: 'Centros de apoyo',       en: 'Help centers',         color: '#0E7490' },
-  { to: '/directorio',          emoji: '📂', es: 'Directorio completo',    en: 'Full directory',       color: '#374151' },
-  { to: '/reportar-encontrado', emoji: '🙋', es: 'Encontré a alguien',     en: 'I found someone',      color: '#15803D' },
-  { to: '/buscar-persona',      emoji: '🔎', es: 'Reportar desaparecido',  en: 'Report missing',       color: '#9A3412' },
-  { to: '/guia-edificios',      emoji: '📖', es: 'Guía edificios',         en: 'Building guide',       color: '#1D4ED8' },
-  { to: '/guia-plataforma',     emoji: '❓', es: 'Cómo usar CRIS',         en: 'How to use CRIS',      color: '#374151' },
+// Los 4 pilares principales de la plataforma
+const PILARES = [
+  {
+    to: '/edificios',
+    emoji: '🏗️',
+    color: '#B45309',
+    borderColor: 'rgba(180,83,9,0.45)',
+    bg: 'rgba(180,83,9,0.12)',
+    badgeBg: 'rgba(180,83,9,0.22)',
+    badgeColor: '#FCD34D',
+    es: { badge: 'EDIFICIOS', title: 'Estado de edificios', sub: 'Daños · Acceso · Servicios · ¿Puedo entrar?' },
+    en: { badge: 'BUILDINGS', title: 'Building status', sub: 'Damage · Access · Services · Can I enter?' },
+  },
+  {
+    to: '/centros-apoyo',
+    emoji: '🏥',
+    color: '#0E7490',
+    borderColor: 'rgba(14,116,144,0.45)',
+    bg: 'rgba(14,116,144,0.12)',
+    badgeBg: 'rgba(14,116,144,0.22)',
+    badgeColor: '#67E8F9',
+    es: { badge: 'CENTROS DE APOYO', title: 'Refugios y hospitales', sub: 'Dónde ir · Capacidad · Qué ofrecen' },
+    en: { badge: 'HELP CENTERS', title: 'Shelters & hospitals', sub: 'Where to go · Capacity · What they offer' },
+  },
+  {
+    to: '/directorio',
+    emoji: '📂',
+    color: '#374151',
+    borderColor: 'rgba(156,163,175,0.35)',
+    bg: 'rgba(255,255,255,0.05)',
+    badgeBg: 'rgba(255,255,255,0.10)',
+    badgeColor: '#D1D5DB',
+    es: { badge: 'DIRECTORIO', title: 'Directorio completo', sub: 'Organizaciones · Contactos · Recursos' },
+    en: { badge: 'DIRECTORY', title: 'Full directory', sub: 'Organizations · Contacts · Resources' },
+  },
+  {
+    to: '/aliados',
+    emoji: '🤝',
+    color: '#15803D',
+    borderColor: 'rgba(21,128,61,0.40)',
+    bg: 'rgba(21,128,61,0.10)',
+    badgeBg: 'rgba(21,128,61,0.20)',
+    badgeColor: '#86EFAC',
+    es: { badge: 'ALIADOS', title: 'Organizaciones aliadas', sub: 'ONGs · Voluntarios · Instituciones' },
+    en: { badge: 'PARTNERS', title: 'Partner organizations', sub: 'NGOs · Volunteers · Institutions' },
+  },
 ];
 
 export default function Entrada() {
@@ -44,110 +81,145 @@ export default function Entrada() {
             </span>
           </div>
           <h1 className="text-3xl font-black text-white leading-tight mb-2" style={{ letterSpacing: '-0.02em' }}>
-            {es ? '¿Cuál es tu\nsituación?' : 'What is your\nsituation?'}
+            {es ? '¿Qué necesitas\nencontrar?' : 'What do you\nneed to find?'}
           </h1>
           <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.50)' }}>
             {es
-              ? 'Selecciona la opción que mejor te describe. Sin cuenta obligatoria.'
-              : 'Select the option that best describes you. No account required.'}
+              ? 'Información en tiempo real sobre edificios, refugios y centros de apoyo. Sin cuenta obligatoria.'
+              : 'Real-time information about buildings, shelters and support centers. No account required.'}
           </p>
         </div>
 
         {/* ── CONTADORES ── */}
         <ContadoresEntrada />
 
-        {/* ── TRIAJE PRINCIPAL ── */}
-        <div className="flex flex-col gap-3">
-
-          {/* Zona afectada */}
-          <Link to="/zona-afectada" className="no-underline block group" style={{ borderRadius: 16, overflow: 'hidden' }}>
-            <div className="relative p-5" style={{
-              background: 'linear-gradient(135deg, rgba(192,57,43,0.22) 0%, rgba(146,43,33,0.12) 100%)',
-              border: '1.5px solid rgba(239,68,68,0.45)',
-              borderRadius: 16,
-            }}>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl"
-                  style={{ background: 'rgba(239,68,68,0.20)', border: '1px solid rgba(239,68,68,0.30)' }}>
-                  🆘
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="inline-block text-[10px] font-black uppercase tracking-widest mb-1.5 px-2 py-0.5 rounded-full"
-                    style={{ background: 'rgba(239,68,68,0.20)', color: '#FCA5A5' }}>
-                    {es ? 'EMERGENCIA ACTIVA' : 'ACTIVE EMERGENCY'}
-                  </span>
-                  <p className="text-lg font-black text-white leading-snug mb-1.5">
-                    {es ? 'Estoy en la zona afectada' : 'I am in the affected area'}
-                  </p>
-                  <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                    {es
-                      ? 'Reportar daño · Necesito ayuda · Encontré a alguien · Ver centros cercanos'
-                      : 'Report damage · Need help · Found someone · See nearby centers'}
-                  </p>
-                </div>
-                <span className="text-red-400 text-xl flex-shrink-0 mt-1">›</span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Fuera de zona */}
-          <Link to="/fuera-zona" className="no-underline block" style={{ borderRadius: 16 }}>
-            <div className="relative p-5" style={{
-              background: 'linear-gradient(135deg, rgba(36,113,163,0.20) 0%, rgba(29,78,216,0.10) 100%)',
-              border: '1.5px solid rgba(59,130,246,0.40)',
-              borderRadius: 16,
-            }}>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl"
-                  style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.25)' }}>
-                  ✈️
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="inline-block text-[10px] font-black uppercase tracking-widest mb-1.5 px-2 py-0.5 rounded-full"
-                    style={{ background: 'rgba(59,130,246,0.18)', color: '#93C5FD' }}>
-                    {es ? 'ESTOY A SALVO' : 'I AM SAFE'}
-                  </span>
-                  <p className="text-lg font-black text-white leading-snug mb-1.5">
-                    {es ? 'Busco información o quiero ayudar' : 'Looking for info or want to help'}
-                  </p>
-                  <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                    {es
-                      ? 'Buscar personas · Consultar edificios · Subir listas · Apoyar desde lejos'
-                      : 'Search people · Check buildings · Upload lists · Support from afar'}
-                  </p>
-                </div>
-                <span className="text-blue-400 text-xl flex-shrink-0 mt-1">›</span>
-              </div>
-            </div>
+        {/* ── ACCIÓN RÁPIDA DE EMERGENCIA ── */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(192,57,43,0.20) 0%, rgba(146,43,33,0.10) 100%)',
+          border: '1.5px solid rgba(239,68,68,0.40)',
+          borderRadius: 16,
+          padding: '14px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}>
+          <span style={{ fontSize: 28, flexShrink: 0 }}>🆘</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 13, fontWeight: 800, color: '#fff', marginBottom: 2 }}>
+              {es ? 'Reportar daño o peligro ahora' : 'Report damage or danger now'}
+            </p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)', lineHeight: 1.4 }}>
+              {es ? 'Edificio dañado · Gas · Personas atrapadas · Riesgo eléctrico' : 'Damaged building · Gas · Trapped people · Electrical risk'}
+            </p>
+          </div>
+          <Link to="/reportar-dano" style={{
+            flexShrink: 0,
+            background: '#C0392B',
+            color: '#fff',
+            fontWeight: 800,
+            fontSize: 12,
+            padding: '8px 14px',
+            borderRadius: 10,
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+          }}>
+            {es ? 'Reportar' : 'Report'}
           </Link>
         </div>
 
-        {/* ── ACCESOS RÁPIDOS ── */}
+        {/* ── 4 PILARES PRINCIPALES ── */}
         <div>
           <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.28)' }}>
-            {es ? 'Acceso directo' : 'Quick access'}
+            {es ? 'Consultar información' : 'Browse information'}
           </p>
-          <div className="grid grid-cols-2 gap-2">
-            {QUICK.map(item => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="no-underline flex items-center gap-3 px-3.5 py-3.5 rounded-2xl transition-opacity"
-                style={{
-                  background: 'rgba(255,255,255,0.045)',
-                  border: '1px solid rgba(255,255,255,0.09)',
-                }}
-              >
-                <span className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
-                  style={{ background: `${item.color}22`, fontSize: 16 }}>
-                  {item.emoji}
-                </span>
-                <span className="text-xs font-semibold leading-tight" style={{ color: 'rgba(255,255,255,0.75)' }}>
-                  {es ? item.es : item.en}
-                </span>
-              </Link>
-            ))}
+          <div className="flex flex-col gap-2.5">
+            {PILARES.map(item => {
+              const txt = es ? item.es : item.en;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="no-underline block"
+                  style={{ borderRadius: 14 }}
+                >
+                  <div style={{
+                    background: item.bg,
+                    border: `1.5px solid ${item.borderColor}`,
+                    borderRadius: 14,
+                    padding: '14px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 14,
+                  }}>
+                    {/* Icono */}
+                    <div style={{
+                      width: 46, height: 46, borderRadius: 12, flexShrink: 0,
+                      background: item.badgeBg,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 22,
+                    }}>
+                      {item.emoji}
+                    </div>
+
+                    {/* Texto */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{
+                        display: 'inline-block',
+                        fontSize: 9, fontWeight: 800,
+                        letterSpacing: '0.07em',
+                        textTransform: 'uppercase',
+                        color: item.badgeColor,
+                        marginBottom: 3,
+                      }}>
+                        {txt.badge}
+                      </span>
+                      <p style={{ fontSize: 15, fontWeight: 800, color: '#fff', lineHeight: 1.2, marginBottom: 3 }}>
+                        {txt.title}
+                      </p>
+                      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>
+                        {txt.sub}
+                      </p>
+                    </div>
+
+                    {/* Flecha */}
+                    <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 18, flexShrink: 0 }}>›</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
+        </div>
+
+        {/* ── ACCIONES SECUNDARIAS ── */}
+        <div className="grid grid-cols-2 gap-2">
+          <Link to="/reportar-dano" className="no-underline flex items-center gap-3 px-3.5 py-3.5 rounded-2xl"
+            style={{ background: 'rgba(192,57,43,0.10)', border: '1px solid rgba(192,57,43,0.28)' }}>
+            <span style={{ fontSize: 18 }}>🚨</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#FCA5A5', lineHeight: 1.3 }}>
+              {es ? 'Reportar daño' : 'Report damage'}
+            </span>
+          </Link>
+          <Link to="/guia-plataforma" className="no-underline flex items-center gap-3 px-3.5 py-3.5 rounded-2xl"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)' }}>
+            <span style={{ fontSize: 18 }}>❓</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.65)', lineHeight: 1.3 }}>
+              {es ? 'Cómo usar la app' : 'How to use the app'}
+            </span>
+          </Link>
+          <Link to="/guia-edificios" className="no-underline flex items-center gap-3 px-3.5 py-3.5 rounded-2xl"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)' }}>
+            <span style={{ fontSize: 18 }}>📖</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.65)', lineHeight: 1.3 }}>
+              {es ? 'Guía edificios' : 'Building guide'}
+            </span>
+          </Link>
+          <Link to="/contactanos" className="no-underline flex items-center gap-3 px-3.5 py-3.5 rounded-2xl"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)' }}>
+            <span style={{ fontSize: 18 }}>✉️</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.65)', lineHeight: 1.3 }}>
+              {es ? 'Contáctanos' : 'Contact us'}
+            </span>
+          </Link>
         </div>
 
         {/* ── TELÉFONOS DE EMERGENCIA ── */}
