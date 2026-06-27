@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X, Image } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -19,67 +19,70 @@ function similitud(a, b) {
 }
 
 const DANO_CONFIG = {
-  leve:       { color: '#B7950B', bg: '#FEF9E7', border: '#F9E79F', label: { es: 'Daño leve',     en: 'Minor damage' },    icon: '🟡', acceso: { es: 'Entrada con precaución', en: 'Enter with caution' } },
-  moderado:   { color: '#CA6F1E', bg: '#FEF5E7', border: '#FDEBD0', label: { es: 'Daño moderado', en: 'Moderate damage' }, icon: '🟠', acceso: { es: 'Entrada limitada',       en: 'Limited entry' } },
-  grave:      { color: '#C0392B', bg: '#FDEDEC', border: '#F5B7B1', label: { es: 'Daño grave',     en: 'Severe damage' },   icon: '🔴', acceso: { es: 'NO ENTRAR',              en: 'DO NOT ENTER' } },
-  critico:    { color: '#922B21', bg: '#FDEDEC', border: '#E74C3C', label: { es: 'CRÍTICO',         en: 'CRITICAL' },        icon: '🚨', acceso: { es: 'NO ENTRAR — PELIGRO EXTREMO', en: 'DO NOT ENTER — EXTREME DANGER' } },
-  no_evaluado:{ color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', label: { es: 'Sin evaluar',    en: 'Not evaluated' },   icon: '⚪', acceso: { es: 'Precaución — sin verificar', en: 'Caution — unverified' } },
-  no_sabe:    { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', label: { es: 'Sin datos',      en: 'No data' },         icon: '⚪', acceso: { es: 'Sin información',         en: 'No information' } },
-  colapsado:  { color: '#4A0E0E', bg: '#FCECEC', border: '#DC3545', label: { es: 'COLAPSADO',      en: 'COLLAPSED' },       icon: '💥', acceso: { es: 'NO ENTRAR — COLAPSADO',     en: 'DO NOT ENTER — COLLAPSED' } },
+  leve:        { color: '#B7950B', bg: '#FEF9E7', border: '#F9E79F', cardBorder: '#D4AC0D', label: { es: 'Daño leve',     en: 'Minor damage'   }, icon: '🟡', acceso: { es: 'Entrada con precaución', en: 'Enter with caution' } },
+  moderado:    { color: '#CA6F1E', bg: '#FEF5E7', border: '#FDEBD0', cardBorder: '#E67E22', label: { es: 'Daño moderado', en: 'Moderate damage' }, icon: '🟠', acceso: { es: 'Entrada limitada',       en: 'Limited entry'      } },
+  grave:       { color: '#C0392B', bg: '#FDEDEC', border: '#F5B7B1', cardBorder: '#E74C3C', label: { es: 'Daño grave',    en: 'Severe damage'   }, icon: '🔴', acceso: { es: 'NO ENTRAR',              en: 'DO NOT ENTER'       } },
+  critico:     { color: '#922B21', bg: '#FDEDEC', border: '#E74C3C', cardBorder: '#922B21', label: { es: 'CRÍTICO',       en: 'CRITICAL'        }, icon: '🚨', acceso: { es: 'NO ENTRAR — PELIGRO',    en: 'DO NOT ENTER'       } },
+  no_evaluado: { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', cardBorder: '#BFC9CA', label: { es: 'Sin evaluar',   en: 'Not evaluated'   }, icon: '⚪', acceso: { es: 'Sin verificar',          en: 'Unverified'         } },
+  no_sabe:     { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', cardBorder: '#BFC9CA', label: { es: 'Sin datos',     en: 'No data'         }, icon: '⚪', acceso: { es: 'Sin información',        en: 'No information'     } },
+  colapsado:   { color: '#4A0E0E', bg: '#FCECEC', border: '#DC3545', cardBorder: '#4A0E0E', label: { es: 'COLAPSADO',     en: 'COLLAPSED'       }, icon: '💥', acceso: { es: 'NO ENTRAR — COLAPSADO',  en: 'DO NOT ENTER'       } },
 };
 
 const TIPO_OPTS = [
-  { val: 'edificio_residencial', es: '🏠 Edificio residencial',  en: '🏠 Residential building' },
-  { val: 'hospital',             es: '🏥 Hospital / CDI',         en: '🏥 Hospital / Clinic' },
-  { val: 'escuela',              es: '🏫 Escuela / Liceo',        en: '🏫 School' },
-  { val: 'iglesia',              es: '⛪ Iglesia',                en: '⛪ Church' },
-  { val: 'comercio',             es: '🏪 Comercio',              en: '🏪 Business' },
-  { val: 'calle_via',            es: '🛣️ Calle / Vía',           en: '🛣️ Street / Road' },
-  { val: 'puente',               es: '🌉 Puente',                 en: '🌉 Bridge' },
-  { val: 'servicio_publico',     es: '🔌 Servicio público',      en: '🔌 Public utility' },
-  { val: 'otro',                 es: '📋 Otro',                  en: '📋 Other' },
+  { val: 'edificio_residencial', es: '🏠 Edificio residencial', en: '🏠 Residential building' },
+  { val: 'hospital',             es: '🏥 Hospital / CDI',        en: '🏥 Hospital / Clinic'    },
+  { val: 'escuela',              es: '🏫 Escuela / Liceo',       en: '🏫 School'               },
+  { val: 'iglesia',              es: '⛪ Iglesia',               en: '⛪ Church'               },
+  { val: 'comercio',             es: '🏪 Comercio',             en: '🏪 Business'             },
+  { val: 'calle_via',            es: '🛣️ Calle / Vía',          en: '🛣️ Street / Road'        },
+  { val: 'puente',               es: '🌉 Puente',                en: '🌉 Bridge'               },
+  { val: 'servicio_publico',     es: '🔌 Servicio público',     en: '🔌 Public utility'       },
+  { val: 'otro',                 es: '📋 Otro',                 en: '📋 Other'                },
 ];
 const NIVEL_OPTS = [
-  { val: 'leve',     es: 'Leve — grietas pequeñas, estructura firme',    en: 'Minor — small cracks, structure firm' },
-  { val: 'moderado', es: 'Moderado — paredes o piso dañados',            en: 'Moderate — walls or floor damaged' },
-  { val: 'grave',    es: 'Grave — parte colapsó o riesgo alto',          en: 'Severe — partial collapse or high risk' },
-  { val: 'critico',  es: 'Crítico — colapso total o personas atrapadas', en: 'Critical — total collapse or trapped' },
-  { val: 'no_sabe',  es: 'No sé / No pude evaluar',                      en: "Don't know / Can't evaluate" },
-  { val: 'colapsado',es: '💥 Colapsado — estructura derrumbada',            en: '💥 Collapsed — structure down' },
+  { val: 'leve',      es: 'Leve — grietas pequeñas, estructura firme',    en: 'Minor — small cracks, structure firm'    },
+  { val: 'moderado',  es: 'Moderado — paredes o piso dañados',            en: 'Moderate — walls or floor damaged'       },
+  { val: 'grave',     es: 'Grave — parte colapsó o riesgo alto',          en: 'Severe — partial collapse or high risk'  },
+  { val: 'critico',   es: 'Crítico — colapso total o personas atrapadas', en: 'Critical — total collapse or trapped'    },
+  { val: 'no_sabe',   es: 'No sé / No pude evaluar',                      en: "Don't know / Can't evaluate"             },
+  { val: 'colapsado', es: '💥 Colapsado — estructura derrumbada',         en: '💥 Collapsed — structure down'           },
 ];
 const ATRAPADOS_OPTS = [
-  { val: 'si',        es: '🚨 Sí, confirmado',                    en: '🚨 Yes, confirmed' },
-  { val: 'voces',     es: '👂 Se escuchan voces o golpes',         en: '👂 Voices or knocking heard' },
-  { val: 'familiares',es: '👨‍👩‍👧 Familiares dicen que hay alguien',  en: '👨‍👩‍👧 Family says someone is inside' },
-  { val: 'no',        es: '✅ No',                                 en: '✅ No' },
-  { val: 'no_sabe',   es: '❓ No se sabe',                        en: '❓ Unknown' },
+  { val: 'si',         es: '🚨 Sí, confirmado',                   en: '🚨 Yes, confirmed'              },
+  { val: 'voces',      es: '👂 Se escuchan voces o golpes',        en: '👂 Voices or knocking heard'    },
+  { val: 'familiares', es: '👨‍👩‍👧 Familiares dicen que hay alguien', en: '👨‍👩‍👧 Family says someone is inside' },
+  { val: 'no',         es: '✅ No',                                en: '✅ No'                          },
+  { val: 'no_sabe',    es: '❓ No se sabe',                       en: '❓ Unknown'                     },
 ];
 
 const PERSONA_ESTADO = {
-  buscando:             { es: 'Buscando',          en: 'Searching',        cls: 'bg-yellow-100 text-yellow-800' },
-  informacion_recibida: { es: 'Info recibida',     en: 'Info received',    cls: 'bg-blue-100 text-blue-700' },
-  visto_no_confirmado:  { es: 'Visto sin confirmar', en: 'Seen unconfirmed', cls: 'bg-orange-100 text-orange-700' },
-  encontrado_con_vida:  { es: 'Encontrado ✅',     en: 'Found alive ✅',   cls: 'bg-green-100 text-green-800' },
-  en_hospital_refugio:  { es: 'Hospital/refugio',  en: 'Hospital/Shelter', cls: 'bg-teal-100 text-teal-800' },
-  fallecido_reportado:  { es: 'Fallecimiento reportado', en: 'Death reported', cls: 'bg-gray-200 text-gray-700' },
+  buscando:             { es: 'Buscando',            en: 'Searching',       cls: 'bg-yellow-100 text-yellow-800' },
+  informacion_recibida: { es: 'Info recibida',       en: 'Info received',   cls: 'bg-blue-100 text-blue-700'    },
+  visto_no_confirmado:  { es: 'Visto sin confirmar', en: 'Seen unconfirmed',cls: 'bg-orange-100 text-orange-700'},
+  encontrado_con_vida:  { es: 'Encontrado ✅',       en: 'Found alive ✅',  cls: 'bg-green-100 text-green-800'  },
+  en_hospital_refugio:  { es: 'Hospital/refugio',    en: 'Hospital/Shelter',cls: 'bg-teal-100 text-teal-800'   },
+  fallecido_reportado:  { es: 'Fallecimiento rep.',  en: 'Death reported',  cls: 'bg-gray-200 text-gray-700'   },
 };
 
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 placeholder-gray-400";
 const MAX_FOTOS = 5;
-const MAX_FOTOS_INFRA = 5;
-const MAX_FOTOS_REFUGIO = 3;
+
+// ── Orden de prioridad para sorting ──
+const PRIORIDAD_SORT = { critico: 0, colapsado: 1, grave: 2, moderado: 3, leve: 4, no_evaluado: 5, no_sabe: 6 };
 
 export default function Edificios() {
   const { lang } = useLang();
   const es = lang === 'es';
+  const pt = lang === 'pt';
   const params = new URLSearchParams(window.location.search);
-  const initialTab = params.get('tab') || (params.get('modo') === 'request' ? 'solicitar' : 'consultar');
-  const [tab, setTab] = useState(initialTab); // 'directorio' | 'consultar' | 'reportar' | 'solicitar'
+  const initialTab = params.get('tab') || (params.get('modo') === 'request' ? 'solicitar' : 'directorio');
+  const [tab, setTab] = useState(initialTab);
 
   // ── DIRECTORIO ──
   const [todos, setTodos] = useState([]);
   const [cargandoDir, setCargandoDir] = useState(true);
   const [filtroDir, setFiltroDir] = useState('');
+  const [filtroRapido, setFiltroRapido] = useState('todos'); // 'todos' | 'criticos' | 'atrapados' | 'sin_verificar'
   const [pageDir, setPageDir] = useState(12);
 
   // ── PERSONAS ──
@@ -89,17 +92,21 @@ export default function Edificios() {
   const [filtroPer, setFiltroPer] = useState('');
   const [pagePer, setPagePer] = useState(8);
 
+  // ── SOLICITUDES PENDIENTES ──
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [cargandoSols, setCargandoSols] = useState(true);
+
   useEffect(() => {
     base44.entities.ReportesDano.list('-created_date', 200)
-      .then(d => setTodos(d))
+      .then(d => setTodos(d || []))
       .catch(() => {})
       .finally(() => setCargandoDir(false));
     Promise.all([
       base44.entities.PersonasBuscadas.list('-created_date', 100),
       base44.entities.PersonasEncontradas.list('-created_date', 50),
     ]).then(([b, e]) => {
-      setPersonas(b.filter(p => p.estado_caso !== 'caso_cerrado'));
-      setEncontrados(e);
+      setPersonas((b || []).filter(p => p.estado_caso !== 'caso_cerrado'));
+      setEncontrados(e || []);
     }).catch(() => {}).finally(() => setCargandoPer(false));
     base44.entities.SolicitudesInfoEdificio.filter({ estado_solicitud: 'pendiente' }, '-created_date', 10)
       .then(sols => { if (sols) setSolicitudes(sols.filter(s => s.nombre_lugar && !s.reporte_encontrado_id)); })
@@ -114,24 +121,15 @@ export default function Edificios() {
 
   // ── SUSCRIPCIÓN ──
   const [subEmail, setSubEmail] = useState('');
-  const [subPara, setSubPara] = useState(null); // { id, nombre }
+  const [subPara, setSubPara] = useState(null);
   const [subEnviando, setSubEnviando] = useState(false);
   const [subOk, setSubOk] = useState(false);
 
-  // ── SOLICITUDES PENDIENTES ──
-  const [solicitudes, setSolicitudes] = useState([]);
-  const [cargandoSols, setCargandoSols] = useState(true);
-
-  const suscribirse = async (reporteId, nombre) => {
+  const suscribirse = async (reporteId) => {
     if (!subEmail.trim()) return;
     setSubEnviando(true);
     try {
-      await base44.entities.SuscriptoresSeguimiento.create({
-        reporte_id: reporteId,
-        tipo_reporte: 'dano',
-        telefono_whatsapp: subEmail.trim(),
-        activo: true,
-      });
+      await base44.entities.SuscriptoresSeguimiento.create({ reporte_id: reporteId, tipo_reporte: 'dano', telefono_whatsapp: subEmail.trim(), activo: true });
       setSubOk(true);
       setTimeout(() => setSubOk(false), 3000);
     } catch {}
@@ -150,7 +148,7 @@ export default function Edificios() {
         const ciudad = normalizar(r.ciudad || '');
         const nombre = normalizar(r.nombre_lugar || '');
         return similitud(q, dir) > 0.4 || similitud(q, ciudad) > 0.6 || similitud(q, nombre) > 0.5 || dir.includes(q) || ciudad.includes(q) || nombre.includes(q);
-      }).sort((a, b) => ({ critico: 0, grave: 1, moderado: 2, leve: 3, no_evaluado: 4 }[a.nivel_dano] ?? 4) - ({ critico: 0, grave: 1, moderado: 2, leve: 3, no_evaluado: 4 }[b.nivel_dano] ?? 4));
+      }).sort((a, b) => (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5));
       setResultados(enc);
     } catch {}
     setBuscando(false); setBuscado(true);
@@ -168,13 +166,10 @@ export default function Edificios() {
   const [ciudad, setCiudad] = useState('');
   const [estado, setEstado] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  // Contacto del reportante
   const [repNombre, setRepNombre] = useState('');
   const [repTelefono, setRepTelefono] = useState('');
   const [repEmail, setRepEmail] = useState('');
-  const [repRedSocial, setRepRedSocial] = useState('');
-  const [fotos, setFotos] = useState([]); // [{url, uploading, error}]
-
+  const [fotos, setFotos] = useState([]);
   const [posiblesDups, setPosiblesDups] = useState([]);
   const [checkDup, setCheckDup] = useState(false);
   const [buscandoDup, setBuscandoDup] = useState(false);
@@ -208,8 +203,7 @@ export default function Edificios() {
   };
 
   const handleFotoInput = (e) => {
-    const files = Array.from(e.target.files || []).slice(0, MAX_FOTOS - fotos.length);
-    files.forEach(subirFoto);
+    Array.from(e.target.files || []).slice(0, MAX_FOTOS - fotos.length).forEach(subirFoto);
     e.target.value = '';
   };
 
@@ -219,7 +213,7 @@ export default function Edificios() {
     setTipo(''); setNombreLugar(''); setNivel(''); setAtrapados('');
     setRiesgoGas(false); setRiesgoElec(false); setRiesgoIncendio(false);
     setDireccion(''); setCiudad(''); setEstado(''); setDescripcion('');
-    setRepNombre(''); setRepTelefono(''); setRepEmail(''); setRepRedSocial('');
+    setRepNombre(''); setRepTelefono(''); setRepEmail('');
     setFotos([]); setCheckDup(false); setDecisionDup(null); setPosiblesDups([]);
   };
 
@@ -232,10 +226,8 @@ export default function Edificios() {
         tipo_estructura: tipo || 'otro', nombre_lugar: nombreLugar,
         nivel_dano: nivel || 'no_evaluado', personas_atrapadas: atrapados || 'no_sabe',
         riesgo_gas: riesgoGas, riesgo_electrico: riesgoElec, riesgo_incendio: riesgoIncendio,
-        direccion, ciudad, estado_region: estado, descripcion,
-        foto_urls, prioridad,
-        reportante_nombre: repNombre,
-        reportante_telefono: repTelefono,
+        direccion, ciudad, estado_region: estado, descripcion, foto_urls, prioridad,
+        reportante_nombre: repNombre, reportante_telefono: repTelefono,
         estado_verificacion: 'recibido', nivel_verificacion: 'sin_verificar', fuente: 'ciudadano',
       });
       setTodos(prev => [nuevo, ...prev]);
@@ -246,50 +238,66 @@ export default function Edificios() {
 
   const cfg = (d) => DANO_CONFIG[d] || DANO_CONFIG.no_evaluado;
 
-  // Filtros
-  const dirFiltrados = todos.filter(r => {
+  // ── Filtros directorio ──
+  const criticos = todos.filter(r => ['critico', 'colapsado', 'grave'].includes(r.nivel_dano));
+  const conAtrapados = todos.filter(r => ['si', 'voces'].includes(r.personas_atrapadas));
+  const sinVerificar = todos.filter(r => r.nivel_verificacion === 'sin_verificar' || !r.nivel_verificacion);
+
+  const dirBase = todos.filter(r => {
     if (!filtroDir.trim()) return true;
     const q = filtroDir.toLowerCase();
     return (r.direccion || '').toLowerCase().includes(q) || (r.ciudad || '').toLowerCase().includes(q) || (r.nombre_lugar || '').toLowerCase().includes(q);
   });
+  const dirFiltrados = dirBase.filter(r => {
+    if (filtroRapido === 'criticos') return ['critico', 'colapsado', 'grave'].includes(r.nivel_dano);
+    if (filtroRapido === 'atrapados') return ['si', 'voces'].includes(r.personas_atrapadas);
+    if (filtroRapido === 'sin_verificar') return r.nivel_verificacion === 'sin_verificar' || !r.nivel_verificacion;
+    return true;
+  }).sort((a, b) => (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5));
+
   const perFiltradas = [...personas, ...encontrados].filter(p => {
     if (!filtroPer.trim()) return true;
     const q = filtroPer.toLowerCase();
     return (p.nombre_completo || p.nombre_o_descripcion || '').toLowerCase().includes(q) || (p.ciudad || '').toLowerCase().includes(q);
   });
 
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopBar />
 
-      <div className="flex-1 w-full max-w-6xl mx-auto px-4 py-6">
+      <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">
+        {/* Encabezado */}
         <div className="mb-4">
           <Link to="/" className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700 mb-2">
-            <ChevronLeft size={15} /> {es ? 'Inicio' : 'Home'}
+            <ChevronLeft size={15} /> {t('Inicio', 'Home', 'Início')}
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">🏗️ {es ? 'Edificios y estructuras' : 'Buildings & structures'}</h1>
-          <p className="text-sm text-gray-500 mt-1">{es ? 'Directorio de edificios reportados · Consulta y reporta daños.' : 'Directory of reported buildings · Check and report damage.'}</p>
+          <h1 className="text-xl font-bold text-gray-900">🏗️ {t('Edificios y estructuras', 'Buildings & structures', 'Edifícios e estruturas')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('Directorio de edificios reportados · Consulta y reporta daños.', 'Directory of reported buildings · Check and report damage.', 'Diretório de edifícios reportados · Consulte e reporte danos.')}</p>
         </div>
 
         {/* Alerta */}
         <div className="flex gap-3 bg-red-50 border border-red-200 rounded-xl p-3 mb-5">
           <AlertTriangle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-red-800 font-medium leading-relaxed">
-            {es ? 'No entres a estructuras dañadas. Si hay grietas graves, gas, cables o atrapados — llama a Protección Civil (171) o Bomberos.' : 'Do not enter damaged structures. If there are cracks, gas, wires or trapped people — call Civil Protection (171) or Firefighters.'}
+            {t('No entres a estructuras dañadas. Si hay grietas graves, gas, cables o atrapados — llama a Protección Civil (171) o Bomberos.',
+               'Do not enter damaged structures. If there are cracks, gas, wires or trapped people — call Civil Protection (171) or Firefighters.',
+               'Não entre em estruturas danificadas. Se houver rachaduras graves, gás, fios ou pessoas presas — ligue para Proteção Civil (171) ou Bombeiros.')}
           </p>
         </div>
 
         {/* Tabs */}
         <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
           {[
-            { key: 'directorio', label: { es: '📋 Directorio',       en: '📋 Directory' } },
-            { key: 'consultar',  label: { es: '🔍 Buscar edificio',   en: '🔍 Search building' } },
-            { key: 'reportar',   label: { es: '🚨 Reportar daño',     en: '🚨 Report damage' } },
-            { key: 'solicitar',  label: { es: '📋 Solicitar info',    en: '📋 Request info' } },
-          ].map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors cursor-pointer ${tab === t.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
-              {es ? t.label.es : t.label.en}
+            { key: 'directorio', label: t('📋 Directorio', '📋 Directory', '📋 Diretório') },
+            { key: 'consultar',  label: t('🔍 Buscar',    '🔍 Search',    '🔍 Buscar')    },
+            { key: 'reportar',   label: t('🚨 Reportar',  '🚨 Report',    '🚨 Reportar')  },
+            { key: 'solicitar',  label: t('📋 Solicitar', '📋 Request',   '📋 Solicitar') },
+          ].map(tb => (
+            <button key={tb.key} onClick={() => setTab(tb.key)}
+              className={`px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors cursor-pointer ${tab === tb.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
+              {tb.label}
             </button>
           ))}
         </div>
@@ -297,63 +305,129 @@ export default function Edificios() {
         {/* ── DIRECTORIO ── */}
         {tab === 'directorio' && (
           <div>
-            <div className="flex flex-col sm:flex-row gap-3 mb-4 items-start sm:items-center justify-between">
+            {/* Barra búsqueda + botón reportar */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <input value={filtroDir} onChange={e => { setFiltroDir(e.target.value); setPageDir(12); }}
-                placeholder={es ? 'Buscar por nombre, dirección, ciudad...' : 'Search by name, address, city...'}
+                placeholder={t('Buscar por nombre, dirección, ciudad...', 'Search by name, address, city...', 'Buscar por nome, endereço, cidade...')}
                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-blue-400 placeholder-gray-400" />
               <button onClick={() => setTab('reportar')} className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer whitespace-nowrap flex-shrink-0">
-                + {es ? 'Reportar daño' : 'Report damage'}
+                + {t('Reportar daño', 'Report damage', 'Reportar dano')}
               </button>
             </div>
 
+            {/* Chips de filtro rápido con contadores */}
+            <div className="flex gap-2 flex-wrap mb-4">
+              {[
+                { key: 'todos',        label: t(`Todos (${todos.length})`, `All (${todos.length})`, `Todos (${todos.length})`), color: 'gray' },
+                { key: 'criticos',     label: t(`🚨 Críticos (${criticos.length})`, `🚨 Critical (${criticos.length})`, `🚨 Críticos (${criticos.length})`), color: 'red' },
+                { key: 'atrapados',    label: t(`🆘 Atrapados (${conAtrapados.length})`, `🆘 Trapped (${conAtrapados.length})`, `🆘 Presos (${conAtrapados.length})`), color: 'orange' },
+                { key: 'sin_verificar',label: t(`⚪ Sin verificar (${sinVerificar.length})`, `⚪ Unverified (${sinVerificar.length})`, `⚪ Sem verificar (${sinVerificar.length})`), color: 'gray' },
+              ].map(chip => {
+                const active = filtroRapido === chip.key;
+                const colorMap = {
+                  red:    active ? 'bg-red-600 text-white border-red-600'         : 'bg-white text-red-600 border-red-300',
+                  orange: active ? 'bg-orange-600 text-white border-orange-600'   : 'bg-white text-orange-700 border-orange-300',
+                  gray:   active ? 'bg-gray-800 text-white border-gray-800'       : 'bg-white text-gray-600 border-gray-300',
+                };
+                return (
+                  <button key={chip.key} onClick={() => { setFiltroRapido(chip.key); setPageDir(12); }}
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border cursor-pointer transition-colors whitespace-nowrap ${colorMap[chip.color]}`}>
+                    {chip.label}
+                  </button>
+                );
+              })}
+            </div>
+
             {cargandoDir ? (
-              <div className="text-center py-10 text-gray-400 text-sm">{es ? 'Cargando...' : 'Loading...'}</div>
+              <div className="text-center py-10 text-gray-400 text-sm flex flex-col items-center gap-2">
+                <Loader2 size={20} className="animate-spin" />
+                {t('Cargando directorio...', 'Loading directory...', 'Carregando diretório...')}
+              </div>
             ) : dirFiltrados.length === 0 ? (
-              <div className="text-center py-10 text-gray-400 text-sm">
-                <p>{es ? 'Sin reportes aún.' : 'No reports yet.'}</p>
-                <button onClick={() => setTab('reportar')} className="text-blue-600 underline text-sm mt-2 cursor-pointer">{es ? 'Ser el primero en reportar →' : 'Be the first to report →'}</button>
+              <div className="text-center py-10 text-gray-400 text-sm bg-white border border-gray-200 rounded-xl">
+                <p className="text-2xl mb-2">🏗️</p>
+                <p>{t('Sin reportes para este filtro.', 'No reports for this filter.', 'Sem relatórios para este filtro.')}</p>
+                <button onClick={() => setTab('reportar')} className="text-blue-600 underline text-sm mt-2 cursor-pointer">
+                  {t('Ser el primero en reportar →', 'Be the first to report →', 'Seja o primeiro a reportar →')}
+                </button>
               </div>
             ) : (
               <>
-                <p className="text-xs text-gray-400 mb-3">{dirFiltrados.length} {es ? 'edificio(s) reportado(s)' : 'reported building(s)'}</p>
+                <p className="text-xs text-gray-400 mb-3">
+                  {dirFiltrados.length} {t('edificio(s) · ordenados por prioridad', 'building(s) · sorted by priority', 'edifício(s) · ordenados por prioridade')}
+                </p>
 
-                {/* Vista Grid */}
+                {/* Grid con borde de color por nivel de daño */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
                   {dirFiltrados.slice(0, pageDir).map(r => {
                     const c = cfg(r.nivel_dano);
                     const noEntrar = ['grave', 'critico', 'colapsado'].includes(r.nivel_dano);
-                    const esCritico = noEntrar || r.prioridad === 'critica';
-                    const tieneFotos = r.foto_urls?.length > 0;
+                    const esCrit = noEntrar || r.prioridad === 'critica';
                     return (
-                      <Link key={r.id} to={`/edificio?id=${r.id}`} className="bg-white border border-gray-200 rounded-xl overflow-hidden no-underline hover:shadow-md transition-shadow flex flex-col">
-                        {tieneFotos ? (
-                          <img src={r.foto_urls[0]} alt="" className="w-full h-32 object-cover" loading="lazy" />
+                      <Link key={r.id} to={`/edificio?id=${r.id}`}
+                        className="bg-white rounded-xl overflow-hidden no-underline hover:shadow-md transition-shadow flex flex-col"
+                        style={{ border: `2px solid ${esCrit ? c.cardBorder : '#E5E7EB'}` }}>
+                        {/* Foto o placeholder de color */}
+                        {r.foto_urls?.length > 0 ? (
+                          <div className="relative">
+                            <img src={r.foto_urls[0]} alt="" className="w-full h-28 object-cover" loading="lazy" />
+                            {r.foto_urls.length > 1 && (
+                              <span className="absolute bottom-1 right-1 text-[9px] bg-black/60 text-white px-1.5 py-0.5 rounded-full">
+                                +{r.foto_urls.length - 1}📷
+                              </span>
+                            )}
+                          </div>
                         ) : (
-                          <div className="w-full h-32 flex items-center justify-center" style={{ background: c.bg }}>
-                            <span className="text-4xl">{c.icon}</span>
+                          <div className="w-full h-28 flex flex-col items-center justify-center gap-1" style={{ background: c.bg }}>
+                            <span className="text-3xl">{c.icon}</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: c.color }}>
+                              {t(c.label.es, c.label.en, c.label.es)}
+                            </span>
                           </div>
                         )}
+
                         <div className="p-3 flex-1 flex flex-col gap-1">
-                          {esCritico && (
+                          {/* Badge NO ENTRAR */}
+                          {esCrit && (
                             <span className="self-start text-[9px] font-black text-white bg-red-600 px-1.5 py-0.5 rounded">
-                              🚫 {es ? 'NO ENTRAR' : 'DO NOT ENTER'}
+                              🚫 {t('NO ENTRAR', 'DO NOT ENTER', 'NÃO ENTRAR')}
                             </span>
                           )}
-                          <p className="text-xs font-bold text-gray-900 leading-tight line-clamp-2">{r.nombre_lugar || r.tipo_estructura || (es ? 'Sin nombre' : 'Unnamed')}</p>
-                          <p className="text-[10px] text-gray-400 truncate">📍 {[r.direccion, r.ciudad].filter(Boolean).join(' · ')}</p>
-                          <span className="self-start text-[10px] font-semibold px-2 py-0.5 rounded-full border mt-auto" style={{ color: c.color, borderColor: c.border, background: c.bg }}>
-                            {c.icon} {es ? c.label.es : c.label.en}
+
+                          {/* Nombre */}
+                          <p className="text-xs font-bold text-gray-900 leading-tight line-clamp-2">
+                            {r.nombre_lugar || r.tipo_estructura?.replace(/_/g, ' ') || t('Sin nombre', 'Unnamed', 'Sem nome')}
+                          </p>
+
+                          {/* Tipo de estructura */}
+                          {r.tipo_estructura && (
+                            <p className="text-[10px] text-gray-400 truncate capitalize">{r.tipo_estructura.replace(/_/g, ' ')}</p>
+                          )}
+
+                          {/* Ubicación */}
+                          <p className="text-[10px] text-gray-400 truncate">📍 {[r.direccion, r.ciudad].filter(Boolean).join(' · ') || '—'}</p>
+
+                          {/* Badge nivel daño */}
+                          <span className="self-start text-[10px] font-semibold px-2 py-0.5 rounded-full border mt-auto"
+                            style={{ color: c.color, borderColor: c.border, background: c.bg }}>
+                            {c.icon} {t(c.label.es, c.label.en, c.label.es)}
                           </span>
-                          {(r.riesgo_gas || r.riesgo_electrico || r.riesgo_incendio || r.personas_atrapadas === 'si') && (
+
+                          {/* Íconos de riesgo */}
+                          {(r.riesgo_gas || r.riesgo_electrico || r.riesgo_incendio || r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces') && (
                             <div className="flex flex-wrap gap-0.5 mt-0.5">
-                              {r.personas_atrapadas === 'si' && <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full">🆘</span>}
-                              {r.riesgo_gas && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full">💨</span>}
+                              {(r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces') && (
+                                <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full font-bold">🆘</span>
+                              )}
+                              {r.riesgo_gas      && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full">💨</span>}
                               {r.riesgo_electrico && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded-full">⚡</span>}
-                              {r.riesgo_incendio && <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full">🔥</span>}
+                              {r.riesgo_incendio  && <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full">🔥</span>}
                             </div>
                           )}
-                          {r.foto_urls?.length > 1 && (
-                            <p className="text-[9px] text-gray-300">+{r.foto_urls.length - 1} {es ? 'fotos' : 'photos'}</p>
+
+                          {/* Verificación */}
+                          {r.nivel_verificacion === 'institucional' && (
+                            <span className="text-[9px] text-teal-700 font-semibold">🛡️ {t('Verificado', 'Verified', 'Verificado')}</span>
                           )}
                         </div>
                       </Link>
@@ -362,21 +436,22 @@ export default function Edificios() {
                 </div>
 
                 {dirFiltrados.length > pageDir && (
-                  <button onClick={() => setPageDir(v => v + 12)} className="w-full py-2.5 text-sm text-blue-700 border border-blue-200 bg-white rounded-xl cursor-pointer hover:bg-blue-50">
-                    {es ? `Ver ${Math.min(12, dirFiltrados.length - pageDir)} más` : `Load ${Math.min(12, dirFiltrados.length - pageDir)} more`}
+                  <button onClick={() => setPageDir(v => v + 12)}
+                    className="w-full py-3 text-sm text-blue-700 border border-blue-200 bg-white rounded-xl cursor-pointer hover:bg-blue-50">
+                    {t(`Ver ${Math.min(12, dirFiltrados.length - pageDir)} más`, `Load ${Math.min(12, dirFiltrados.length - pageDir)} more`, `Ver ${Math.min(12, dirFiltrados.length - pageDir)} mais`)}
                   </button>
                 )}
               </>
             )}
 
-            {/* ── SOLICITUDES PENDIENTES — ¿conoces estos edificios? ── */}
+            {/* Solicitudes pendientes */}
             {!cargandoSols && solicitudes.length > 0 && (
-              <div className="mb-8">
+              <div className="mt-8 mb-6">
                 <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl p-3 mb-3">
                   <span className="text-base">🧑‍🤝‍🧑</span>
                   <div>
-                    <p className="text-xs font-bold text-purple-800">{es ? 'Vecinos están buscando información' : 'Neighbors are looking for information'}</p>
-                    <p className="text-[11px] text-purple-600">{es ? '¿Conoces alguno? Tu información ayuda a la comunidad.' : 'Do you know any of them? Your info helps the community.'}</p>
+                    <p className="text-xs font-bold text-purple-800">{t('Vecinos están buscando información', 'Neighbors are looking for information', 'Vizinhos buscam informações')}</p>
+                    <p className="text-[11px] text-purple-600">{t('¿Conoces alguno? Tu información ayuda a la comunidad.', 'Do you know any? Your info helps the community.', 'Você conhece algum? Sua informação ajuda a comunidade.')}</p>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -385,113 +460,109 @@ export default function Edificios() {
                       className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 no-underline hover:bg-amber-100 transition-colors gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-gray-900 truncate">{s.nombre_lugar}</p>
-                        <p className="text-xs text-gray-500 truncate">📍 {s.direccion || (es ? 'Sin dirección' : 'No address')} · {s.ciudad}{s.estado_region ? `, ${s.estado_region}` : ''}</p>
+                        <p className="text-xs text-gray-500 truncate">📍 {s.direccion || t('Sin dirección', 'No address', 'Sem endereço')} · {s.ciudad}</p>
                       </div>
-                      <span className="text-xs font-semibold bg-purple-700 text-white px-3 py-1.5 rounded-lg flex-shrink-0">{es ? 'Tengo información →' : 'I have info →'}</span>
+                      <span className="text-xs font-semibold bg-purple-700 text-white px-3 py-1.5 rounded-lg flex-shrink-0">
+                        {t('Tengo info →', 'I have info →', 'Tenho info →')}
+                      </span>
                     </Link>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* ── TABLA DE PERSONAS — siempre visible ── */}
-                <div className="mt-8">
-                  <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                    <h2 className="text-base font-bold text-gray-800">👤 {es ? 'Personas buscadas y encontradas' : 'Missing & Found people'}</h2>
-                    <input value={filtroPer} onChange={e => { setFiltroPer(e.target.value); setPagePer(8); }}
-                      placeholder={es ? 'Filtrar por nombre, ciudad...' : 'Filter by name, city...'}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400 placeholder-gray-400 w-full sm:w-64" />
-                  </div>
-
-                  {cargandoPer ? (
-                    <div className="text-center py-6 text-gray-400 text-sm">{es ? 'Cargando...' : 'Loading...'}</div>
-                  ) : (
-                    <>
-                      {/* Tabla desktop */}
-                      <div className="hidden sm:block bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
-                        <table className="w-full text-sm">
-                          <thead className="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{es ? 'Nombre' : 'Name'}</th>
-                              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{es ? 'Edad' : 'Age'}</th>
-                              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{es ? 'Última ubicación' : 'Last location'}</th>
-                              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{es ? 'Estado' : 'Status'}</th>
-                              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{es ? 'Tipo' : 'Type'}</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {perFiltradas.slice(0, pagePer).map(p => {
-                              const esBuscada = !!p.nombre_completo;
-                              const nombre = p.nombre_completo || p.nombre_o_descripcion || '—';
-                              const estado_caso = p.estado_caso || p.condicion;
-                              const st = PERSONA_ESTADO[estado_caso] || { es: estado_caso || '—', en: estado_caso || '—', cls: 'bg-gray-100 text-gray-600' };
-                              return (
-                                <tr key={p.id} className="hover:bg-gray-50">
-                                  <td className="px-4 py-3">
-                                    <p className="font-semibold text-gray-900 text-xs">{nombre}</p>
-                                    {p.sexo && <p className="text-[10px] text-gray-400">{p.sexo}</p>}
-                                  </td>
-                                  <td className="px-4 py-3 text-xs text-gray-600">{p.edad_aprox || '—'}</td>
-                                  <td className="px-4 py-3 text-xs text-gray-600">
-                                    <p>{p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'}</p>
-                                    <p className="text-gray-400">{p.ciudad}{p.estado_region ? `, ${p.estado_region}` : ''}</p>
-                                  </td>
-                                  <td className="px-4 py-3">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span>
-                                  </td>
-                                  <td className="px-4 py-3">
-                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                                      {esBuscada ? (es ? 'Buscada' : 'Missing') : (es ? 'Encontrada' : 'Found')}
-                                    </span>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* Cards mobile */}
-                      <div className="sm:hidden space-y-2 mb-4">
+            {/* Tabla de personas */}
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h2 className="text-base font-bold text-gray-800">👤 {t('Personas buscadas y encontradas', 'Missing & Found people', 'Pessoas procuradas e encontradas')}</h2>
+                <input value={filtroPer} onChange={e => { setFiltroPer(e.target.value); setPagePer(8); }}
+                  placeholder={t('Filtrar por nombre, ciudad...', 'Filter by name, city...', 'Filtrar por nome, cidade...')}
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400 placeholder-gray-400 w-full sm:w-64" />
+              </div>
+              {cargandoPer ? (
+                <div className="text-center py-6 text-gray-400 text-sm">{t('Cargando...', 'Loading...', 'Carregando...')}</div>
+              ) : (
+                <>
+                  <div className="hidden sm:block bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('Nombre', 'Name', 'Nome')}</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('Edad', 'Age', 'Idade')}</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('Última ubicación', 'Last location', 'Última localização')}</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('Estado', 'Status', 'Estado')}</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('Tipo', 'Type', 'Tipo')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
                         {perFiltradas.slice(0, pagePer).map(p => {
                           const esBuscada = !!p.nombre_completo;
                           const nombre = p.nombre_completo || p.nombre_o_descripcion || '—';
                           const estado_caso = p.estado_caso || p.condicion;
                           const st = PERSONA_ESTADO[estado_caso] || { es: estado_caso || '—', en: estado_caso || '—', cls: 'bg-gray-100 text-gray-600' };
                           return (
-                            <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-2">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-gray-900 truncate">{nombre}</p>
-                                <p className="text-xs text-gray-400 truncate">📍 {p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'} · {p.ciudad}</p>
-                              </div>
-                              <div className="flex flex-col items-end gap-1">
+                            <tr key={p.id} className="hover:bg-gray-50">
+                              <td className="px-4 py-3">
+                                <p className="font-semibold text-gray-900 text-xs">{nombre}</p>
+                                {p.sexo && <p className="text-[10px] text-gray-400">{p.sexo}</p>}
+                              </td>
+                              <td className="px-4 py-3 text-xs text-gray-600">{p.edad_aprox || '—'}</td>
+                              <td className="px-4 py-3 text-xs text-gray-600">
+                                <p>{p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'}</p>
+                                <p className="text-gray-400">{p.ciudad}{p.estado_region ? `, ${p.estado_region}` : ''}</p>
+                              </td>
+                              <td className="px-4 py-3">
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span>
-                                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                                  {esBuscada ? (es ? 'Buscada' : 'Missing') : (es ? 'Encontrada' : 'Found')}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                                  {esBuscada ? t('Buscada', 'Missing', 'Procurada') : t('Encontrada', 'Found', 'Encontrada')}
                                 </span>
-                              </div>
-                            </div>
+                              </td>
+                            </tr>
                           );
                         })}
-                      </div>
-
-                      {perFiltradas.length > pagePer && (
-                        <button onClick={() => setPagePer(v => v + 8)} className="w-full py-2.5 text-sm text-blue-700 border border-blue-200 bg-white rounded-xl cursor-pointer hover:bg-blue-50">
-                          {es ? `Ver ${Math.min(8, perFiltradas.length - pagePer)} más` : `Load ${Math.min(8, perFiltradas.length - pagePer)} more`}
-                        </button>
-                      )}
-
-                      <div className="flex gap-3 mt-3 flex-wrap">
-                        <Link to="/buscar-persona" className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg font-semibold no-underline hover:bg-amber-100">
-                          + {es ? 'Reportar persona buscada' : 'Report missing person'}
-                        </Link>
-                        <Link to="/reportar-encontrado" className="text-sm text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded-lg font-semibold no-underline hover:bg-green-100">
-                          + {es ? 'Reportar persona encontrada' : 'Report found person'}
-                        </Link>
-                      </div>
-                    </>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="sm:hidden space-y-2 mb-4">
+                    {perFiltradas.slice(0, pagePer).map(p => {
+                      const esBuscada = !!p.nombre_completo;
+                      const nombre = p.nombre_completo || p.nombre_o_descripcion || '—';
+                      const estado_caso = p.estado_caso || p.condicion;
+                      const st = PERSONA_ESTADO[estado_caso] || { es: estado_caso || '—', en: estado_caso || '—', cls: 'bg-gray-100 text-gray-600' };
+                      return (
+                        <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">{nombre}</p>
+                            <p className="text-xs text-gray-400 truncate">📍 {p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'} · {p.ciudad}</p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span>
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                              {esBuscada ? t('Buscada', 'Missing', 'Procurada') : t('Encontrada', 'Found', 'Encontrada')}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {perFiltradas.length > pagePer && (
+                    <button onClick={() => setPagePer(v => v + 8)} className="w-full py-2.5 text-sm text-blue-700 border border-blue-200 bg-white rounded-xl cursor-pointer hover:bg-blue-50">
+                      {t(`Ver ${Math.min(8, perFiltradas.length - pagePer)} más`, `Load ${Math.min(8, perFiltradas.length - pagePer)} more`, `Ver ${Math.min(8, perFiltradas.length - pagePer)} mais`)}
+                    </button>
                   )}
-                </div>
+                  <div className="flex gap-3 mt-3 flex-wrap">
+                    <Link to="/buscar-persona" className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg font-semibold no-underline hover:bg-amber-100">
+                      + {t('Reportar persona buscada', 'Report missing person', 'Reportar pessoa procurada')}
+                    </Link>
+                    <Link to="/reportar-encontrado" className="text-sm text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded-lg font-semibold no-underline hover:bg-green-100">
+                      + {t('Reportar persona encontrada', 'Report found person', 'Reportar pessoa encontrada')}
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
 
@@ -499,51 +570,55 @@ export default function Edificios() {
         {tab === 'consultar' && (
           <div>
             <div className="bg-white border border-gray-200 rounded-xl p-5 mb-5">
-              <h2 className="text-base font-semibold text-gray-800 mb-1">{es ? '¿Es seguro este edificio?' : 'Is this building safe?'}</h2>
-              <p className="text-sm text-gray-500 mb-4">{es ? 'Escribe la dirección, nombre o zona para ver si hay reportes.' : 'Type the address, name or area to see if there are reports.'}</p>
+              <h2 className="text-base font-semibold text-gray-800 mb-1">{t('¿Es seguro este edificio?', 'Is this building safe?', 'Este edifício é seguro?')}</h2>
+              <p className="text-sm text-gray-500 mb-4">{t('Escribe la dirección, nombre o zona para ver si hay reportes.', 'Type the address, name or area to see if there are reports.', 'Digite o endereço, nome ou área para ver se há relatórios.')}</p>
               <div className="flex gap-2">
                 <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && buscarEdificio()}
-                  placeholder={es ? 'Ej: Edif. Las Torres, Av. Principal, La Guaira...' : 'E.g: Las Torres building, Main Ave, La Guaira...'}
+                  placeholder={t('Ej: Edif. Las Torres, Av. Principal, La Guaira...', 'E.g: Las Torres building, Main Ave, La Guaira...', 'Ex: Ed. Las Torres, Av. Principal, La Guaira...')}
                   className="flex-1 border border-gray-200 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:border-blue-500" />
                 <button onClick={buscarEdificio} disabled={buscando}
                   className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50 cursor-pointer">
                   {buscando ? <Loader2 size={15} className="animate-spin" /> : <Search size={15} />}
-                  {es ? 'Buscar' : 'Search'}
+                  {t('Buscar', 'Search', 'Buscar')}
                 </button>
               </div>
             </div>
             {buscado && !buscando && resultados.length === 0 && (
               <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-center">
                 <CheckCircle size={28} className="text-green-600 mx-auto mb-2" />
-                <p className="font-semibold text-green-800 text-sm">{es ? 'Sin reportes de daño para esta búsqueda.' : 'No damage reports found for this search.'}</p>
-                <p className="text-xs text-green-600 mt-1">{es ? 'Esto no garantiza que sea 100% seguro. Si ves daños, repórtalos.' : 'This does not guarantee 100% safety. If you see damage, report it.'}</p>
-                <button onClick={() => setTab('reportar')} className="mt-3 text-sm text-blue-700 underline cursor-pointer">{es ? 'Reportar daño →' : 'Report damage →'}</button>
+                <p className="font-semibold text-green-800 text-sm">{t('Sin reportes de daño para esta búsqueda.', 'No damage reports found for this search.', 'Nenhum relatório de dano para esta busca.')}</p>
+                <p className="text-xs text-green-600 mt-1">{t('Esto no garantiza que sea 100% seguro. Si ves daños, repórtalos.', 'This does not guarantee 100% safety. If you see damage, report it.', 'Isso não garante 100% de segurança. Se ver danos, reporte.')}</p>
+                <button onClick={() => setTab('reportar')} className="mt-3 text-sm text-blue-700 underline cursor-pointer">{t('Reportar daño →', 'Report damage →', 'Reportar dano →')}</button>
               </div>
             )}
             {resultados.length > 0 && (
               <div className="space-y-3">
-                <p className="text-xs text-gray-500">{resultados.length} {es ? 'reporte(s)' : 'report(s)'}</p>
+                <p className="text-xs text-gray-500">{resultados.length} {t('reporte(s)', 'report(s)', 'relatório(s)')}</p>
                 {resultados.map(r => {
                   const c = cfg(r.nivel_dano);
-                  const noEntrar = ['grave', 'critico'].includes(r.nivel_dano);
+                  const noEntrar = ['grave', 'critico', 'colapsado'].includes(r.nivel_dano);
                   return (
                     <div key={r.id} style={{ background: c.bg, borderColor: c.border }} className="border rounded-xl p-4">
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span>{c.icon}</span>
-                            <span className="font-bold text-sm" style={{ color: c.color }}>{es ? c.label.es : c.label.en}</span>
+                            <span className="font-bold text-sm" style={{ color: c.color }}>{t(c.label.es, c.label.en, c.label.es)}</span>
                           </div>
                           <p className="text-sm font-semibold text-gray-900">{r.nombre_lugar || r.tipo_estructura}</p>
                           <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5"><MapPin size={10} />{r.direccion} · {r.ciudad}, {r.estado_region}</p>
                         </div>
-                        {noEntrar && <div className="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg flex-shrink-0 text-center">{es ? 'NO\nENTRAR' : 'DO NOT\nENTER'}</div>}
+                        {noEntrar && (
+                          <div className="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg flex-shrink-0 text-center leading-tight">
+                            {t('NO\nENTRAR', 'DO NOT\nENTER', 'NÃO\nENTRAR')}
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {r.personas_atrapadas === 'si' && <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-bold">🚨 {es ? 'Atrapados' : 'Trapped'}</span>}
-                        {r.riesgo_gas && <span className="text-xs bg-orange-100 text-orange-800 border border-orange-200 px-2 py-0.5 rounded-full">💨 Gas</span>}
-                        {r.riesgo_electrico && <span className="text-xs bg-yellow-100 text-yellow-800 border border-yellow-200 px-2 py-0.5 rounded-full">⚡</span>}
-                        {r.riesgo_incendio && <span className="text-xs bg-red-100 text-red-800 border border-red-200 px-2 py-0.5 rounded-full">🔥</span>}
+                        {r.personas_atrapadas === 'si'    && <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-bold">🚨 {t('Atrapados', 'Trapped', 'Presos')}</span>}
+                        {r.riesgo_gas                     && <span className="text-xs bg-orange-100 text-orange-800 border border-orange-200 px-2 py-0.5 rounded-full">💨 Gas</span>}
+                        {r.riesgo_electrico               && <span className="text-xs bg-yellow-100 text-yellow-800 border border-yellow-200 px-2 py-0.5 rounded-full">⚡</span>}
+                        {r.riesgo_incendio                && <span className="text-xs bg-red-100 text-red-800 border border-red-200 px-2 py-0.5 rounded-full">🔥</span>}
                       </div>
                       {r.foto_urls?.length > 0 && (
                         <div className="flex gap-2 mt-3 flex-wrap">
@@ -554,32 +629,30 @@ export default function Edificios() {
                         </div>
                       )}
                       <div className="mt-2 pt-2 border-t" style={{ borderColor: c.border }}>
-                        <p className="text-xs font-medium" style={{ color: c.color }}>🚪 {es ? c.acceso.es : c.acceso.en}</p>
+                        <p className="text-xs font-medium" style={{ color: c.color }}>🚪 {t(c.acceso.es, c.acceso.en, c.acceso.es)}</p>
                         {r.descripcion && <p className="text-xs text-gray-600 mt-1 line-clamp-2">{r.descripcion}</p>}
                       </div>
-
-                      {/* Suscripción */}
-                      {subPara?.id === r.id && subEmail && (
+                      {subPara?.id === r.id && (
                         <div className="mt-3 flex gap-2">
                           <input value={subEmail} onChange={e => setSubEmail(e.target.value)}
-                            placeholder={es ? 'Tu email...' : 'Your email...'}
+                            placeholder={t('Tu email...', 'Your email...', 'Seu email...')}
                             className="flex-1 border border-gray-200 rounded-lg px-2.5 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 placeholder-gray-400" />
-                          <button onClick={() => suscribirse(r.id, r.nombre_lugar)} disabled={subEnviando}
+                          <button onClick={() => suscribirse(r.id)} disabled={subEnviando}
                             className="bg-blue-600 text-white text-xs font-medium px-3 py-2 rounded-lg disabled:opacity-40 cursor-pointer">
-                            {es ? 'Suscribir' : 'Subscribe'}
+                            {t('Suscribir', 'Subscribe', 'Inscrever')}
                           </button>
                         </div>
                       )}
                       <div className="mt-2 flex justify-between items-center">
-                        {subOk && subPara?.id === r.id && (
-                          <span className="text-xs text-green-600 font-medium">✅ {es ? 'Suscrito. Te avisamos si cambia.' : 'Subscribed.'}</span>
-                        )}
+                        {subOk && subPara?.id === r.id && <span className="text-xs text-green-600 font-medium">✅ {t('Suscrito.', 'Subscribed.', 'Inscrito.')}</span>}
                         {(!subPara || subPara.id !== r.id) && (
-                          <button onClick={() => setSubPara({ id: r.id, nombre: r.nombre_lugar })}
-                            className="text-[11px] text-blue-600 underline cursor-pointer">
-                            🔔 {es ? 'Avísame si cambia el estado' : 'Notify me of changes'}
+                          <button onClick={() => setSubPara({ id: r.id })} className="text-[11px] text-blue-600 underline cursor-pointer">
+                            🔔 {t('Avísame si cambia el estado', 'Notify me of changes', 'Me avise se mudar')}
                           </button>
                         )}
+                        <Link to={`/edificio?id=${r.id}`} className="text-[11px] text-blue-600 font-semibold no-underline hover:underline">
+                          {t('Ver ficha completa →', 'View full record →', 'Ver ficha completa →')}
+                        </Link>
                       </div>
                     </div>
                   );
@@ -592,10 +665,15 @@ export default function Edificios() {
         {/* ── SOLICITAR ── */}
         {tab === 'solicitar' && (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-500 mb-4">{es ? '¿No encuentras un edificio en el directorio? Solicita que lo incluyamos con toda la información disponible.' : "Can't find a building in the directory? Request it and we'll add all available information."}</p>
+            <p className="text-2xl mb-3">📋</p>
+            <p className="text-sm text-gray-500 mb-4">
+              {t('¿No encuentras un edificio en el directorio? Solicita que lo incluyamos.',
+                 "Can't find a building in the directory? Request it and we'll add it.",
+                 'Não encontrou um edifício no diretório? Solicite que o incluamos.')}
+            </p>
             <Link to="/solicitar-info-edificio"
               className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold px-8 py-4 rounded-xl text-sm no-underline transition-colors">
-              📋 {es ? 'Solicitar información de un edificio' : 'Request building information'}
+              📋 {t('Solicitar información de un edificio', 'Request building information', 'Solicitar informações de um edifício')}
             </Link>
           </div>
         )}
@@ -606,31 +684,36 @@ export default function Edificios() {
             {exito === true && (
               <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center mb-4">
                 <div className="text-4xl mb-3">✅</div>
-                <h3 className="font-bold text-green-800 text-lg mb-1">{es ? 'Reporte enviado.' : 'Report submitted.'}</h3>
-                <p className="text-sm text-green-700 mb-3">{es ? 'Gracias. Tu reporte ayuda a que otras personas eviten el peligro.' : 'Thank you. Your report helps others avoid danger.'}</p>
+                <h3 className="font-bold text-green-800 text-lg mb-1">{t('Reporte enviado.', 'Report submitted.', 'Relatório enviado.')}</h3>
+                <p className="text-sm text-green-700 mb-3">{t('Gracias. Tu reporte ayuda a que otras personas eviten el peligro.', 'Thank you. Your report helps others avoid danger.', 'Obrigado. Seu relatório ajuda outras pessoas a evitar o perigo.')}</p>
                 <div className="flex gap-3 justify-center">
                   <button onClick={() => { resetForm(); setExito(null); }} className="text-sm bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-50">
-                    {es ? 'Reportar otro' : 'Report another'}
+                    {t('Reportar otro', 'Report another', 'Reportar outro')}
                   </button>
                   <button onClick={() => setTab('directorio')} className="text-sm bg-blue-700 text-white px-4 py-2 rounded-lg cursor-pointer">
-                    {es ? 'Ver directorio' : 'View directory'}
+                    {t('Ver directorio', 'View directory', 'Ver diretório')}
                   </button>
                 </div>
               </div>
             )}
-
             {exito !== true && (
               <div className="space-y-4">
-                <p className="text-sm text-gray-600">{es ? 'Completa este formulario con lo que ves desde un lugar seguro. No entres a estructuras dañadas.' : 'Fill this form with what you see from a safe location. Do not enter damaged structures.'}</p>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                  <p className="text-sm text-blue-800 leading-relaxed">
+                    {t('Completa este formulario con lo que ves desde un lugar seguro. No entres a estructuras dañadas.',
+                       'Fill this form with what you see from a safe location. Do not enter damaged structures.',
+                       'Preencha este formulário com o que você vê de um lugar seguro. Não entre em estruturas danificadas.')}
+                  </p>
+                </div>
 
                 {/* 1. Tipo */}
                 <div className="bg-white border border-gray-200 rounded-xl p-4">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-3">1. {es ? '¿Qué tipo de estructura es?' : 'What type of structure?'} <span className="text-red-500">*</span></h3>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-3">1. {t('¿Qué tipo de estructura es?', 'What type of structure?', 'Que tipo de estrutura?')} <span className="text-red-500">*</span></h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {TIPO_OPTS.map(t => (
-                      <button key={t.val} onClick={() => setTipo(t.val)}
-                        className={`py-2.5 px-3 rounded-lg text-xs font-medium border text-left cursor-pointer transition-colors ${tipo === t.val ? 'bg-blue-700 text-white border-blue-700' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}>
-                        {es ? t.es : t.en}
+                    {TIPO_OPTS.map(tb => (
+                      <button key={tb.val} onClick={() => setTipo(tb.val)}
+                        className={`py-2.5 px-3 rounded-lg text-xs font-medium border text-left cursor-pointer transition-colors ${tipo === tb.val ? 'bg-blue-700 text-white border-blue-700' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}>
+                        {es ? tb.es : tb.en}
                       </button>
                     ))}
                   </div>
@@ -638,98 +721,78 @@ export default function Edificios() {
 
                 {/* 2. Ubicación */}
                 <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-gray-800">2. {es ? '¿Dónde está?' : 'Where is it?'} <span className="text-red-500">*</span></h3>
+                  <h3 className="text-sm font-semibold text-gray-800">2. {t('¿Dónde está?', 'Where is it?', 'Onde fica?')} <span className="text-red-500">*</span></h3>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{es ? 'Nombre del lugar (si lo sabes)' : 'Place name (if known)'}</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{t('Nombre del lugar (si lo sabes)', 'Place name (if known)', 'Nome do lugar (se souber)')}</label>
                     <input value={nombreLugar} onChange={e => setNombreLugar(e.target.value)}
-                      placeholder={es ? 'Ej: Edificio Las Torres, Hospital Central...' : 'E.g: Las Torres building, Central Hospital...'}
+                      placeholder={t('Ej: Edificio Las Torres, Hospital Central...', 'E.g: Las Torres building, Central Hospital...', 'Ex: Edifício Las Torres, Hospital Central...')}
                       className={inputCls} />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{es ? 'Dirección o referencia' : 'Address or reference'} <span className="text-red-500">*</span></label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{t('Dirección o referencia', 'Address or reference', 'Endereço ou referência')} <span className="text-red-500">*</span></label>
                     <input value={direccion} onChange={e => { setDireccion(e.target.value); setCheckDup(false); setDecisionDup(null); }}
                       onBlur={buscarDuplicados}
-                      placeholder={es ? 'Ej: Av. Soublette, frente al mercado, La Guaira' : 'E.g: Soublette Ave, next to market, La Guaira'}
+                      placeholder={t('Ej: Av. Soublette, frente al mercado, La Guaira', 'E.g: Soublette Ave, next to market, La Guaira', 'Ex: Av. Soublette, em frente ao mercado, La Guaira')}
                       className={inputCls} />
-                    {buscandoDup && <p className="text-xs text-gray-400 mt-1">⏳ {es ? 'Verificando duplicados...' : 'Checking for duplicates...'}</p>}
+                    {buscandoDup && <p className="text-xs text-gray-400 mt-1">⏳ {t('Verificando duplicados...', 'Checking for duplicates...', 'Verificando duplicatas...')}</p>}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">{es ? 'Ciudad' : 'City'} <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">{t('Ciudad', 'City', 'Cidade')} <span className="text-red-500">*</span></label>
                       <input value={ciudad} onChange={e => setCiudad(e.target.value)} placeholder="La Guaira" className={inputCls} />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">{es ? 'Estado' : 'State'} <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">{t('Estado', 'State', 'Estado')} <span className="text-red-500">*</span></label>
                       <input value={estado} onChange={e => setEstado(e.target.value)} placeholder="Vargas" className={inputCls} />
                     </div>
                   </div>
                 </div>
 
-                {/* ── DUPLICADOS ── */}
+                {/* Duplicados */}
                 {checkDup && posiblesDups.length > 0 && decisionDup === null && (
                   <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 space-y-3">
                     <div className="flex gap-2 items-start">
                       <AlertTriangle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm font-bold text-amber-800">
-                          {es ? `⚠️ Encontramos ${posiblesDups.length} reporte(s) similar(es). ¿Es el mismo lugar?` : `⚠️ We found ${posiblesDups.length} similar report(s). Is it the same place?`}
+                          {t(`⚠️ Encontramos ${posiblesDups.length} reporte(s) similar(es). ¿Es el mismo lugar?`,
+                             `⚠️ We found ${posiblesDups.length} similar report(s). Is it the same place?`,
+                             `⚠️ Encontramos ${posiblesDups.length} relatório(s) similar(es). É o mesmo lugar?`)}
                         </p>
-                        <p className="text-xs text-amber-700 mt-0.5">
-                          {es ? 'Antes de crear uno nuevo, revisa si ya existe. Agrega una actualización en vez de duplicar.' : 'Before creating a new one, check if it already exists. Add an update instead of duplicating.'}
-                        </p>
+                        <p className="text-xs text-amber-700 mt-0.5">{t('Revisa si ya existe antes de crear uno nuevo.', 'Check if it exists before creating a new one.', 'Verifique se já existe antes de criar um novo.')}</p>
                       </div>
                     </div>
                     {posiblesDups.slice(0, 3).map(d => {
                       const c = cfg(d.nivel_dano);
                       return (
                         <div key={d.id} className="bg-white border border-amber-300 rounded-xl p-3">
-                          <div className="flex justify-between items-start gap-2 mb-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold text-gray-800 truncate">{d.nombre_lugar || d.tipo_estructura}</p>
-                              <p className="text-xs text-gray-500 truncate">📍 {d.direccion} · {d.ciudad}</p>
-                              <span className="text-xs font-semibold" style={{ color: c.color }}>{c.icon} {es ? c.label.es : c.label.en}</span>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Link to={`/edificio?id=${d.id}`}
-                              className="flex-1 text-center text-xs bg-blue-600 text-white px-3 py-2 rounded-lg font-bold no-underline hover:bg-blue-700">
-                              👁️ {es ? 'Ver ficha →' : 'View record →'}
-                            </Link>
-                            <Link to={`/edificio?id=${d.id}`}
-                              className="flex-1 text-center text-xs bg-amber-100 border border-amber-300 text-amber-800 px-3 py-2 rounded-lg font-bold no-underline hover:bg-amber-200">
-                              🔄 {es ? 'Agregar actualización' : 'Add update'}
+                          <p className="text-xs font-bold text-gray-800 truncate">{d.nombre_lugar || d.tipo_estructura}</p>
+                          <p className="text-xs text-gray-500 truncate">📍 {d.direccion} · {d.ciudad}</p>
+                          <span className="text-xs font-semibold" style={{ color: c.color }}>{c.icon} {t(c.label.es, c.label.en, c.label.es)}</span>
+                          <div className="flex gap-2 mt-2">
+                            <Link to={`/edificio?id=${d.id}`} className="flex-1 text-center text-xs bg-blue-600 text-white px-3 py-2 rounded-lg font-bold no-underline hover:bg-blue-700">
+                              👁️ {t('Ver ficha →', 'View record →', 'Ver ficha →')}
                             </Link>
                           </div>
                         </div>
                       );
                     })}
                     <button onClick={() => setDecisionDup('nuevo')} className="w-full text-sm text-gray-500 border border-gray-200 bg-white py-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
-                      {es ? 'No, es un lugar diferente — crear nuevo reporte' : 'No, different place — create new report'}
+                      {t('No, es un lugar diferente — crear nuevo', 'No, different place — create new', 'Não, é um lugar diferente — criar novo')}
                     </button>
-                  </div>
-                )}
-                {decisionDup === 'actualizar' && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center space-y-2">
-                    <p className="text-sm font-semibold text-blue-800">{es ? 'Usa el directorio para ver y actualizar la ficha existente.' : 'Use the directory to view and update the existing record.'}</p>
-                    <button onClick={() => setTab('directorio')} className="text-sm bg-blue-700 text-white px-4 py-2 rounded-lg cursor-pointer">{es ? 'Ir al Directorio →' : 'Go to Directory →'}</button>
-                    <button onClick={() => setDecisionDup('nuevo')} className="block w-full text-xs text-gray-400 mt-1 cursor-pointer">{es ? 'Crear nuevo de todas formas' : 'Create new anyway'}</button>
                   </div>
                 )}
 
                 {(decisionDup === 'nuevo' || posiblesDups.length === 0 || !checkDup) && (
                   <>
-                    {/* 3. Nivel daño */}
+                    {/* 3. Nivel */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-3">3. {es ? 'Nivel de daño visible' : 'Visible damage level'} <span className="text-red-500">*</span></h3>
+                      <h3 className="text-sm font-semibold text-gray-800 mb-3">3. {t('Nivel de daño visible', 'Visible damage level', 'Nível de dano visível')} <span className="text-red-500">*</span></h3>
                       <div className="space-y-2">
                         {NIVEL_OPTS.map(n => (
                           <button key={n.val} onClick={() => setNivel(n.val)}
                             className={`w-full py-3 px-4 rounded-lg text-sm text-left border cursor-pointer transition-colors ${nivel === n.val
-                              ? n.val === 'critico' ? 'bg-red-700 text-white border-red-700'
-                              : n.val === 'grave' ? 'bg-red-500 text-white border-red-500'
-                              : n.val === 'moderado' ? 'bg-orange-500 text-white border-orange-500'
-                              : n.val === 'leve' ? 'bg-yellow-500 text-white border-yellow-500'
-                              : 'bg-gray-600 text-white border-gray-600'
+                              ? n.val === 'critico' ? 'bg-red-700 text-white border-red-700' : n.val === 'grave' ? 'bg-red-500 text-white border-red-500' : n.val === 'moderado' ? 'bg-orange-500 text-white border-orange-500' : n.val === 'leve' ? 'bg-yellow-500 text-white border-yellow-500' : 'bg-gray-600 text-white border-gray-600'
                               : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'}`}>
                             {es ? n.es : n.en}
                           </button>
@@ -739,36 +802,34 @@ export default function Edificios() {
 
                     {/* 4. Atrapados */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-3">4. {es ? '¿Hay personas atrapadas?' : 'Are there trapped people?'} <span className="text-red-500">*</span></h3>
+                      <h3 className="text-sm font-semibold text-gray-800 mb-3">4. {t('¿Hay personas atrapadas?', 'Are there trapped people?', 'Há pessoas presas?')} <span className="text-red-500">*</span></h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {ATRAPADOS_OPTS.map(a => (
                           <button key={a.val} onClick={() => setAtrapados(a.val)}
-                            className={`py-3 px-4 rounded-lg text-sm text-left border cursor-pointer transition-colors ${atrapados === a.val
-                              ? (a.val === 'si' || a.val === 'voces') ? 'bg-red-600 text-white border-red-600' : 'bg-gray-800 text-white border-gray-800'
-                              : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'}`}>
+                            className={`py-3 px-4 rounded-lg text-sm text-left border cursor-pointer transition-colors ${atrapados === a.val ? (a.val === 'si' || a.val === 'voces') ? 'bg-red-600 text-white border-red-600' : 'bg-gray-800 text-white border-gray-800' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'}`}>
                             {es ? a.es : a.en}
                           </button>
                         ))}
                       </div>
                       {(atrapados === 'si' || atrapados === 'voces') && (
                         <div className="mt-3 bg-red-50 border border-red-300 rounded-lg p-3">
-                          <p className="text-sm font-bold text-red-700">🚨 {es ? 'Llama ahora a Protección Civil (171) o Bomberos.' : 'Call Civil Protection (171) or Firefighters now.'}</p>
+                          <p className="text-sm font-bold text-red-700">🚨 {t('Llama ahora a Protección Civil (171) o Bomberos.', 'Call Civil Protection (171) or Firefighters now.', 'Ligue agora para Proteção Civil (171) ou Bombeiros.')}</p>
                         </div>
                       )}
                     </div>
 
                     {/* 5. Riesgos */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-3">5. {es ? 'Riesgos adicionales' : 'Additional hazards'}</h3>
+                      <h3 className="text-sm font-semibold text-gray-800 mb-3">5. {t('Riesgos adicionales', 'Additional hazards', 'Riscos adicionais')}</h3>
                       <div className="flex flex-wrap gap-2">
                         {[
-                          { val: riesgoGas, set: setRiesgoGas,         label: { es: '💨 Olor a gas',                  en: '💨 Gas smell' } },
-                          { val: riesgoElec, set: setRiesgoElec,        label: { es: '⚡ Cables caídos / eléctrico',    en: '⚡ Fallen wires / electrical' } },
-                          { val: riesgoIncendio, set: setRiesgoIncendio, label: { es: '🔥 Riesgo de incendio',          en: '🔥 Fire hazard' } },
+                          { val: riesgoGas,      set: setRiesgoGas,      label: { es: '💨 Olor a gas',               en: '💨 Gas smell',      pt: '💨 Cheiro de gás'     } },
+                          { val: riesgoElec,     set: setRiesgoElec,     label: { es: '⚡ Cables caídos / eléctrico', en: '⚡ Fallen wires',    pt: '⚡ Fios caídos'       } },
+                          { val: riesgoIncendio, set: setRiesgoIncendio, label: { es: '🔥 Riesgo de incendio',        en: '🔥 Fire hazard',     pt: '🔥 Risco de incêndio' } },
                         ].map((r, i) => (
                           <button key={i} onClick={() => r.set(v => !v)}
                             className={`px-3 py-2 rounded-lg text-xs font-medium border cursor-pointer transition-colors ${r.val ? 'bg-red-600 text-white border-red-600' : 'bg-white border-gray-200 text-gray-700 hover:border-red-300'}`}>
-                            {es ? r.label.es : r.label.en}
+                            {pt ? r.label.pt : es ? r.label.es : r.label.en}
                           </button>
                         ))}
                       </div>
@@ -776,76 +837,52 @@ export default function Edificios() {
 
                     {/* 6. Fotos */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-1">6. {es ? 'Fotos del daño (máx. 5, opcional)' : 'Photos of damage (max 5, optional)'}</h3>
-                      <p className="text-xs text-gray-400 mb-3">{es ? 'Solo desde un lugar seguro. No entres al edificio para tomar fotos.' : 'Only from a safe location. Do not enter the building to take photos.'}</p>
-
+                      <h3 className="text-sm font-semibold text-gray-800 mb-1">6. {t('Fotos del daño (máx. 5, opcional)', 'Photos of damage (max 5, optional)', 'Fotos do dano (máx. 5, opcional)')}</h3>
+                      <p className="text-xs text-gray-400 mb-3">{t('Solo desde un lugar seguro. No entres al edificio para tomar fotos.', 'Only from a safe location. Do not enter the building to take photos.', 'Somente de um lugar seguro. Não entre no edifício para tirar fotos.')}</p>
                       {fotos.length < MAX_FOTOS && (
                         <label className="flex items-center gap-3 border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors mb-3">
                           <Camera size={20} className="text-gray-400" />
                           <div>
-                            <p className="text-sm font-medium text-gray-700">{es ? 'Agregar fotos' : 'Add photos'}</p>
-                            <p className="text-xs text-gray-400">{es ? `${MAX_FOTOS - fotos.length} espacio(s) restante(s)` : `${MAX_FOTOS - fotos.length} slot(s) remaining`}</p>
+                            <p className="text-sm font-medium text-gray-700">{t('Agregar fotos', 'Add photos', 'Adicionar fotos')}</p>
+                            <p className="text-xs text-gray-400">{MAX_FOTOS - fotos.length} {t('espacio(s) restante(s)', 'slot(s) remaining', 'espaço(s) restante(s)')}</p>
                           </div>
                           <input type="file" accept="image/*" multiple className="hidden" onChange={handleFotoInput} />
                         </label>
                       )}
-
                       {fotos.length > 0 && (
                         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                           {fotos.map(f => (
                             <div key={f.id} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
                               {f.preview && <img src={f.preview} alt="" className="w-full h-full object-cover" />}
-                              {f.uploading && (
-                                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                  <Loader2 size={16} className="animate-spin text-white" />
-                                </div>
-                              )}
-                              {f.error && (
-                                <div className="absolute inset-0 bg-red-500 bg-opacity-70 flex items-center justify-center">
-                                  <span className="text-white text-xs font-bold">!</span>
-                                </div>
-                              )}
-                              {!f.uploading && (
-                                <button onClick={() => quitarFoto(f.id)}
-                                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer hover:bg-red-700">
-                                  <X size={10} />
-                                </button>
-                              )}
-                              {f.url && !f.uploading && (
-                                <div className="absolute bottom-1 left-1 w-3 h-3 rounded-full bg-green-500" />
-                              )}
+                              {f.uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Loader2 size={16} className="animate-spin text-white" /></div>}
+                              {f.error && <div className="absolute inset-0 bg-red-500/70 flex items-center justify-center"><span className="text-white text-xs font-bold">!</span></div>}
+                              {!f.uploading && <button onClick={() => quitarFoto(f.id)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer hover:bg-red-700"><X size={10} /></button>}
+                              {f.url && !f.uploading && <div className="absolute bottom-1 left-1 w-3 h-3 rounded-full bg-green-500" />}
                             </div>
                           ))}
                         </div>
                       )}
                     </div>
 
-                    {/* 7. Descripción y datos del reportante */}
+                    {/* 7. Descripción y datos */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-                      <h3 className="text-sm font-semibold text-gray-800">7. {es ? 'Descripción y tus datos' : 'Description and your info'}</h3>
+                      <h3 className="text-sm font-semibold text-gray-800">7. {t('Descripción y tus datos', 'Description and your info', 'Descrição e seus dados')}</h3>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{es ? 'Describe lo que ves (opcional)' : 'Describe what you see (optional)'}</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('Describe lo que ves (opcional)', 'Describe what you see (optional)', 'Descreva o que você vê (opcional)')}</label>
                         <textarea rows={3} value={descripcion} onChange={e => setDescripcion(e.target.value)} maxLength={200}
-                          placeholder={es ? 'Ej: Fachada colapsada, cables caídos, se escuchan voces...' : 'E.g: Facade collapsed, wires on street, voices heard...'}
+                          placeholder={t('Ej: Fachada colapsada, cables caídos, se escuchan voces...', 'E.g: Facade collapsed, wires on street, voices heard...', 'Ex: Fachada colapsada, fios caídos, ouvem-se vozes...')}
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-500 resize-none placeholder-gray-400" />
                         <p className="text-right text-xs text-gray-400">{descripcion.length}/200</p>
                       </div>
                       <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-2">
-                        <p className="text-xs font-bold text-gray-500">🔒 {es ? 'Tus datos de contacto (privados — para que te puedan ubicar si hay seguimiento)' : 'Your contact info (private — so you can be reached for follow-up)'}</p>
-                        <input value={repNombre} onChange={e => setRepNombre(e.target.value)}
-                          placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'}
-                          className={inputCls} />
-                        <input value={repTelefono} onChange={e => setRepTelefono(e.target.value)}
-                          placeholder={es ? 'Teléfono / WhatsApp (opcional)' : 'Phone / WhatsApp (optional)'}
-                          className={inputCls} />
-                        <input value={repEmail} onChange={e => setRepEmail(e.target.value)}
-                          placeholder={es ? 'Email (opcional)' : 'Email (optional)'}
-                          className={inputCls} />
-                        <input value={repRedSocial} onChange={e => setRepRedSocial(e.target.value)}
-                          placeholder={es ? 'Red social: @usuario (opcional, para ubicarte)' : 'Social media: @handle (optional, to reach you)'}
-                          className={inputCls} />
+                        <p className="text-xs font-bold text-gray-500">🔒 {t('Tus datos de contacto (privados)', 'Your contact info (private)', 'Seus dados de contato (privados)')}</p>
+                        <input value={repNombre} onChange={e => setRepNombre(e.target.value)} placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')} className={inputCls} />
+                        <input value={repTelefono} onChange={e => setRepTelefono(e.target.value)} placeholder={t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)', 'Telefone / WhatsApp (opcional)')} className={inputCls} />
+                        <input value={repEmail} onChange={e => setRepEmail(e.target.value)} placeholder={t('Email (opcional)', 'Email (optional)', 'Email (opcional)')} className={inputCls} />
                         <p className="text-[10px] text-gray-400 leading-relaxed">
-                          {es ? '✅ Tus datos no se muestran públicamente. Son usados solo si una institución necesita verificar el reporte.' : '✅ Your data is not displayed publicly. It is used only if an institution needs to verify the report.'}
+                          {t('✅ Tus datos no se muestran públicamente. Solo los usa una institución si necesita verificar el reporte.',
+                             '✅ Your data is not displayed publicly. Only used if an institution needs to verify the report.',
+                             '✅ Seus dados não são exibidos publicamente. Usados apenas se uma instituição precisar verificar o relatório.')}
                         </p>
                       </div>
                     </div>
@@ -853,7 +890,7 @@ export default function Edificios() {
                     {esCritico && (
                       <div className="bg-red-50 border-2 border-red-400 rounded-xl p-4 flex gap-3">
                         <ShieldAlert size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
-                        <p className="text-sm font-bold text-red-700">{es ? '⚠️ Este reporte será marcado como CRÍTICO. Llama primero a Protección Civil (171) o Bomberos.' : '⚠️ This report will be marked CRITICAL. Call Civil Protection (171) or Firefighters first.'}</p>
+                        <p className="text-sm font-bold text-red-700">{t('⚠️ Este reporte será marcado como CRÍTICO. Llama primero a Protección Civil (171) o Bomberos.', '⚠️ This report will be marked CRITICAL. Call Civil Protection (171) or Firefighters first.', '⚠️ Este relatório será marcado como CRÍTICO. Ligue primeiro para Proteção Civil (171) ou Bombeiros.')}</p>
                       </div>
                     )}
 
@@ -861,12 +898,12 @@ export default function Edificios() {
                       disabled={enviando || !tipo || !nivel || !atrapados || !direccion || !ciudad || !estado || fotos.some(f => f.uploading)}
                       className={`w-full py-4 rounded-xl text-base font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 transition-colors ${esCritico ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-700 hover:bg-blue-800 text-white'}`}>
                       {enviando ? <Loader2 size={18} className="animate-spin" /> : (esCritico ? '🚨' : '📋')}
-                      {fotos.some(f => f.uploading) ? (es ? 'Subiendo fotos...' : 'Uploading photos...')
-                        : esCritico ? (es ? 'Enviar alerta crítica' : 'Send critical alert')
-                        : (es ? 'Enviar reporte de daño' : 'Submit damage report')}
+                      {fotos.some(f => f.uploading) ? t('Subiendo fotos...', 'Uploading photos...', 'Enviando fotos...')
+                        : esCritico ? t('Enviar alerta crítica', 'Send critical alert', 'Enviar alerta crítico')
+                        : t('Enviar reporte de daño', 'Submit damage report', 'Enviar relatório de dano')}
                     </button>
                     {(!tipo || !nivel || !atrapados || !direccion || !ciudad || !estado) && (
-                      <p className="text-center text-xs text-gray-400">{es ? 'Completa los campos obligatorios (*) para enviar.' : 'Fill in required fields (*) to submit.'}</p>
+                      <p className="text-center text-xs text-gray-400">{t('Completa los campos obligatorios (*) para enviar.', 'Fill in required fields (*) to submit.', 'Preencha os campos obrigatórios (*) para enviar.')}</p>
                     )}
                   </>
                 )}
