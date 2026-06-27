@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Search, MapPin, Share2, Plus, Eye, Loader2 } from 'lucide-react';
+import { ChevronLeft, Search, MapPin, Share2, Plus, Eye, Loader2, Check, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
@@ -155,6 +155,10 @@ export default function Personas() {
 
   const [compartidoId, setCompartidoId] = useState(null);
   const [personaActualizar, setPersonaActualizar] = useState(null);
+  const [personaEncontrar, setPersonaEncontrar] = useState(null); // mini-modal encontré
+  const [encontradoForm, setEncontradoForm] = useState({ condicion: '', lugar: '', notas: '', nombre: '', telefono: '', email: '' });
+  const [enviandoEncontrado, setEnviandoEncontrado] = useState(false);
+  const [enviandoEncontradoOk, setEnviandoEncontradoOk] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -230,6 +234,55 @@ export default function Personas() {
 
   const aplicarActualizacionLocal = (actualizada) => {
     setTodasPersonas(prev => prev.map(p => p.id === actualizada.id ? { ...p, ...actualizada } : p));
+  };
+
+  const abrirEncontrar = (p) => {
+    setPersonaEncontrar(p);
+    setEncontradoForm({ condicion: '', lugar: '', notas: '', nombre: '', telefono: '', email: '' });
+    setEnviandoEncontrado(false);
+    setEnviandoEncontradoOk(false);
+  };
+
+  const enviarEncontrado = async () => {
+    if (!personaEncontrar || (!encontradoForm.condicion && !encontradoForm.lugar)) return;
+    setEnviandoEncontrado(true);
+    try {
+      await base44.entities.PersonasEncontradas.create({
+        nombre_o_descripcion: personaEncontrar.nombre_completo,
+        condicion: encontradoForm.condicion || 'a_salvo',
+        ubicacion_actual: encontradoForm.lugar,
+        ciudad: personaEncontrar.ciudad || '',
+        estado_region: personaEncontrar.estado_region || '',
+        notas_publicas: encontradoForm.notas || undefined,
+        persona_buscada_id: personaEncontrar._fuente === 'busqueda' ? personaEncontrar.id : undefined,
+        reportado_por_nombre: encontradoForm.nombre || undefined,
+        reportado_por_telefono: encontradoForm.telefono || undefined,
+        reportado_por_email: encontradoForm.email || undefined,
+        nivel_verificacion: 'comunidad',
+        fuente: 'personas_page',
+      });
+      if (personaEncontrar._fuente === 'busqueda') {
+        await base44.entities.PersonasBuscadas.update(personaEncontrar.id, {
+          estado_caso: encontradoForm.condicion === 'fallecido_reportado' ? 'fallecido_reportado' : 'informacion_recibida',
+        }).catch(() => {});
+        aplicarActualizacionLocal({ ...personaEncontrar, estado_caso: encontradoForm.condicion === 'fallecido_reportado' ? 'fallecido_reportado' : 'informacion_recibida' });
+      }
+      await base44.entities.EventoHistorial.create({
+        persona_id: personaEncontrar.id,
+        tipo_evento: 'persona_encontrada',
+        descripcion: (es ? `Reportado encontrado/a en: ${encontradoForm.lugar}.` : `Reported found at: ${encontradoForm.lugar}.`) + (encontradoForm.notas ? ` ${encontradoForm.notas}` : ''),
+        reportante_nombre: encontradoForm.nombre,
+        reportante_contacto: encontradoForm.telefono || encontradoForm.email,
+        fuente: 'personas_page',
+      }).catch(() => {});
+      await base44.functions.invoke('notificarActualizacion', {
+        persona_id: personaEncontrar.id,
+        descripcion: es ? `✅ Reporte de hallazgo: ${encontradoForm.lugar}` : `✅ Found report: ${encontradoForm.lugar}`,
+        lang,
+      }).catch(() => {});
+      setEnviandoEncontradoOk(true);
+    } catch {}
+    setEnviandoEncontrado(false);
   };
 
   const FUENTE_FILTROS = [
@@ -478,8 +531,8 @@ export default function Personas() {
 
                   {p._fuente === 'busqueda' && (
                     <div className="grid grid-cols-2 gap-2 mt-2">
-                      <button onClick={() => setPersonaActualizar({ ...p, _modo: 'encontrado' })}
-                        className="flex items-center justify-center gap-1 text-xs font-semibold text-[#D48C2E] bg-amber-50 border border-amber-200 py-2 rounded-xl cursor-pointer">
+                      <button onClick={() => abrirEncontrar(p)}
+                        className="flex items-center justify-center gap-1 text-xs font-bold text-white bg-green-600 py-2 rounded-xl cursor-pointer">
                         ✋ {es ? 'La encontré' : 'I found them'}
                       </button>
                       <Link to={`/persona?id=${p.id}`}
@@ -572,6 +625,102 @@ export default function Personas() {
           onSaved={aplicarActualizacionLocal}
         />
       )}
+
+      {/* ── MINI-MODAL: ENCONTRÉ A ALGUIEN ── */}
+      {personaEncontrar && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          style={{ background: 'rgba(0,0,0,0.55)' }}
+          onClick={() => !enviandoEncontradoOk && setPersonaEncontrar(null)}>
+          <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl overflow-hidden max-h-[92vh] flex flex-col"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 flex-shrink-0">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-green-600">✋ {es ? 'Encontré a esta persona' : 'I found this person'}</p>
+                <h2 className="text-base font-black text-[#1A1F2E] leading-tight">{personaEncontrar.nombre_completo}</h2>
+              </div>
+              <button onClick={() => setPersonaEncontrar(null)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer">
+                <X size={14} className="text-gray-600" />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 px-5 py-4 space-y-3">
+              {enviandoEncontradoOk ? (
+                <div className="py-8 text-center space-y-3">
+                  <p className="text-4xl">✅</p>
+                  <p className="font-black text-green-800 text-base">{es ? '¡Reporte enviado!' : 'Report sent!'}</p>
+                  <p className="text-sm text-green-600">{es ? 'El familiar será notificado si está suscrito.' : 'Family will be notified if subscribed.'}</p>
+                  <button onClick={() => setPersonaEncontrar(null)} className="text-sm font-bold text-gray-500 underline cursor-pointer">
+                    {es ? 'Cerrar' : 'Close'}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                    <span className="text-amber-600 flex-shrink-0">⚠️</span>
+                    <p className="text-[11px] text-amber-800 leading-snug">
+                      {es
+                        ? 'Solo comparte información verificada. No publiques rumores. Nunca envíes dinero a cambio de información.'
+                        : 'Only share verified info. Do not spread rumors. Never send money for information.'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">{es ? 'Condición' : 'Condition'}</p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { val: 'a_salvo',              es: '✅ A salvo',            en: '✅ Safe' },
+                        { val: 'herido_leve',           es: '🩹 Herido leve',        en: '🩹 Minor injury' },
+                        { val: 'herido_grave',          es: '🚑 Herido grave',        en: '🚑 Serious injury' },
+                        { val: 'fallecido_reportado',   es: '⚫ Fallecido (rep.)',    en: '⚫ Deceased (rep.)' },
+                        { val: 'no_identificado',       es: '❓ No identificado',     en: '❓ Unidentified' },
+                      ].map(c => (
+                        <button key={c.val}
+                          onClick={() => setEncontradoForm(f => ({ ...f, condicion: f.condicion === c.val ? '' : c.val }))}
+                          className={`py-2 px-2 rounded-xl text-xs font-semibold border cursor-pointer text-left ${encontradoForm.condicion === c.val ? 'bg-green-700 text-white border-green-700' : 'bg-white border-gray-200 text-gray-700'}`}>
+                          {es ? c.es : c.en}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">{es ? 'Lugar donde la/lo viste *' : 'Where you saw them *'}</p>
+                    <input value={encontradoForm.lugar}
+                      onChange={e => setEncontradoForm(f => ({ ...f, lugar: e.target.value }))}
+                      placeholder={es ? 'Ej: Refugio Cruz Roja, Av. Principal, Maiquetía' : 'E.g.: Red Cross shelter, Main Ave'}
+                      className="w-full border border-green-300 rounded-xl px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none bg-white" />
+                  </div>
+
+                  <textarea rows={2} value={encontradoForm.notas}
+                    onChange={e => setEncontradoForm(f => ({ ...f, notas: e.target.value }))}
+                    placeholder={es ? 'Información adicional (estado, acompañantes, etc.)...' : 'Additional info (status, companions, etc.)...'}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none placeholder-gray-400 focus:outline-none bg-white" />
+
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
+                    <p className="text-[10px] font-bold text-gray-500">🔒 {es ? 'Tus datos — privados, no se publican' : 'Your info — private, not published'}</p>
+                    <input value={encontradoForm.nombre} onChange={e => setEncontradoForm(f => ({ ...f, nombre: e.target.value }))}
+                      placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none bg-white" />
+                    <input value={encontradoForm.telefono} onChange={e => setEncontradoForm(f => ({ ...f, telefono: e.target.value }))}
+                      placeholder={es ? 'Teléfono / WhatsApp (opcional)' : 'Phone / WhatsApp (optional)'}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none bg-white" />
+                    <input value={encontradoForm.email} onChange={e => setEncontradoForm(f => ({ ...f, email: e.target.value }))}
+                      placeholder={es ? 'Email (opcional)' : 'Email (optional)'}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none bg-white" />
+                  </div>
+
+                  <button onClick={enviarEncontrado}
+                    disabled={enviandoEncontrado || (!encontradoForm.condicion && !encontradoForm.lugar)}
+                    className="w-full bg-green-700 text-white text-sm font-black py-3.5 rounded-xl disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2">
+                    {enviandoEncontrado ? <Loader2 size={14} className="animate-spin" /> : '📡'}
+                    {es ? 'Enviar reporte de hallazgo' : 'Send finding report'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
