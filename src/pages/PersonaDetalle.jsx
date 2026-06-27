@@ -129,11 +129,16 @@ export default function PersonaDetalle() {
         {/* ENCABEZADO */}
         <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
           <div className="flex gap-4 items-start">
-            {persona.foto_url ? (
-              <img src={persona.foto_url} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0 border border-gray-200" />
-            ) : (
-              <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-4xl flex-shrink-0">👤</div>
-            )}
+            <div className="flex-shrink-0">
+              {persona.foto_url ? (
+                <img src={persona.foto_url} alt="" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+              ) : (
+                <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-4xl">👤</div>
+              )}
+              {persona.foto_url_2 && (
+                <img src={persona.foto_url_2} alt="" className="w-10 h-10 rounded-lg object-cover border-2 border-white shadow -mt-5 ml-10" />
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-semibold text-gray-900 leading-tight mb-1">{persona.nombre_completo}</h1>
               {persona.apodo && <p className="text-xs text-gray-400 mb-1">"{persona.apodo}"</p>}
@@ -167,22 +172,30 @@ export default function PersonaDetalle() {
 
         {/* DATOS PÚBLICOS */}
         <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4 space-y-2.5">
-          <h2 className="text-sm font-medium text-gray-700 mb-2">{es ? 'Última información conocida' : 'Last known information'}</h2>
-          {persona.ultima_ubicacion_conocida && (
+          <h2 className="text-sm font-medium text-gray-700 mb-2">{es ? 'Información disponible' : 'Available information'}</h2>
+          {(persona.apodo || persona.edad_aprox || persona.sexo) && (
+            <div>
+              <p className="text-xs text-gray-500 mb-0.5">{es ? 'Datos generales' : 'General details'}</p>
+              <p className="text-sm text-gray-800">
+                {[persona.apodo && `${es ? 'Apodo' : 'Nickname'}: ${persona.apodo}`, persona.edad_aprox && `${es ? 'Edad aprox.' : 'Approx. age'}: ${persona.edad_aprox}`, persona.sexo && `${es ? 'Sexo' : 'Sex'}: ${persona.sexo}`].filter(Boolean).join(' · ')}
+              </p>
+            </div>
+          )}
+          {(persona.ultima_ubicacion_conocida || persona.ciudad || persona.estado_region) && (
             <div className="flex items-start gap-2">
               <MapPin size={13} className="text-gray-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">{es ? 'Última ubicación' : 'Last location'}</p>
-                <p className="text-sm text-gray-800">{persona.ultima_ubicacion_conocida} · {persona.ciudad}{persona.estado_region ? `, ${persona.estado_region}` : ''}</p>
+                <p className="text-xs text-gray-500">{es ? 'Ubicación conocida' : 'Known location'}</p>
+                <p className="text-sm text-gray-800">{[persona.ultima_ubicacion_conocida, persona.ciudad, persona.estado_region].filter(Boolean).join(' · ')}</p>
               </div>
             </div>
           )}
-          {persona.fecha_ultima_vez && (
+          {(persona.fecha_ultima_vez || persona.hora_ultima_vez) && (
             <div className="flex items-start gap-2">
               <Clock size={13} className="text-gray-400 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs text-gray-500">{es ? 'Vista por última vez' : 'Last seen'}</p>
-                <p className="text-sm text-gray-800">{persona.fecha_ultima_vez}</p>
+                <p className="text-sm text-gray-800">{[persona.fecha_ultima_vez, persona.hora_ultima_vez].filter(Boolean).join(' · ')}</p>
               </div>
             </div>
           )}
@@ -195,18 +208,26 @@ export default function PersonaDetalle() {
           {persona.notas_publicas && (
             <div>
               <p className="text-xs text-gray-500 mb-0.5">{es ? 'Información adicional' : 'Additional info'}</p>
-              <p className="text-sm text-gray-800">{persona.notas_publicas}</p>
+              <p className="text-sm text-gray-800 whitespace-pre-line">{persona.notas_publicas}</p>
+            </div>
+          )}
+          {(persona.fuente || persona.nivel_verificacion) && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {persona.nivel_verificacion && <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-1 rounded-full">{es ? 'Verificación' : 'Verification'}: {persona.nivel_verificacion}</span>}
+              {persona.fuente && <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{es ? 'Fuente' : 'Source'}: {persona.fuente}</span>}
             </div>
           )}
         </div>
 
         {/* CONTACTOS VISIBLES */}
-        {(persona.contacto_telefono || persona.contacto_email || contactosEncontrado.length > 0) && (
+        {(persona.contacto_nombre || persona.contacto_telefono || persona.contacto_email || persona.contacto_whatsapp || contactosEncontrado.length > 0) && (
           <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4 space-y-3">
             <h2 className="text-sm font-medium text-gray-700">{es ? 'A quién contactar si la encuentras' : 'Who to contact if found'}</h2>
-            {(persona.contacto_telefono || persona.contacto_email) && (
+            {(persona.contacto_nombre || persona.contacto_telefono || persona.contacto_email || persona.contacto_whatsapp) && (
               <div className="bg-green-50 border border-green-100 rounded-lg p-3 space-y-2">
+                {persona.contacto_nombre && <p className="text-sm text-green-900 font-semibold">{persona.contacto_nombre}</p>}
                 {persona.contacto_telefono && <a href={`tel:${persona.contacto_telefono}`} className="flex items-center gap-2 text-sm text-green-800 font-semibold"><Phone size={14} /> {persona.contacto_telefono}</a>}
+                {persona.contacto_whatsapp && <a href={`https://wa.me/${persona.contacto_whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-green-800 font-semibold">💬 {persona.contacto_whatsapp}</a>}
                 {persona.contacto_email && <a href={`mailto:${persona.contacto_email}`} className="flex items-center gap-2 text-sm text-green-800 font-semibold"><Mail size={14} /> {persona.contacto_email}</a>}
               </div>
             )}
