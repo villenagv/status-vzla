@@ -12,6 +12,7 @@ const NAV = [
   { to: '/edificios',     es: 'Edificios',        en: 'Buildings',    pt: 'Edifícios' },
   { to: '/centros-apoyo', es: 'Centros de ayuda', en: 'Help Centers', pt: 'Centros de ajuda' },
   { to: '/aliados',       es: 'Aliados',          en: 'Partners',     pt: 'Parceiros' },
+  { to: '/guia-plataforma', es: '📖 Guía',         en: '📖 Guide',     pt: '📖 Guia' },
 ];
 
 

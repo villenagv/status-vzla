@@ -332,6 +332,18 @@ export default function EdificioDetalle() {
           )}
         </div>
 
+        {/* Guía de seguridad — acceso contextual */}
+        <Link to="/guia-edificios"
+          className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 mb-3 no-underline">
+          <span className="text-base">📖</span>
+          <span className="text-xs font-semibold text-gray-700 flex-1">
+            {t('¿No sabes qué significa el nivel de daño?', "Don't know what the damage level means?", 'Não sabe o que significa o nível de dano?')}
+          </span>
+          <span className="text-xs text-blue-600 font-bold flex-shrink-0">
+            {t('Ver guía →', 'See guide →', 'Ver guia →')}
+          </span>
+        </Link>
+
         {/* ── 2. ALERTA NO ENTRAR ── */}
         {noEntrar && (
           <div className="flex gap-3 bg-red-50 border-2 border-red-400 rounded-2xl p-4 mb-3">

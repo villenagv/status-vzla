@@ -111,6 +111,8 @@ export default function Entrada() {
               { to: '/centros-apoyo',      emoji: '🏥', es: 'Centros de apoyo',      en: 'Help centers' },
               { to: '/reportar-encontrado',emoji: '🙋', es: 'Encontré a alguien',    en: 'I found someone' },
               { to: '/buscar-persona',     emoji: '🔎', es: 'Reportar desaparecido', en: 'Report missing' },
+              { to: '/guia-edificios',     emoji: '🏗️', es: 'Guía edificios seguros', en: 'Building safety guide' },
+              { to: '/guia-plataforma',    emoji: '📖', es: 'Cómo usar CRIS',          en: 'How to use CRIS' },
             ].map(item => (
               <Link
                 key={item.to}

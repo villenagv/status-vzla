@@ -277,6 +277,21 @@ export default function Edificios() {
           <p className="text-sm text-gray-500 mt-1">{t('Directorio de edificios reportados · Consulta y reporta daños.', 'Directory of reported buildings · Check and report damage.', 'Diretório de edifícios reportados · Consulte e reporte danos.')}</p>
         </div>
 
+        {/* Banner guía de seguridad */}
+        <Link to="/guia-edificios"
+          className="flex items-center gap-3 bg-gray-900 rounded-xl px-4 py-3 mb-4 no-underline">
+          <span className="text-xl flex-shrink-0">📖</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-black text-white leading-tight">
+              {t('¿Sabes cómo evaluar un edificio dañado?', 'Do you know how to evaluate a damaged building?', 'Sabe como avaliar um edifício danificado?')}
+            </p>
+            <p className="text-[10px] text-gray-400 mt-0.5">
+              {t('Ver guía de seguridad estructural →', 'View structural safety guide →', 'Ver guia de segurança estrutural →')}
+            </p>
+          </div>
+          <span className="text-gray-500 text-sm flex-shrink-0">›</span>
+        </Link>
+
         {/* Alerta */}
         <div className="flex gap-3 bg-red-50 border border-red-200 rounded-xl p-3 mb-5">
           <AlertTriangle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
