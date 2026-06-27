@@ -29,21 +29,19 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
   const [enviandoPersona, setEnviandoPersona] = useState(false);
   const [enviandoPersonaOk, setEnviandoPersonaOk] = useState(false);
 
+  const [copiado, setCopiado] = useState(false);
+
   const compartir = () => {
-    if (tipo === 'persona' && item._fuente === 'busqueda') {
-      const url = `${window.location.origin}/persona?id=${item.id}`;
-      const texto = es
-        ? `🔴 ¿Lo/la has visto? ${item._nombre} · Última vez en ${item.ciudad || '?'}. ${url}`
-        : `🔴 Have you seen them? ${item._nombre} · Last seen in ${item.ciudad || '?'}. ${url}`;
-      if (navigator.share) navigator.share({ title: `CRIS · ${item._nombre}`, text: texto });
-      else navigator.clipboard?.writeText(texto);
-    } else {
-      const url = window.location.origin + (tipo === 'edificio' ? `/edificio?id=${item.id}` : `/persona?id=${item.id}`);
-      const texto = `${item._nombre} · ${item.ciudad || ''} ${url}`;
-      if (navigator.share) navigator.share({ title: item._nombre, text: texto });
-      else navigator.clipboard?.writeText(texto);
-    }
-    onClose();
+    const url = tipo === 'edificio'
+      ? `${window.location.origin}/edificio?id=${item.id}`
+      : `${window.location.origin}/persona?id=${item.id}`;
+    const texto = tipo === 'persona' && item._fuente === 'busqueda'
+      ? (es ? `🔴 ¿Lo/la has visto? ${item._nombre} · Última vez en ${item.ciudad || '?'}. ${url}` : `🔴 Have you seen them? ${item._nombre} · Last seen in ${item.ciudad || '?'}. ${url}`)
+      : `${item._nombre} · ${item.ciudad || ''} ${url}`;
+    navigator.clipboard?.writeText(texto).then(() => {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    });
   };
 
   const enviarActualizacionEdificio = async () => {
@@ -269,7 +267,7 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                 className="flex items-center justify-center gap-2 w-full bg-gray-100 border border-gray-200 rounded-2xl px-4 py-3 cursor-pointer"
               >
                 <Share2 size={13} className="text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">{es ? 'Compartir' : 'Share'}</span>
+                <span className="text-sm font-semibold text-gray-700">{copiado ? (es ? '✅ Enlace copiado' : '✅ Link copied') : (es ? 'Copiar enlace' : 'Copy link')}</span>
               </button>
             </>
           )}
@@ -386,7 +384,7 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                 className="flex items-center justify-center gap-2 w-full bg-gray-100 border border-gray-200 rounded-2xl px-4 py-3 cursor-pointer"
               >
                 <Share2 size={13} className="text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">{es ? 'Compartir' : 'Share'}</span>
+                <span className="text-sm font-semibold text-gray-700">{copiado ? (es ? '✅ Enlace copiado' : '✅ Link copied') : (es ? 'Copiar enlace' : 'Copy link')}</span>
               </button>
             </>
           )}
