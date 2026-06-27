@@ -13,6 +13,7 @@ const EMERGENCIAS = [
 export default function Footer() {
   const { lang } = useLang();
   const es = lang === 'es';
+  const pt = lang === 'pt';
   const [mostrarTels, setMostrarTels] = useState(false);
   const [mostrarSugerencia, setMostrarSugerencia] = useState(false);
   const [sugerencia, setSugerencia] = useState('');
@@ -44,7 +45,7 @@ export default function Footer() {
           paddingBottom: 10, borderBottom: '0.5px solid rgba(255,255,255,0.07)',
         }}>
           <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            📞 {es ? 'Teléfonos de emergencia Venezuela' : 'Venezuela emergency phones'}
+            📞 {pt ? 'Telefones de emergência Venezuela' : es ? 'Teléfonos de emergencia Venezuela' : 'Venezuela emergency phones'}
           </span>
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>{mostrarTels ? '▲' : '▼'}</span>
         </button>
@@ -66,13 +67,17 @@ export default function Footer() {
         {/* Avisos */}
         <div style={{ marginTop: 12 }}>
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', lineHeight: 1.5, marginBottom: 8 }}>
-            {es
+            {pt
+              ? '♥ Ferramenta cidadã e apartidária. Em uma emergência médica, ligue primeiro para os serviços de resgate. Sempre verifique as informações antes de compartilhá-las.'
+              : es
               ? '♥ Herramienta ciudadana y no partidista. Ante una emergencia médica, llama primero a los organismos de rescate. Verifica siempre la información antes de difundirla.'
               : '♥ A citizen and non-partisan tool. In a medical emergency, call rescue services first. Always verify information before sharing it.'}
           </p>
           <div style={{ background: 'rgba(192,57,43,0.12)', border: '0.5px solid rgba(192,57,43,0.25)', borderRadius: 6, padding: '8px 12px', marginBottom: 12 }}>
             <p style={{ fontSize: 11, color: '#f4a4b8', lineHeight: 1.4 }}>
-              ⚠️ {es
+              ⚠️ {pt
+                ? 'Nunca envie dinheiro em troca de informações. Não autorizamos pagamentos, resgates privados ou intermediários anônimos. Se alguém pedir dinheiro, é uma fraude.'
+                : es
                 ? 'Nunca envíes dinero a cambio de información. No autorizamos pagos, rescates privados ni intermediarios anónimos. Si alguien pide dinero, es una estafa.'
                 : "Never send money in exchange for information. We do not authorize payments, private rescue fees, or anonymous intermediaries. If someone asks for money, it's a scam."}
             </p>
@@ -81,7 +86,9 @@ export default function Footer() {
 
         <div style={{ background: 'rgba(36,113,163,0.12)', border: '0.5px solid rgba(36,113,163,0.28)', borderRadius: 6, padding: '8px 12px', marginBottom: 10 }}>
           <p style={{ fontSize: 11, color: '#9cc8e6', lineHeight: 1.4 }}>
-            ✉️ {es
+            ✉️ {pt
+              ? 'Tem vários arquivos ou listas? Envie por e-mail para '
+              : es
               ? '¿Tienes varios archivos o listados? Envíalos por correo a '
               : 'Have several files or lists? Send them by email to '}
             <a href="mailto:villenagv@gmail.com" style={{ color: '#cfe9ff', fontWeight: 600 }}>villenagv@gmail.com</a>
@@ -95,12 +102,12 @@ export default function Footer() {
             padding: '6px 12px', cursor: 'pointer', fontSize: 11, color: 'rgba(255,255,255,0.35)',
             width: '100%', textAlign: 'left',
           }}>
-            💡 {es ? 'Tengo una sugerencia o idea de mejora' : 'I have a suggestion or idea'} {mostrarSugerencia ? '▲' : '▼'}
+            💡 {pt ? 'Tenho uma sugestão ou ideia' : es ? 'Tengo una sugerencia o idea de mejora' : 'I have a suggestion or idea'} {mostrarSugerencia ? '▲' : '▼'}
           </button>
           {mostrarSugerencia && (
             <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {sugOk ? (
-                <p style={{ fontSize: 12, color: '#6fcf97', textAlign: 'center', padding: '8px 0' }}>✅ {es ? '¡Gracias! Tu sugerencia fue enviada.' : 'Thanks! Your suggestion was sent.'}</p>
+                <p style={{ fontSize: 12, color: '#6fcf97', textAlign: 'center', padding: '8px 0' }}>✅ {pt ? 'Obrigado! Sua sugestão foi enviada.' : es ? '¡Gracias! Tu sugerencia fue enviada.' : 'Thanks! Your suggestion was sent.'}</p>
               ) : (
                 <>
                   <textarea
@@ -108,20 +115,20 @@ export default function Footer() {
                     onChange={e => setSugerencia(e.target.value)}
                     rows={3}
                     maxLength={500}
-                    placeholder={es ? 'Escribe tu idea, sugerencia o reporte de error...' : 'Write your idea, suggestion or bug report...'}
+                    placeholder={pt ? 'Escreva sua ideia, sugestão ou relato de erro...' : es ? 'Escribe tu idea, sugerencia o reporte de error...' : 'Write your idea, suggestion or bug report...'}
                     style={{ background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: '#fff', resize: 'none', outline: 'none', width: '100%' }}
                   />
                   <input
                     value={emailSug}
                     onChange={e => setEmailSug(e.target.value)}
-                    placeholder={es ? 'Tu email (opcional, para responderte)' : 'Your email (optional, to reply)'}
+                    placeholder={pt ? 'Seu e-mail (opcional, para responder)' : es ? 'Tu email (opcional, para responderte)' : 'Your email (optional, to reply)'}
                     style={{ background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '7px 10px', fontSize: 12, color: '#fff', outline: 'none', width: '100%' }}
                   />
                   <button
                     onClick={enviarSugerencia}
                     disabled={!sugerencia.trim() || enviandoSug}
                     style={{ background: '#2471A3', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 0', fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: !sugerencia.trim() || enviandoSug ? 0.5 : 1 }}>
-                    {enviandoSug ? (es ? 'Enviando...' : 'Sending...') : (es ? 'Enviar sugerencia' : 'Send suggestion')}
+                    {enviandoSug ? (pt ? 'Enviando...' : es ? 'Enviando...' : 'Sending...') : (pt ? 'Enviar sugestão' : es ? 'Enviar sugerencia' : 'Send suggestion')}
                   </button>
                 </>
               )}
@@ -132,12 +139,11 @@ export default function Footer() {
         {/* Bottom */}
         <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 8, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.20)' }}>
-            <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.28)' }}>Status Venezuela</span> · {es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}
-            {/* Punto invisible de acceso al panel de administración */}
+            <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.28)' }}>Status Venezuela</span> · {pt ? 'Não partidário · Sem fins lucrativos' : es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}
             <Link to="/admin" style={{ marginLeft: 4, color: 'transparent', fontSize: 6, userSelect: 'none' }}>·</Link>
           </p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)' }}>
-            {es ? 'Hecho por venezolanos ♥' : 'Made by Venezuelans ♥'}
+            {pt ? 'Feito por venezuelanos ♥' : es ? 'Hecho por venezolanos ♥' : 'Made by Venezuelans ♥'}
           </p>
         </div>
       </div>

@@ -5,23 +5,25 @@ import { Link, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
 const NAV = [
-  { to: '/',              es: 'Inicio',          en: 'Home' },
-  { to: '/consultar',     es: 'Consultar',       en: 'Search' },
-  { to: '/directorio',    es: 'Directorio',      en: 'Directory' },
-  { to: '/personas',      es: 'Personas',        en: 'People' },
-  { to: '/edificios',     es: 'Edificios',       en: 'Buildings' },
-  { to: '/centros-apoyo', es: 'Centros de ayuda',en: 'Help Centers' },
-  { to: '/aliados',       es: 'Aliados',         en: 'Partners' },
+  { to: '/',              es: 'Inicio',           en: 'Home',         pt: 'Início' },
+  { to: '/consultar',     es: 'Consultar',        en: 'Search',       pt: 'Consultar' },
+  { to: '/directorio',    es: 'Directorio',       en: 'Directory',    pt: 'Diretório' },
+  { to: '/personas',      es: 'Personas',         en: 'People',       pt: 'Pessoas' },
+  { to: '/edificios',     es: 'Edificios',        en: 'Buildings',    pt: 'Edifícios' },
+  { to: '/centros-apoyo', es: 'Centros de ayuda', en: 'Help Centers', pt: 'Centros de ajuda' },
+  { to: '/aliados',       es: 'Aliados',          en: 'Partners',     pt: 'Parceiros' },
 ];
 
 
 export default function TopBar() {
-  const { lang, toggle: toggleLang } = useLang();
+  const { lang, setLanguage } = useLang();
   const { lowBw, toggle: toggleLowBw } = useLowBw();
   const location = useLocation();
   const es = lang === 'es';
+  const pt = lang === 'pt';
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(u => setUser(u)).catch(() => {});
@@ -53,7 +55,7 @@ export default function TopBar() {
                 padding: '5px 10px', borderRadius: 20, textDecoration: 'none',
                 background: active ? 'rgba(255,255,255,0.10)' : 'transparent',
               }}>
-                {es ? item.es : item.en}
+                {pt ? item.pt : es ? item.es : item.en}
               </Link>
             );
           })}
@@ -62,7 +64,7 @@ export default function TopBar() {
             color: 'rgba(255,255,255,0.55)',
             padding: '5px 10px', borderRadius: 20, textDecoration: 'none',
           }}>
-            {es ? 'Contáctanos' : 'Contact us'}
+            {pt ? 'Contate-nos' : es ? 'Contáctanos' : 'Contact us'}
           </Link>
         </nav>
 
@@ -72,23 +74,45 @@ export default function TopBar() {
             fontSize: 10, fontWeight: 500, padding: '4px 8px', borderRadius: 20, cursor: 'pointer',
             border: `0.5px solid ${lowBw ? '#c09a1a' : 'rgba(255,255,255,0.18)'}`,
             color: lowBw ? '#c09a1a' : 'rgba(255,255,255,0.45)', background: 'transparent',
-          }} title={es ? 'Modo bajo consumo' : 'Low-bandwidth mode'}>
+          }} title={pt ? 'Modo de baixa largura de banda' : es ? 'Modo bajo consumo' : 'Low-bandwidth mode'}>
             {lowBw ? '⚡ Low-BW' : '⚡'}
           </button>
 
-          <button onClick={toggleLang} style={{
-            fontSize: 10, fontWeight: 500, padding: '4px 8px', borderRadius: 20, cursor: 'pointer',
-            border: '0.5px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.45)', background: 'transparent',
-          }}>
-            {es ? 'EN' : 'ES'}
-          </button>
+          {/* Language selector */}
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setLangOpen(v => !v)} style={{
+              fontSize: 10, fontWeight: 600, padding: '4px 8px', borderRadius: 20, cursor: 'pointer',
+              border: '0.5px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)', background: 'transparent',
+              display: 'flex', alignItems: 'center', gap: 3,
+            }}>
+              {lang.toUpperCase()} ▾
+            </button>
+            {langOpen && (
+              <div style={{
+                position: 'absolute', top: '110%', right: 0, background: '#1a1a20',
+                border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 8, overflow: 'hidden', zIndex: 100, minWidth: 80,
+              }}>
+                {[{ code: 'es', label: 'Español' }, { code: 'en', label: 'English' }, { code: 'pt', label: 'Português' }].map(l => (
+                  <button key={l.code} onClick={() => { setLanguage(l.code); setLangOpen(false); }} style={{
+                    display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+                    fontSize: 11, fontWeight: lang === l.code ? 600 : 400,
+                    color: lang === l.code ? '#fff' : 'rgba(255,255,255,0.5)',
+                    background: lang === l.code ? 'rgba(255,255,255,0.08)' : 'transparent',
+                    border: 'none', cursor: 'pointer',
+                  }}>
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {user?.role === 'voluntario' && (
             <Link to="/portal-voluntario" style={{
               fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 20,
               color: '#fff', background: '#0F766E', textDecoration: 'none', whiteSpace: 'nowrap',
             }}>
-              🤝 {es ? 'Mi portal' : 'My portal'}
+              🤝 {pt ? 'Meu portal' : es ? 'Mi portal' : 'My portal'}
             </Link>
           )}
           {user ? (
@@ -105,14 +129,14 @@ export default function TopBar() {
               fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 20,
               color: '#fff', background: '#C0392B', textDecoration: 'none', whiteSpace: 'nowrap',
             }}>
-              {es ? 'Entrar' : 'Login'}
+              {pt ? 'Entrar' : es ? 'Entrar' : 'Login'}
             </Link>
             <Link to="/register" className="hidden sm:inline-block" style={{
               fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 20,
               color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.25)',
               textDecoration: 'none', whiteSpace: 'nowrap',
             }}>
-              {es ? 'Registro' : 'Sign up'}
+              {pt ? 'Cadastro' : es ? 'Registro' : 'Sign up'}
             </Link>
             </div>
           )}
@@ -132,10 +156,10 @@ export default function TopBar() {
           {!user && (
             <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
               <Link to="/login" style={{ flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 500, color: '#fff', background: '#C0392B', textDecoration: 'none' }}>
-                {es ? 'Entrar' : 'Login'}
+                {pt ? 'Entrar' : es ? 'Entrar' : 'Login'}
               </Link>
               <Link to="/register" style={{ flex: 1, textAlign: 'center', padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.25)', textDecoration: 'none' }}>
-                {es ? 'Registro' : 'Sign up'}
+                {pt ? 'Cadastro' : es ? 'Registro' : 'Sign up'}
               </Link>
             </div>
           )}
@@ -149,7 +173,7 @@ export default function TopBar() {
                 background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
                 textDecoration: 'none',
               }}>
-                {es ? item.es : item.en}
+                {pt ? item.pt : es ? item.es : item.en}
               </Link>
             );
           })}
@@ -159,7 +183,7 @@ export default function TopBar() {
             color: 'rgba(255,255,255,0.55)',
             textDecoration: 'none',
           }}>
-            ✉️ {es ? 'Contáctanos' : 'Contact us'}
+            ✉️ {pt ? 'Contate-nos' : es ? 'Contáctanos' : 'Contact us'}
           </Link>
           {user?.role === 'admin' && (
             <Link to="/dashboard" style={{ display: 'block', padding: '11px 12px', borderRadius: 8, fontSize: 14, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
@@ -176,8 +200,8 @@ export default function TopBar() {
           borderRadius: 999, padding: '12px 16px', fontSize: 13, fontWeight: 800,
           boxShadow: '0 8px 24px rgba(0,0,0,0.24)', border: '1px solid rgba(255,255,255,0.18)',
           display: 'flex', alignItems: 'center', gap: 8,
-        }} aria-label={es ? 'Encontré a alguien' : 'I found someone'}>
-          🙋 {es ? 'Encontré a alguien' : 'I found someone'}
+        }} aria-label={pt ? 'Encontrei alguém' : es ? 'Encontré a alguien' : 'I found someone'}>
+          🙋 {pt ? 'Encontrei alguém' : es ? 'Encontré a alguien' : 'I found someone'}
         </Link>
       )}
     </header>

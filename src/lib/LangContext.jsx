@@ -14,7 +14,6 @@ const T = {
     reportes: 'reportes',
     puntos_abiertos: 'puntos de ayuda abiertos',
     saturados: 'saturados',
-    // Entrada principal
     card1_title: 'Estoy en una zona afectada',
     card1_desc: 'Reporta daños, personas atrapadas, riesgos o pide ayuda urgente',
     card2_title: 'Busco información sobre una zona',
@@ -26,7 +25,6 @@ const T = {
     card_encontrado_title: 'Encontré o vi a alguien',
     card_encontrado_desc: 'Reporta a alguien como a salvo, herido, en refugio u hospital, o fallecido',
     no_reg: 'Sin registro · Acceso inmediato · Sin internet requerido para leer',
-    // Reportar
     report_title: 'Reportar emergencia',
     report_desc: 'Usa este formulario para reportar daños visibles, personas atrapadas o riesgos como gas, electricidad o colapso.',
     report_warning: 'No entres a estructuras dañadas. Espera a Protección Civil, Bomberos o rescatistas.',
@@ -46,14 +44,12 @@ const T = {
     enviado_err: 'Error al enviar. Verifica tu conexión.',
     modo_rapido: 'Modo rápido',
     modo_completo: 'Modo completo',
-    // Consultar
     consult_title: 'Consultar zonas y reportes',
     consult_desc: 'Busca por ciudad o zona para ver el estado actual de edificios, refugios y reportes.',
     buscar_placeholder: 'Ciudad, municipio o zona...',
     btn_buscar: 'Buscar',
     ver_mas: 'Ver más resultados',
     sin_resultados: 'No se encontraron reportes para esta búsqueda.',
-    // Institucional
     inst_title: 'Registrar punto de ayuda',
     inst_desc: 'Usa este formulario para registrar un refugio, hospital, comedor, centro de acopio o punto de donaciones. Los datos privados no se publicarán.',
     field_nombre_lugar: 'Nombre del lugar',
@@ -64,8 +60,65 @@ const T = {
     field_necesidades: 'Necesidades urgentes',
     field_contacto: 'Contacto público (WhatsApp, teléfono)',
     btn_guardar: 'Guardar punto de ayuda',
-    // Seguridad
     anti_extorsion: '⚠️ Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados.',
+    // Nav
+    nav_inicio: 'Inicio',
+    nav_consultar: 'Consultar',
+    nav_directorio: 'Directorio',
+    nav_personas: 'Personas',
+    nav_edificios: 'Edificios',
+    nav_centros: 'Centros de ayuda',
+    nav_aliados: 'Aliados',
+    nav_contacto: 'Contáctanos',
+    nav_entrar: 'Entrar',
+    nav_registro: 'Registro',
+    // Botón encontrado
+    btn_encontre: 'Encontré a alguien',
+    // Misc
+    loading: 'Cargando...',
+    no_data: 'Sin datos',
+    share: 'Compartir',
+    copy_link: 'Copiar enlace',
+    copied: 'Copiado',
+    notify_me: 'Avísame si cambia',
+    subscribed: 'Suscrito. Te avisaremos.',
+    your_email: 'Tu email...',
+    subscribe: 'Suscribir',
+    cancel: 'Cancelar',
+    send: 'Enviar',
+    save: 'Guardar',
+    update: 'Actualizar',
+    close: 'Cerrar',
+    yes: 'Sí',
+    no: 'No',
+    unknown: 'No sé',
+    home: 'Inicio',
+    // Edificios
+    no_enter: 'NO ENTRAR',
+    do_not_enter: 'NO ENTRAR',
+    building_directory: 'Directorio de edificios',
+    report_damage: 'Reportar daño',
+    search_building: 'Buscar edificio',
+    is_safe: '¿Es seguro este edificio?',
+    no_reports: 'Sin reportes aún.',
+    add_update: '+ Actualizar',
+    still_same: 'Sigue igual',
+    wrong_info: 'Info incorrecta',
+    add_update_long: 'Agregar actualización sobre este edificio',
+    send_update: 'Enviar actualización',
+    // Personas
+    missing: 'Buscada',
+    found: 'Encontrada',
+    report_missing: 'Reportar persona buscada',
+    report_found: 'Reportar persona encontrada',
+    // Footer
+    emergency_phones: 'Teléfonos de emergencia Venezuela',
+    suggestion: 'Tengo una sugerencia o idea de mejora',
+    send_suggestion: 'Enviar sugerencia',
+    sending: 'Enviando...',
+    thanks_suggestion: '¡Gracias! Tu sugerencia fue enviada.',
+    non_partisan: 'No partidista · Sin fines de lucro',
+    made_by: 'Hecho por venezolanos ♥',
   },
   en: {
     brand: 'STATUSVZLA',
@@ -127,24 +180,213 @@ const T = {
     field_contacto: 'Public contact (WhatsApp, phone)',
     btn_guardar: 'Save help point',
     anti_extorsion: '⚠️ Never send money in exchange for information. This platform does not authorize payments or private rescue fees.',
+    // Nav
+    nav_inicio: 'Home',
+    nav_consultar: 'Search',
+    nav_directorio: 'Directory',
+    nav_personas: 'People',
+    nav_edificios: 'Buildings',
+    nav_centros: 'Help Centers',
+    nav_aliados: 'Partners',
+    nav_contacto: 'Contact us',
+    nav_entrar: 'Login',
+    nav_registro: 'Sign up',
+    // Botón encontrado
+    btn_encontre: 'I found someone',
+    // Misc
+    loading: 'Loading...',
+    no_data: 'No data',
+    share: 'Share',
+    copy_link: 'Copy link',
+    copied: 'Copied',
+    notify_me: 'Notify me of changes',
+    subscribed: 'Subscribed. We will notify you.',
+    your_email: 'Your email...',
+    subscribe: 'Subscribe',
+    cancel: 'Cancel',
+    send: 'Send',
+    save: 'Save',
+    update: 'Update',
+    close: 'Close',
+    yes: 'Yes',
+    no: 'No',
+    unknown: 'Unknown',
+    home: 'Home',
+    // Edificios
+    no_enter: 'DO NOT ENTER',
+    do_not_enter: 'DO NOT ENTER',
+    building_directory: 'Buildings directory',
+    report_damage: 'Report damage',
+    search_building: 'Search building',
+    is_safe: 'Is this building safe?',
+    no_reports: 'No reports yet.',
+    add_update: '+ Update',
+    still_same: 'Still the same',
+    wrong_info: 'Wrong info',
+    add_update_long: 'Add an update about this building',
+    send_update: 'Send update',
+    // Personas
+    missing: 'Missing',
+    found: 'Found',
+    report_missing: 'Report missing person',
+    report_found: 'Report found person',
+    // Footer
+    emergency_phones: 'Venezuela emergency phones',
+    suggestion: 'I have a suggestion or idea',
+    send_suggestion: 'Send suggestion',
+    sending: 'Sending...',
+    thanks_suggestion: 'Thanks! Your suggestion was sent.',
+    non_partisan: 'Non-partisan · Non-profit',
+    made_by: 'Made by Venezuelans ♥',
+  },
+  pt: {
+    brand: 'STATUSVZLA',
+    tagline: 'Sistema de resposta a emergências · Venezuela',
+    lang_toggle: 'Español',
+    low_bw: 'Modo de baixa largura de banda',
+    low_bw_active: 'Baixa largura ativa',
+    counters_loading: 'Carregando dados...',
+    counters_next: 'Atualiza em',
+    criticos: 'críticos',
+    atrapados: 'presos',
+    reportes: 'relatórios',
+    puntos_abiertos: 'pontos de ajuda abertos',
+    saturados: 'saturados',
+    card1_title: 'Estou em uma área afetada',
+    card1_desc: 'Relate danos, pessoas presas, riscos ou peça ajuda urgente',
+    card2_title: 'Estou procurando informações sobre uma área',
+    card2_desc: 'Consulte o estado de edifícios, abrigos ativos e zonas relatadas',
+    card3_title: 'Sou uma instituição ou ponto de ajuda',
+    card3_desc: 'Registre seu abrigo, hospital, refeitório ou centro de doações',
+    card_buscar_title: 'Estou procurando alguém',
+    card_buscar_desc: 'Registre uma pessoa desaparecida com sua última localização conhecida e seus dados de contato',
+    card_encontrado_title: 'Encontrei ou vi alguém',
+    card_encontrado_desc: 'Relate alguém como seguro, ferido, em abrigo/hospital, ou falecido',
+    no_reg: 'Sem registro · Acesso imediato · Sem internet necessária para ler',
+    report_title: 'Relatar emergência',
+    report_desc: 'Use este formulário para relatar danos visíveis, pessoas presas ou riscos como gás, eletricidade ou colapso.',
+    report_warning: 'Não entre em estruturas danificadas. Aguarde a Defesa Civil, Bombeiros ou equipes de resgate.',
+    field_tipo: 'Tipo de relatório',
+    field_dir: 'Endereço ou referência',
+    field_ciudad: 'Cidade',
+    field_estado: 'Estado / Região',
+    field_nivel_dano: 'Nível de dano',
+    field_personas: 'Há pessoas presas?',
+    field_riesgos: 'Riscos presentes',
+    field_desc: 'Descrição adicional (opcional)',
+    field_nombre: 'Seu nome (opcional)',
+    field_tel: 'Telefone de contato (não publicado)',
+    btn_enviar: 'Enviar relatório',
+    btn_volver: 'Voltar',
+    enviado_ok: '✅ Relatório enviado. Obrigado por ajudar.',
+    enviado_err: 'Erro ao enviar. Verifique sua conexão.',
+    modo_rapido: 'Modo rápido',
+    modo_completo: 'Modo completo',
+    consult_title: 'Consultar zonas e relatórios',
+    consult_desc: 'Busque por cidade ou zona para ver o estado atual de edifícios, abrigos e relatórios.',
+    buscar_placeholder: 'Cidade, município ou zona...',
+    btn_buscar: 'Buscar',
+    ver_mas: 'Carregar mais resultados',
+    sin_resultados: 'Nenhum relatório encontrado para esta busca.',
+    inst_title: 'Registrar ponto de ajuda',
+    inst_desc: 'Use este formulário para registrar um abrigo, hospital, refeitório, depósito de suprimentos ou ponto de doações. Os dados privados não serão publicados.',
+    field_nombre_lugar: 'Nome do local',
+    field_tipo_lugar: 'Tipo de local',
+    field_estado_op: 'Estado operacional',
+    field_capacidad: 'Capacidade máxima',
+    field_servicios: 'Serviços disponíveis',
+    field_necesidades: 'Necessidades urgentes',
+    field_contacto: 'Contato público (WhatsApp, telefone)',
+    btn_guardar: 'Salvar ponto de ajuda',
+    anti_extorsion: '⚠️ Nunca envie dinheiro em troca de informações. Esta plataforma não autoriza pagamentos nem resgates privados.',
+    // Nav
+    nav_inicio: 'Início',
+    nav_consultar: 'Consultar',
+    nav_directorio: 'Diretório',
+    nav_personas: 'Pessoas',
+    nav_edificios: 'Edifícios',
+    nav_centros: 'Centros de ajuda',
+    nav_aliados: 'Parceiros',
+    nav_contacto: 'Contate-nos',
+    nav_entrar: 'Entrar',
+    nav_registro: 'Cadastro',
+    // Botón encontrado
+    btn_encontre: 'Encontrei alguém',
+    // Misc
+    loading: 'Carregando...',
+    no_data: 'Sem dados',
+    share: 'Compartilhar',
+    copy_link: 'Copiar link',
+    copied: 'Copiado',
+    notify_me: 'Avisar-me sobre mudanças',
+    subscribed: 'Inscrito. Avisaremos você.',
+    your_email: 'Seu e-mail...',
+    subscribe: 'Inscrever-se',
+    cancel: 'Cancelar',
+    send: 'Enviar',
+    save: 'Salvar',
+    update: 'Atualizar',
+    close: 'Fechar',
+    yes: 'Sim',
+    no: 'Não',
+    unknown: 'Não sei',
+    home: 'Início',
+    // Edificios
+    no_enter: 'NÃO ENTRAR',
+    do_not_enter: 'NÃO ENTRAR',
+    building_directory: 'Diretório de edifícios',
+    report_damage: 'Relatar dano',
+    search_building: 'Buscar edifício',
+    is_safe: 'Este edifício é seguro?',
+    no_reports: 'Sem relatórios ainda.',
+    add_update: '+ Atualizar',
+    still_same: 'Continua igual',
+    wrong_info: 'Info incorreta',
+    add_update_long: 'Adicionar atualização sobre este edifício',
+    send_update: 'Enviar atualização',
+    // Personas
+    missing: 'Desaparecida',
+    found: 'Encontrada',
+    report_missing: 'Relatar pessoa desaparecida',
+    report_found: 'Relatar pessoa encontrada',
+    // Footer
+    emergency_phones: 'Telefones de emergência Venezuela',
+    suggestion: 'Tenho uma sugestão ou ideia',
+    send_suggestion: 'Enviar sugestão',
+    sending: 'Enviando...',
+    thanks_suggestion: 'Obrigado! Sua sugestão foi enviada.',
+    non_partisan: 'Não partidário · Sem fins lucrativos',
+    made_by: 'Feito por venezuelanos ♥',
   }
 };
 
 const LangContext = createContext(null);
 
+const LANGS = ['es', 'en', 'pt'];
+
 export function LangProvider({ children }) {
   const [lang, setLang] = useState(() => {
     const stored = localStorage.getItem('svzla_lang');
-    if (!stored) localStorage.setItem('svzla_lang', 'es');
-    return stored || 'es';
+    if (stored && LANGS.includes(stored)) return stored;
+    localStorage.setItem('svzla_lang', 'es');
+    return 'es';
   });
-  const toggle = () => {
-    const next = lang === 'es' ? 'en' : 'es';
-    setLang(next);
-    localStorage.setItem('svzla_lang', next);
+
+  const setLanguage = (l) => {
+    if (!LANGS.includes(l)) return;
+    setLang(l);
+    localStorage.setItem('svzla_lang', l);
   };
+
+  // Legacy toggle kept for backward compat (cycles es→en→pt→es)
+  const toggle = () => {
+    const idx = LANGS.indexOf(lang);
+    const next = LANGS[(idx + 1) % LANGS.length];
+    setLanguage(next);
+  };
+
   return (
-    <LangContext.Provider value={{ lang, toggle, t: T[lang] }}>
+    <LangContext.Provider value={{ lang, toggle, setLanguage, t: T[lang], langs: LANGS }}>
       {children}
     </LangContext.Provider>
   );
