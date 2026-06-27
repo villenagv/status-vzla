@@ -192,13 +192,22 @@ export default function Directorio() {
         </Link>
 
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
-          📂 {es ? 'Directorio por categorías' : 'Directory by categories'}
+          📂 {es ? 'Directorio' : 'Directory'}
         </h1>
-        <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+        <p className="text-xs text-gray-500 mb-2 leading-relaxed">
           {es
-            ? 'Todas las personas y edificios reportados, organizados por categoría. Busca y filtra para encontrar lo que necesitas.'
-            : 'All reported people and buildings organized by category. Search and filter to find what you need.'}
+            ? 'Toca cualquier ficha para ver detalles, enviar una actualización o suscribirte a novedades.'
+            : 'Tap any card to view details, send an update, or subscribe to alerts.'}
         </p>
+        {/* Instrucción de emergencia */}
+        <div className="flex gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-4">
+          <span className="text-red-500 text-sm flex-shrink-0">⚡</span>
+          <p className="text-[11px] text-red-800 leading-snug font-medium">
+            {es
+              ? 'En emergencia activa: usa el buscador para encontrar rápido. No necesitas cuenta para consultar.'
+              : 'Active emergency: use the search bar to find quickly. No account needed to browse.'}
+          </p>
+        </div>
 
         {/* ── TABS PRINCIPALES ── */}
         <div className="flex gap-2 mb-5">
@@ -230,34 +239,40 @@ export default function Directorio() {
 
         {/* ── CATEGORÍAS PERSONAS ── */}
         {tab === 'personas' && (
-          <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-            {CATEGORIAS_PERSONAS.map(c => (
-              <button key={c.id} onClick={() => { setCategoriaPersona(c.id); setPage(1); }}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border-2 cursor-pointer transition-colors ${categoriaPersona === c.id ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-gray-200 text-gray-600'}`}>
-                {es ? c.es : c.en}
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${categoriaPersona === c.id ? 'bg-white text-[#1A1F2E]' : 'bg-gray-100 text-gray-600'}`}>
-                  {contPersonas[c.id]}
-                </span>
-              </button>
-            ))}
-          </div>
+          <>
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1.5 font-bold">{es ? 'Filtrar por categoría' : 'Filter by category'}</p>
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+              {CATEGORIAS_PERSONAS.map(c => (
+                <button key={c.id} onClick={() => { setCategoriaPersona(c.id); setPage(1); }}
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border-2 cursor-pointer ${categoriaPersona === c.id ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-gray-200 text-gray-600'}`}>
+                  {es ? c.es : c.en}
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${categoriaPersona === c.id ? 'bg-white text-[#1A1F2E]' : 'bg-gray-100 text-gray-600'}`}>
+                    {contPersonas[c.id]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
         )}
 
         {/* ── CATEGORÍAS EDIFICIOS ── */}
         {tab === 'edificios' && (
-          <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-            {CATEGORIAS_EDIFICIOS.map(c => (
-              <button key={c.id} onClick={() => { setCategoriaEdificio(c.id); setPage(1); }}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border-2 cursor-pointer transition-colors ${categoriaEdificio === c.id
-                  ? (c.id === 'criticos' || c.id === 'graves' ? 'bg-red-600 text-white border-red-600' : 'bg-[#1A1F2E] text-white border-[#1A1F2E]')
-                  : 'bg-white border-gray-200 text-gray-600'}`}>
-                {es ? c.es : c.en}
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${categoriaEdificio === c.id ? 'bg-white text-[#1A1F2E]' : 'bg-gray-100 text-gray-600'}`}>
-                  {contEdificios[c.id]}
-                </span>
-              </button>
-            ))}
-          </div>
+          <>
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1.5 font-bold">{es ? 'Filtrar por nivel de daño' : 'Filter by damage level'}</p>
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+              {CATEGORIAS_EDIFICIOS.map(c => (
+                <button key={c.id} onClick={() => { setCategoriaEdificio(c.id); setPage(1); }}
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border-2 cursor-pointer ${categoriaEdificio === c.id
+                    ? (c.id === 'criticos' || c.id === 'graves' ? 'bg-red-600 text-white border-red-600' : 'bg-[#1A1F2E] text-white border-[#1A1F2E]')
+                    : 'bg-white border-gray-200 text-gray-600'}`}>
+                  {es ? c.es : c.en}
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${categoriaEdificio === c.id ? 'bg-white text-[#1A1F2E]' : 'bg-gray-100 text-gray-600'}`}>
+                    {contEdificios[c.id]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
         )}
 
         {cargando && (

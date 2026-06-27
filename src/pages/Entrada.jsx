@@ -105,12 +105,12 @@ export default function Entrada() {
           </p>
           <div className="grid grid-cols-2 gap-2">
             {[
+              { to: '/directorio',         emoji: '📂', es: 'Directorio completo',   en: 'Full directory' },
               { to: '/personas',           emoji: '👤', es: 'Personas buscadas',     en: 'Missing people' },
               { to: '/edificios',          emoji: '🏗️', es: 'Estado de edificios',   en: 'Building status' },
               { to: '/centros-apoyo',      emoji: '🏥', es: 'Centros de apoyo',      en: 'Help centers' },
               { to: '/reportar-encontrado',emoji: '🙋', es: 'Encontré a alguien',    en: 'I found someone' },
               { to: '/buscar-persona',     emoji: '🔎', es: 'Reportar desaparecido', en: 'Report missing' },
-              { to: '/institucional',      emoji: '🏛️', es: 'Soy institución',       en: 'I am an institution' },
             ].map(item => (
               <Link
                 key={item.to}

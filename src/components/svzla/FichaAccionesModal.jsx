@@ -144,6 +144,16 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
           {/* ── ACCIONES PERSONA ── */}
           {tipo === 'persona' && (
             <>
+              {/* Anti-extorsión */}
+              <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                <span className="text-amber-600 flex-shrink-0 text-sm">⚠️</span>
+                <p className="text-[11px] text-amber-800 leading-snug">
+                  {es
+                    ? 'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados.'
+                    : 'Never send money in exchange for information. This platform does not authorize payments or private rescue fees.'}
+                </p>
+              </div>
+
               {/* Ver ficha completa — solo busqueda tiene detalle propio */}
               {item._fuente === 'busqueda' && (
                 <Link
