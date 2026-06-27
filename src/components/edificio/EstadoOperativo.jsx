@@ -285,93 +285,96 @@ export default function EstadoOperativo({ edificioId, es }) {
   );
 
   const srv = estado;
-  const tieneData = srv && (
-    srv.electricidad !== 'no_confirmado' || srv.agua !== 'no_confirmado' ||
-    srv.gas !== 'no_confirmado' || srv.acceso_calle !== 'no_confirmado' || srv.tipo_dano !== 'no_confirmado'
-  );
+
+  // ── Servicios: mostrar SIEMPRE los tres, con estado actual o "sin confirmar" ──
+  const servicios = [
+    { key: 'electricidad', icon: Zap,      es: 'Electricidad',   en: 'Electricity'   },
+    { key: 'agua',         icon: Droplets, es: 'Agua corriente', en: 'Running water' },
+    { key: 'gas',          icon: Flame,    es: 'Gas',            en: 'Gas'           },
+  ];
+
+  // Acceso: mostrar siempre que exista dato o como "sin confirmar"
+  const accesoCalle    = srv?.acceso_calle    || 'no_confirmado';
+  const accesoVehiculos= srv?.acceso_vehiculos|| 'no_confirmado';
+  const tipoDano       = srv?.tipo_dano       || 'no_confirmado';
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3 space-y-3">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">🏢 {es ? 'Estado operativo' : 'Operational status'}</p>
         <button onClick={() => setEditando(v => !v)}
           className="text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full cursor-pointer hover:bg-blue-100">
-          {editando ? (es ? 'Cerrar' : 'Close') : (es ? 'Actualizar' : 'Update')}
+          {editando ? (es ? 'Cerrar' : 'Close') : (es ? '+ Actualizar' : '+ Update')}
         </button>
       </div>
 
-      {!tieneData && !editando && (
-        <div className="text-center py-3">
-          <p className="text-xs text-gray-400">{es ? 'Aún no hay datos operativos. ¿Puedes ayudar?' : 'No operational data yet. Can you help?'}</p>
-          <button onClick={() => setEditando(true)} className="text-xs font-semibold text-blue-600 underline underline-offset-2 mt-1 cursor-pointer">
-            {es ? 'Agregar información' : 'Add information'}
-          </button>
+      {/* ── SERVICIOS BÁSICOS — siempre visibles ── */}
+      <div>
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">⚡ {es ? 'Servicios básicos' : 'Basic services'}</p>
+        <div className="space-y-1.5">
+          {servicios.map(s => (
+            <ServicioChip key={s.key} icon={s.icon} label={es ? s.es : s.en} estado={srv?.[s.key] || 'no_confirmado'} es={es} />
+          ))}
+        </div>
+      </div>
+
+      {/* Fuga de gas — alerta crítica */}
+      {srv?.gas === 'fuga_reportada' && (
+        <div className="flex gap-2 bg-red-50 border-2 border-red-300 rounded-xl px-3 py-2.5">
+          <AlertTriangle size={14} className="text-red-600 flex-shrink-0 mt-0.5" />
+          <p className="text-xs font-bold text-red-700">{es ? '⚠️ FUGA DE GAS REPORTADA — Evacúa de inmediato' : '⚠️ GAS LEAK REPORTED — Evacuate immediately'}</p>
         </div>
       )}
 
-      {tieneData && !editando && (
-        <div className="space-y-2">
-          {/* Daños */}
-          {srv.tipo_dano && srv.tipo_dano !== 'no_confirmado' && (
-            <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
-              <span className="text-xs font-semibold text-gray-600">🏗️ {es ? 'Daños' : 'Damage'}</span>
-              <span className="text-xs font-bold text-gray-800">{es ? TIPO_DANO_LABELS[srv.tipo_dano]?.es : TIPO_DANO_LABELS[srv.tipo_dano]?.en}</span>
-            </div>
-          )}
-
-          {/* Acceso */}
-          {(srv.acceso_calle && srv.acceso_calle !== 'no_confirmado') && (
-            <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
-              <span className="text-xs font-semibold text-gray-600">🚶 {es ? 'Acceso' : 'Access'}</span>
-              <div className="text-right">
-                <p className="text-xs font-bold text-gray-800">{es ? ACCESO_LABELS[srv.acceso_calle]?.es : ACCESO_LABELS[srv.acceso_calle]?.en}</p>
-                {srv.acceso_vehiculos && srv.acceso_vehiculos !== 'no_confirmado' && (
-                  <p className="text-[10px] text-gray-500">{es ? VEHICULOS_LABELS[srv.acceso_vehiculos]?.es : VEHICULOS_LABELS[srv.acceso_vehiculos]?.en}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Servicios — semáforo */}
-          <div className="space-y-1.5">
-            {srv.electricidad && srv.electricidad !== 'no_confirmado' && (
-              <ServicioChip icon={Zap} label={es ? 'Electricidad' : 'Electricity'} estado={srv.electricidad} es={es} />
-            )}
-            {srv.agua && srv.agua !== 'no_confirmado' && (
-              <ServicioChip icon={Droplets} label={es ? 'Agua corriente' : 'Running water'} estado={srv.agua} es={es} />
-            )}
-            {srv.gas && srv.gas !== 'no_confirmado' && (
-              <ServicioChip icon={Flame} label={es ? 'Gas' : 'Gas'} estado={srv.gas} es={es} />
-            )}
+      {/* ── ACCESO — siempre visible ── */}
+      <div>
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">🚶 {es ? 'Acceso' : 'Access'}</p>
+        <div className="grid grid-cols-2 gap-1.5">
+          <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
+            <span className="text-[11px] font-semibold text-gray-500">{es ? 'A pie' : 'On foot'}</span>
+            <span className="text-[11px] font-bold text-gray-800">{es ? ACCESO_LABELS[accesoCalle]?.es : ACCESO_LABELS[accesoCalle]?.en}</span>
           </div>
+          <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
+            <span className="text-[11px] font-semibold text-gray-500">🚗</span>
+            <span className="text-[11px] font-bold text-gray-800">{es ? VEHICULOS_LABELS[accesoVehiculos]?.es : VEHICULOS_LABELS[accesoVehiculos]?.en}</span>
+          </div>
+        </div>
+        {srv?.notas_acceso && (
+          <p className="text-[11px] text-gray-500 mt-1.5 pl-1 italic">{srv.notas_acceso}</p>
+        )}
+      </div>
 
-          {/* Racionamiento */}
-          {(srv.racionamiento_agua || srv.racionamiento_electricidad || srv.racionamiento_gas) && (
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 space-y-1.5">
-              <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">🕐 {es ? 'Racionamiento reportado' : 'Reported rationing'}</p>
-              {srv.racionamiento_agua && srv.horario_agua && (
-                <p className="text-xs text-orange-800">💧 <strong>{es ? 'Agua:' : 'Water:'}</strong> {srv.horario_agua}</p>
-              )}
-              {srv.racionamiento_electricidad && srv.horario_electricidad && (
-                <p className="text-xs text-orange-800">⚡ <strong>{es ? 'Electricidad:' : 'Electricity:'}</strong> {srv.horario_electricidad}</p>
-              )}
-              {srv.racionamiento_gas && srv.horario_gas && (
-                <p className="text-xs text-orange-800">🔥 <strong>{es ? 'Gas:' : 'Gas:'}</strong> {srv.horario_gas}</p>
-              )}
-              {srv.notas_racionamiento && (
-                <p className="text-[10px] text-orange-600 italic">{srv.notas_racionamiento}</p>
-              )}
-            </div>
+      {/* ── TIPO DE DAÑO — siempre visible ── */}
+      <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5">
+        <span className="text-xs font-semibold text-gray-600">🏗️ {es ? 'Tipo de daño' : 'Damage type'}</span>
+        <span className="text-xs font-bold text-gray-800">{es ? TIPO_DANO_LABELS[tipoDano]?.es : TIPO_DANO_LABELS[tipoDano]?.en}</span>
+      </div>
+
+      {/* ── RACIONAMIENTO — solo si existe ── */}
+      {srv && (srv.racionamiento_agua || srv.racionamiento_electricidad || srv.racionamiento_gas) && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 space-y-1.5">
+          <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">🕐 {es ? 'Racionamiento reportado' : 'Reported rationing'}</p>
+          {srv.racionamiento_agua && srv.horario_agua && (
+            <p className="text-xs text-orange-800">💧 <strong>{es ? 'Agua:' : 'Water:'}</strong> {srv.horario_agua}</p>
           )}
-
-          {/* Fuga de gas — alerta crítica */}
-          {srv.gas === 'fuga_reportada' && (
-            <div className="flex gap-2 bg-red-50 border-2 border-red-300 rounded-xl px-3 py-2.5">
-              <AlertTriangle size={14} className="text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs font-bold text-red-700">{es ? '⚠️ FUGA DE GAS REPORTADA — Evacúa de inmediato' : '⚠️ GAS LEAK REPORTED — Evacuate immediately'}</p>
-            </div>
+          {srv.racionamiento_electricidad && srv.horario_electricidad && (
+            <p className="text-xs text-orange-800">⚡ <strong>{es ? 'Electricidad:' : 'Electricity:'}</strong> {srv.horario_electricidad}</p>
+          )}
+          {srv.racionamiento_gas && srv.horario_gas && (
+            <p className="text-xs text-orange-800">🔥 <strong>{es ? 'Gas:' : 'Gas:'}</strong> {srv.horario_gas}</p>
+          )}
+          {srv.notas_racionamiento && (
+            <p className="text-[10px] text-orange-600 italic">{srv.notas_racionamiento}</p>
           )}
         </div>
+      )}
+
+      {!srv && !editando && (
+        <p className="text-[11px] text-gray-400 text-center py-1">
+          {es ? '⚠️ Sin datos confirmados aún. ¿Puedes ayudar?' : '⚠️ No confirmed data yet. Can you help?'}
+          {' '}<button onClick={() => setEditando(true)} className="font-semibold text-blue-600 underline cursor-pointer">{es ? 'Agregar' : 'Add'}</button>
+        </p>
       )}
 
       {editando && (

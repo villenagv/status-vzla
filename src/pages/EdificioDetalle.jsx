@@ -103,6 +103,9 @@ export default function EdificioDetalle() {
   const [enviando, setEnviando] = useState(false);
   const [updateFotos, setUpdateFotos] = useState([]);
 
+  // UI
+  const [expandida, setExpandida] = useState(false);
+
   // Solicitudes
   const [solicitudes, setSolicitudes] = useState([]);
   const [conozco, setConozco] = useState(null);
@@ -230,9 +233,9 @@ export default function EdificioDetalle() {
     </div>
   );
 
-  const cfg = DANO_CONFIG[edificio.nivel_dano] || DANO_CONFIG.no_evaluado;
-  const noEntrar = ['grave', 'critico', 'colapsado'].includes(edificio.nivel_dano);
-  const esCritico = noEntrar || edificio.personas_atrapadas === 'si' || edificio.prioridad === 'critica';
+  const cfg = DANO_CONFIG[edificio?.nivel_dano] || DANO_CONFIG.no_evaluado;
+  const noEntrar = ['grave', 'critico', 'colapsado'].includes(edificio?.nivel_dano);
+  const esCritico = noEntrar || edificio?.personas_atrapadas === 'si' || edificio?.prioridad === 'critica';
   const totalReportes = actualizaciones.length + 1;
   const reportesPersonas = actualizaciones.filter(a => ['personas_atrapadas', 'persona_herida_recuperada', 'persona_fallecida_recuperada'].includes(a.tipo_accion));
   const reportesAtrapados = reportesPersonas.filter(a => a.tipo_accion === 'personas_atrapadas');
@@ -248,26 +251,38 @@ export default function EdificioDetalle() {
           <ChevronLeft size={16} /> {es ? 'Directorio de edificios' : 'Buildings directory'}
         </Link>
 
-        {/* ── ENCABEZADO FICHA VIVA ── */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
+        {/* ── ENCABEZADO FICHA VIVA — clic abre/cierra todo el detalle ── */}
+        <div
+          className={`bg-white border-2 rounded-2xl p-4 mb-3 cursor-pointer select-none transition-all ${esCritico ? 'border-red-300' : 'border-gray-200'}`}
+          onClick={() => setExpandida(v => !v)}
+        >
           <div className="flex items-start justify-between gap-2 mb-3">
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">{es ? 'Ficha de edificio' : 'Building record'}</p>
               <h1 className="text-lg font-bold text-gray-900 leading-tight">{edificio.nombre_lugar || edificio.tipo_estructura || (es ? 'Edificio sin nombre' : 'Unnamed building')}</h1>
               {edificio.tipo_estructura && <p className="text-[10px] text-gray-400 mt-0.5">{edificio.tipo_estructura.replace(/_/g, ' ')}</p>}
+              {(edificio.direccion || edificio.ciudad) && (
+                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                  <MapPin size={10} className="flex-shrink-0" />
+                  {[edificio.direccion, edificio.ciudad, edificio.estado_region].filter(Boolean).join(' · ')}
+                </p>
+              )}
             </div>
-            <div className="flex-shrink-0 text-right">
-              <div className="text-xs font-semibold text-gray-500 flex items-center gap-1 justify-end">
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <div className="text-xs font-semibold text-gray-500 flex items-center gap-1">
                 <BarChart2 size={12} />{totalReportes} {es ? 'reportes' : 'reports'}
               </div>
-              <p className="text-[10px] text-gray-400 mt-0.5">{tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
+              <p className="text-[10px] text-gray-400">{tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 mt-1">
+                {expandida ? (es ? '▲ Contraer' : '▲ Collapse') : (es ? '▼ Ver todo' : '▼ Expand')}
+              </span>
             </div>
           </div>
 
-          {/* Semáforo */}
+          {/* Semáforo — siempre visible */}
           <Semaforo nivel={edificio.nivel_dano} es={es} />
 
-          {/* Métricas rápidas */}
+          {/* Métricas rápidas — siempre visibles */}
           <div className="grid grid-cols-3 gap-2 mt-3">
             <div className="text-center p-2 bg-gray-50 rounded-xl border border-gray-100">
               <p className="text-lg font-black text-gray-800">{totalReportes}</p>
@@ -282,7 +297,27 @@ export default function EdificioDetalle() {
               <p className="text-[10px] text-gray-400 leading-tight">{es ? 'Prioridad' : 'Priority'}</p>
             </div>
           </div>
+
+          {/* Riesgos activos — siempre visibles si existen */}
+          {(edificio.riesgo_gas || edificio.riesgo_electrico || edificio.riesgo_incendio || edificio.riesgo_colapso) && (
+            <div className="flex flex-wrap gap-1.5 mt-3 pt-2 border-t border-gray-100">
+              {edificio.riesgo_gas && <span className="text-[11px] bg-orange-100 text-orange-800 px-2 py-1 rounded-full border border-orange-200 font-semibold">💨 Gas</span>}
+              {edificio.riesgo_electrico && <span className="text-[11px] bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full border border-yellow-200 font-semibold">⚡ {es ? 'Eléctrico' : 'Electrical'}</span>}
+              {edificio.riesgo_incendio && <span className="text-[11px] bg-red-100 text-red-800 px-2 py-1 rounded-full border border-red-200 font-semibold">🔥 {es ? 'Incendio' : 'Fire'}</span>}
+              {edificio.riesgo_colapso && <span className="text-[11px] bg-gray-200 text-gray-700 px-2 py-1 rounded-full border border-gray-300 font-semibold">💥 {es ? 'Colapso' : 'Collapse'}</span>}
+            </div>
+          )}
+
+          {!expandida && (
+            <p className="text-[10px] text-gray-400 text-center mt-3 border-t border-gray-100 pt-2">
+              👆 {es ? 'Toca para ver servicios, historial y más información' : 'Tap to see services, history and more info'}
+            </p>
+          )}
         </div>
+
+        {/* ── CONTENIDO EXPANDIBLE ── */}
+        {expandida && (
+        <>
 
         {/* ── AVISO NO-ENTRAR ── */}
         {noEntrar && (
@@ -323,19 +358,6 @@ export default function EdificioDetalle() {
 
         {/* ── ESTADO OPERATIVO ── */}
         <EstadoOperativo edificioId={id} es={es} />
-
-        {/* ── RIESGOS ── */}
-        {(edificio.riesgo_gas || edificio.riesgo_electrico || edificio.riesgo_incendio || edificio.riesgo_colapso) && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">⚡ {es ? 'Riesgos activos' : 'Active hazards'}</p>
-            <div className="flex flex-wrap gap-2">
-              {edificio.riesgo_gas && <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full border border-orange-200 font-semibold">💨 Gas</span>}
-              {edificio.riesgo_electrico && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full border border-yellow-200 font-semibold">⚡ {es ? 'Eléctrico' : 'Electrical'}</span>}
-              {edificio.riesgo_incendio && <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full border border-red-200 font-semibold">🔥 {es ? 'Incendio' : 'Fire'}</span>}
-              {edificio.riesgo_colapso && <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full border border-gray-300 font-semibold">💥 {es ? 'Colapso' : 'Collapse'}</span>}
-            </div>
-          </div>
-        )}
 
         {/* ── FOTOS ── */}
         {edificio.foto_urls?.length > 0 && (
@@ -400,7 +422,10 @@ export default function EdificioDetalle() {
           </p>
         </div>
 
-        {/* ── TRES BOTONES PRINCIPALES ── */}
+        </>
+        )} {/* fin expandida */}
+
+        {/* ── TRES BOTONES PRINCIPALES — siempre visibles ── */}
         <div className="grid grid-cols-1 gap-2 mb-4">
           <button onClick={() => setEditando(true)}
             className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl cursor-pointer text-sm transition-colors">
@@ -527,6 +552,9 @@ export default function EdificioDetalle() {
             </button>
           </div>
         )}
+
+        {/* ── CONTENIDO SECUNDARIO EXPANDIBLE ── */}
+        {expandida && (<>
 
         {/* ── LÍNEA DE TIEMPO ── */}
         {actualizaciones.length > 0 && (
@@ -658,6 +686,8 @@ export default function EdificioDetalle() {
         <p className="text-[10px] text-gray-400 text-center leading-relaxed mb-4">
           {es ? 'Esta plataforma es una herramienta ciudadana y no partidista. La información proviene de ciudadanos y no ha sido verificada de manera independiente.' : 'This platform is a citizen and non-partisan tool. Information comes from citizens and has not been independently verified.'}
         </p>
+
+        </>)} {/* fin expandida secundario */}
       </div>
       <Footer />
     </div>
