@@ -9,6 +9,8 @@ import AdminDataPanel from '@/components/admin/AdminDataPanel';
 import CentrosOperativosPanel from '@/components/admin/centros/CentrosOperativosPanel';
 import GestionVoluntarios from '@/components/admin/GestionVoluntarios';
 import SubidaMasivaEdificios from '@/components/admin/SubidaMasivaEdificios';
+import GestionUsuarios from '@/components/admin/GestionUsuarios';
+import VoluntariosDetalle from '@/components/admin/VoluntariosDetalle';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
@@ -53,12 +55,13 @@ const AdminDashboard = () => {
   }
   
   const tabs = [
-      { key: 'analytics', label: 'Analítica' },
-      { key: 'voluntarios', label: '🤝 Voluntarios' },
-      { key: 'centros', label: '🏥 Centros operativos' },
-      { key: 'manage', label: '⚙️ Gestión de datos' },
-      { key: 'edificios_masivo', label: '🏗️ Carga Edificios' },
-      { key: 'dossier', label: '📊 Dossier visual' },
+      { key: 'analytics',   label: '📊 Analítica'           },
+      { key: 'usuarios',    label: '👥 Usuarios'            },
+      { key: 'voluntarios', label: '🤝 Voluntarios'         },
+      { key: 'centros',     label: '🏥 Centros'             },
+      { key: 'manage',      label: '⚙️ Datos'               },
+      { key: 'edificios_masivo', label: '🏗️ Edificios'     },
+      { key: 'dossier',    label: '📋 Dossier'              },
   ];
 
   return (
@@ -83,7 +86,19 @@ const AdminDashboard = () => {
 
         <div className="py-8">
             {tab === 'analytics' && <AdminStats />}
-            {tab === 'voluntarios' && <GestionVoluntarios es={true} />}
+            {tab === 'usuarios' && <GestionUsuarios es={true} />}
+            {tab === 'voluntarios' && (
+              <div className="space-y-8">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-800 mb-4">📋 Solicitudes y perfiles de voluntarios</h2>
+                  <VoluntariosDetalle es={true} />
+                </div>
+                <div className="border-t border-gray-200 pt-8">
+                  <h2 className="text-lg font-bold text-gray-800 mb-4">🤝 Panel de voluntarios (legacy)</h2>
+                  <GestionVoluntarios es={true} />
+                </div>
+              </div>
+            )}
             {tab === 'centros' && <CentrosOperativosPanel />}
             {tab === 'manage' && <AdminDataPanel />}
             {tab === 'edificios_masivo' && (
