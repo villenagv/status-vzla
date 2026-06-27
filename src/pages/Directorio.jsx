@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, ChevronLeft, Loader2 } from 'lucide-react';
+import { Search, MapPin, ChevronLeft, Loader2, LayoutGrid, List } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -69,6 +69,8 @@ export default function Directorio() {
   const [categoriaEdificio, setCategoriaEdificio] = useState('criticos');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [vistaPersonas, setVistaPersonas] = useState('grid'); // 'grid' | 'lista'
+  const [vistaEdificios, setVistaEdificios] = useState('lista'); // 'grid' | 'lista'
 
   useEffect(() => {
     Promise.all([
@@ -262,9 +264,28 @@ export default function Directorio() {
         )}
 
         {!cargando && (
-          <p className="text-xs text-gray-400 mb-3">
-            {es ? `${lista.length} registro(s)` : `${lista.length} record(s)`}
-          </p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-gray-400">
+              {es ? `${lista.length} registro(s)` : `${lista.length} record(s)`}
+            </p>
+            {/* Toggle vista */}
+            <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1">
+              <button
+                onClick={() => tab === 'personas' ? setVistaPersonas('grid') : setVistaEdificios('grid')}
+                className={`p-1.5 rounded-lg cursor-pointer transition-colors ${(tab === 'personas' ? vistaPersonas : vistaEdificios) === 'grid' ? 'bg-[#1A1F2E] text-white' : 'text-gray-400 hover:text-gray-700'}`}
+                title={es ? 'Vista grid' : 'Grid view'}
+              >
+                <LayoutGrid size={14} />
+              </button>
+              <button
+                onClick={() => tab === 'personas' ? setVistaPersonas('lista') : setVistaEdificios('lista')}
+                className={`p-1.5 rounded-lg cursor-pointer transition-colors ${(tab === 'personas' ? vistaPersonas : vistaEdificios) === 'lista' ? 'bg-[#1A1F2E] text-white' : 'text-gray-400 hover:text-gray-700'}`}
+                title={es ? 'Vista lista' : 'List view'}
+              >
+                <List size={14} />
+              </button>
+            </div>
+          </div>
         )}
 
         {!cargando && lista.length === 0 && (
@@ -281,111 +302,155 @@ export default function Directorio() {
           </div>
         )}
 
-        {/* ── GRILLA PERSONAS ── */}
-        {tab === 'personas' && !cargando && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {visibles.map(p => {
-              const st = PERSONA_ESTADO[p.estado_caso] || PERSONA_ESTADO['buscando'];
-              const esCritico = p.estado_caso === 'buscando';
-              const FUENTE_BADGE = {
-                busqueda:     { es: '🔴 Desaparecido',    en: '🔴 Missing',       cls: 'bg-red-50 text-red-700 border-red-200' },
-                encontrada:   { es: '🙋 Encontrado',      en: '🙋 Found',         cls: 'bg-green-50 text-green-700 border-green-200' },
-                cris:         { es: '📍 Estoy aquí',      en: '📍 I am here',     cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-                institucional:{ es: '🏛️ Institucional',   en: '🏛️ Institutional', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
-              };
-              const badge = FUENTE_BADGE[p._fuente] || FUENTE_BADGE.busqueda;
-              return (
-                <div key={p.id} className={`bg-white rounded-2xl border-2 p-4 space-y-2.5 ${esCritico ? 'border-red-200' : 'border-gray-100'}`}>
-                  <div className="flex items-start justify-between gap-2">
+        {/* ── PERSONAS ── */}
+        {tab === 'personas' && !cargando && (() => {
+          const FUENTE_BADGE = {
+            busqueda:     { es: '🔴 Desaparecido',    en: '🔴 Missing',       cls: 'bg-red-50 text-red-700 border-red-200' },
+            encontrada:   { es: '🙋 Encontrado',      en: '🙋 Found',         cls: 'bg-green-50 text-green-700 border-green-200' },
+            cris:         { es: '📍 Estoy aquí',      en: '📍 I am here',     cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+            institucional:{ es: '🏛️ Institucional',   en: '🏛️ Institutional', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+          };
+          if (vistaPersonas === 'lista') return (
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100">
+              {visibles.map(p => {
+                const st = PERSONA_ESTADO[p.estado_caso] || PERSONA_ESTADO['buscando'];
+                const badge = FUENTE_BADGE[p._fuente] || FUENTE_BADGE.busqueda;
+                const esCritico = p.estado_caso === 'buscando';
+                return (
+                  <div key={p.id} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 ${esCritico ? 'border-l-4 border-l-red-400' : ''}`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
+                      {p._fuente === 'encontrada' ? '🙋' : p._fuente === 'cris' ? '📍' : '👤'}
+                    </div>
                     <div className="flex-1 min-w-0">
                       {p._fuente === 'busqueda' ? (
-                        <Link to={`/persona?id=${p.id}`} className="font-black text-sm text-[#1A1F2E] leading-tight hover:underline no-underline block">{p._nombre}</Link>
+                        <Link to={`/persona?id=${p.id}`} className="font-bold text-sm text-[#1A1F2E] hover:underline no-underline block truncate">{p._nombre}</Link>
                       ) : (
-                        <p className="font-black text-sm text-[#1A1F2E] leading-tight">{p._nombre}</p>
+                        <p className="font-bold text-sm text-[#1A1F2E] truncate">{p._nombre}</p>
                       )}
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {p.edad_aprox && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{p.edad_aprox} {es ? 'años' : 'yrs'}</span>}
-                        {p.sexo && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full capitalize">{p.sexo}</span>}
+                      <p className="text-xs text-gray-400 truncate flex items-center gap-1">
+                        <MapPin size={9} />{[p.ultima_ubicacion_conocida, p.ciudad].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${st.cls}`}>{es ? st.es : st.en}</span>
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{es ? badge.es : badge.en}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {visibles.map(p => {
+                const st = PERSONA_ESTADO[p.estado_caso] || PERSONA_ESTADO['buscando'];
+                const badge = FUENTE_BADGE[p._fuente] || FUENTE_BADGE.busqueda;
+                const esCritico = p.estado_caso === 'buscando';
+                return (
+                  <div key={p.id} className={`bg-white rounded-2xl border-2 p-4 space-y-2.5 ${esCritico ? 'border-red-200' : 'border-gray-100'}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        {p._fuente === 'busqueda' ? (
+                          <Link to={`/persona?id=${p.id}`} className="font-black text-sm text-[#1A1F2E] leading-tight hover:underline no-underline block">{p._nombre}</Link>
+                        ) : (
+                          <p className="font-black text-sm text-[#1A1F2E] leading-tight">{p._nombre}</p>
+                        )}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {p.edad_aprox && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{p.edad_aprox} {es ? 'años' : 'yrs'}</span>}
+                          {p.sexo && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full capitalize">{p.sexo}</span>}
+                        </div>
                       </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${st.cls}`}>{es ? st.es : st.en}</span>
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${st.cls}`}>
-                      {es ? st.es : st.en}
-                    </span>
-                  </div>
-
-                  {(p.ultima_ubicacion_conocida || p.ciudad) && (
-                    <p className="text-xs text-gray-500 flex items-start gap-1">
-                      <MapPin size={10} className="flex-shrink-0 mt-0.5" />
-                      {[p.ultima_ubicacion_conocida, p.ciudad, p.estado_region].filter(Boolean).join(' · ')}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.cls}`}>
-                      {es ? badge.es : badge.en}
-                    </span>
-                    {p._fuente === 'busqueda' && (
-                      <Link to={`/persona?id=${p.id}`} className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full no-underline">
-                        {es ? 'Ver →' : 'View →'}
-                      </Link>
+                    {(p.ultima_ubicacion_conocida || p.ciudad) && (
+                      <p className="text-xs text-gray-500 flex items-start gap-1">
+                        <MapPin size={10} className="flex-shrink-0 mt-0.5" />
+                        {[p.ultima_ubicacion_conocida, p.ciudad, p.estado_region].filter(Boolean).join(' · ')}
+                      </p>
                     )}
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.cls}`}>{es ? badge.es : badge.en}</span>
+                      {p._fuente === 'busqueda' && (
+                        <Link to={`/persona?id=${p.id}`} className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full no-underline">
+                          {es ? 'Ver →' : 'View →'}
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          );
+        })()}
 
-        {/* ── GRILLA EDIFICIOS ── */}
-        {tab === 'edificios' && !cargando && (
-          <div className="flex flex-col gap-3">
-            {visibles.map(e => {
-              const dano = DANO_CONFIG[e.nivel_dano] || DANO_CONFIG.no_evaluado;
-              const esCritico = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano) || e.hayAtrapados;
-              return (
-                <div key={e.id} className={`bg-white rounded-2xl border-2 p-4 space-y-2 ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
-                  {e.hayAtrapados && (
-                    <div className="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">
-                      🆘 {es ? 'PERSONAS ATRAPADAS — PRIORIDAD MÁXIMA' : 'TRAPPED PEOPLE — MAX PRIORITY'}
-                    </div>
-                  )}
-                  {esCritico && !e.hayAtrapados && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-bold px-3 py-1.5 rounded-lg">
-                      🚫 {es ? 'NO ENTRAR — Estructura comprometida' : 'DO NOT ENTER — Compromised structure'}
-                    </div>
-                  )}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-black text-sm text-[#1A1F2E] leading-tight">{e._nombre}</p>
-                      {e.tipo_estructura && <p className="text-[11px] text-gray-400 mt-0.5">{e.tipo_estructura}</p>}
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${dano.cls}`}>
-                      {es ? dano.es : dano.en}
-                    </span>
-                  </div>
-                  {(e.direccion || e.ciudad) && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                      <MapPin size={10} /> {[e.direccion, e.ciudad, e.estado_region].filter(Boolean).join(' · ')}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap gap-1.5">
-                    {e.riesgo_gas && <span className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
-                    {e.riesgo_electrico && <span className="text-[10px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1.5 py-0.5 rounded-full">⚡ Eléctrico</span>}
-                    {e.riesgo_incendio && <span className="text-[10px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded-full">🔥 Incendio</span>}
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${e._fuente === 'reporte_dano' ? 'bg-orange-50 text-orange-700' : 'bg-red-50 text-red-700'}`}>
-                      {e._fuente === 'reporte_dano' ? (es ? '🏗️ Daño' : '🏗️ Damage') : (es ? '🆘 SOS' : '🆘 SOS')}
-                    </span>
-                    {e._rawId && (
-                      <Link to={`/edificio?id=${e._rawId || e.id}`} className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full no-underline">
-                        {es ? 'Ver →' : 'View →'}
-                      </Link>
-                    )}
-                  </div>
+        {/* ── EDIFICIOS ── */}
+        {tab === 'edificios' && !cargando && (() => {
+          const EdificioCard = ({ e, compact }) => {
+            const dano = DANO_CONFIG[e.nivel_dano] || DANO_CONFIG.no_evaluado;
+            const esCritico = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano) || e.hayAtrapados;
+            const editId = e._rawId || e.id;
+            if (compact) return (
+              <div className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 ${esCritico ? 'border-l-4 border-l-red-500' : ''}`}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
+                  {e.hayAtrapados ? '🆘' : esCritico ? '🚫' : '🏗️'}
                 </div>
-              );
-            })}
-          </div>
-        )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm text-[#1A1F2E] truncate">{e._nombre}</p>
+                  <p className="text-xs text-gray-400 truncate flex items-center gap-1">
+                    <MapPin size={9} />{[e.direccion, e.ciudad].filter(Boolean).join(' · ')}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${dano.cls}`}>{es ? dano.es : dano.en}</span>
+                  {editId && (
+                    <Link to={`/edificio?id=${editId}`} className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full no-underline">
+                      {es ? 'Ver →' : 'View →'}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            );
+            return (
+              <div className={`bg-white rounded-2xl border-2 p-4 space-y-2 ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
+                {e.hayAtrapados && <div className="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">🆘 {es ? 'PERSONAS ATRAPADAS' : 'TRAPPED PEOPLE'}</div>}
+                {esCritico && !e.hayAtrapados && <div className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-bold px-3 py-1.5 rounded-lg">🚫 {es ? 'NO ENTRAR' : 'DO NOT ENTER'}</div>}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-sm text-[#1A1F2E] leading-tight">{e._nombre}</p>
+                    {e.tipo_estructura && <p className="text-[11px] text-gray-400 mt-0.5">{e.tipo_estructura}</p>}
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${dano.cls}`}>{es ? dano.es : dano.en}</span>
+                </div>
+                {(e.direccion || e.ciudad) && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <MapPin size={10} /> {[e.direccion, e.ciudad, e.estado_region].filter(Boolean).join(' · ')}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-1.5">
+                  {e.riesgo_gas && <span className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
+                  {e.riesgo_electrico && <span className="text-[10px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1.5 py-0.5 rounded-full">⚡ Eléctrico</span>}
+                  {e.riesgo_incendio && <span className="text-[10px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded-full">🔥 Incendio</span>}
+                  {editId && (
+                    <Link to={`/edificio?id=${editId}`} className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full no-underline ml-auto">
+                      {es ? 'Ver detalle →' : 'View detail →'}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            );
+          };
+
+          if (vistaEdificios === 'lista') return (
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100">
+              {visibles.map(e => <EdificioCard key={e.id} e={e} compact />)}
+            </div>
+          );
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {visibles.map(e => <EdificioCard key={e.id} e={e} compact={false} />)}
+            </div>
+          );
+        })()}
 
         {lista.length > visibles.length && (
           <button onClick={() => setPage(p => p + 1)}
