@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Download, FileSpreadsheet, Loader2, RefreshCw, Shield } from 'lucide-react';
+import { ChevronLeft, Download, FileSpreadsheet, Loader2, RefreshCw, Shield, Copy, CheckCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -12,6 +12,25 @@ export default function Aliados() {
   const [archivo, setArchivo] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const [copiado, setCopiado] = useState(false);
+
+  const promptAliados = es
+    ? `Actúa como analista de datos humanitarios para una emergencia. Voy a subir o pegar un CSV de CRIS / Status Venezuela con información pública y operativa de personas, centros de ayuda, listados institucionales, edificios dañados, solicitudes y actualizaciones.
+
+Ayúdame a leerlo y reorganizarlo de forma útil. Primero explícame qué columnas contiene y qué significa cada campo importante. Luego organiza la información en tablas claras por: 1) personas o listados, 2) centros de ayuda, 3) edificios o infraestructura, 4) alertas urgentes, 5) registros que necesitan verificación.
+
+Prioriza zonas con más necesidad, detecta duplicados probables, marca registros incompletos, identifica centros saturados o que requieren actualización, y crea un resumen breve para coordinar ayuda. No publiques teléfonos, correos ni datos privados. Usa lenguaje simple y separa lo urgente de lo informativo.`
+    : `Act as a humanitarian data analyst during an emergency. I will upload or paste a CRIS / Status Venezuela CSV with public operational information about people, help centers, institutional lists, damaged buildings, requests, and updates.
+
+Help me read it and reorganize it in a useful way. First explain what columns it contains and what each important field means. Then organize the information into clear tables by: 1) people or lists, 2) help centers, 3) buildings or infrastructure, 4) urgent alerts, 5) records that need verification.
+
+Prioritize areas with the highest needs, detect likely duplicates, flag incomplete records, identify saturated centers or records that need updates, and create a short coordination summary. Do not publish phone numbers, emails, or private data. Use simple language and separate urgent items from informational items.`;
+
+  const copiarPrompt = async () => {
+    await navigator.clipboard.writeText(promptAliados);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2200);
+  };
 
   const cargarArchivo = async () => {
     setCargando(true);
@@ -40,10 +59,13 @@ export default function Aliados() {
             <FileSpreadsheet size={22} />
           </div>
           <h1 className="text-2xl font-black text-[#1A1F2E] mb-2">{es ? 'Aliados' : 'Partners'}</h1>
+          <p className="text-base font-black text-[#0F766E] mb-2 leading-snug">
+            {es ? 'Estamos todos juntos en la lucha por ayudar.' : 'We are all together in the fight to help.'}
+          </p>
           <p className="text-sm text-gray-500 leading-relaxed">
             {es
-              ? 'Descarga un solo archivo CSV centralizado con la información pública y operativa de la plataforma: personas, centros de ayuda, listados institucionales, reportes y actualizaciones.'
-              : 'Download one centralized CSV file with the platform’s public operational information: people, help centers, institutional lists, reports, and updates.'}
+              ? 'Si necesitas la base de datos, descárgala aquí. Se actualiza automáticamente cada 6 horas con la información pública y operativa de la plataforma: personas, centros de ayuda, listados institucionales, reportes y actualizaciones.'
+              : 'If you need the database, download it here. It updates automatically every 6 hours with the platform’s public operational information: people, help centers, institutional lists, reports, and updates.'}
           </p>
         </section>
 
@@ -92,6 +114,36 @@ export default function Aliados() {
               </a>
             </>
           )}
+        </section>
+
+        <section className="bg-white border border-[#EDEBE8] rounded-2xl p-4 mt-4">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center flex-shrink-0">
+              <Copy size={18} />
+            </div>
+            <div>
+              <h2 className="text-base font-black text-[#1A1F2E]">
+                {es ? 'Prompt para copiar y pegar' : 'Prompt to copy and paste'}
+              </h2>
+              <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                {es
+                  ? 'Úsalo en ChatGPT u otra herramienta para leer el CSV, organizarlo y convertirlo en tablas o resúmenes según lo que necesites.'
+                  : 'Use it in ChatGPT or another tool to read the CSV, organize it, and turn it into tables or summaries as needed.'}
+              </p>
+            </div>
+          </div>
+
+          <textarea
+            readOnly
+            value={promptAliados}
+            rows={10}
+            className="w-full border border-[#EDEBE8] rounded-xl p-3 text-xs text-gray-700 bg-gray-50 leading-relaxed resize-none focus:outline-none"
+          />
+
+          <button onClick={copiarPrompt} className="mt-3 w-full flex items-center justify-center gap-2 bg-[#6C3483] text-white text-sm font-black py-3 rounded-xl">
+            {copiado ? <CheckCircle size={16} /> : <Copy size={16} />}
+            {copiado ? (es ? 'Prompt copiado' : 'Prompt copied') : (es ? 'Copiar prompt' : 'Copy prompt')}
+          </button>
         </section>
       </main>
       <Footer />
