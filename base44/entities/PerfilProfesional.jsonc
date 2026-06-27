@@ -1,0 +1,56 @@
+{
+  "name": "PerfilProfesional",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "user_nombre": {
+      "type": "string"
+    },
+    "tipo_perfil": {
+      "type": "string",
+      "enum": [
+        "voluntario",
+        "ingeniero",
+        "arquitecto"
+      ],
+      "default": "voluntario"
+    },
+    "especialidad": {
+      "type": "string"
+    },
+    "institucion": {
+      "type": "string"
+    },
+    "numero_colegio": {
+      "type": "string"
+    },
+    "estado_aprobacion": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "aprobado",
+        "rechazado"
+      ],
+      "default": "pendiente"
+    },
+    "aprobado_por": {
+      "type": "string"
+    },
+    "notas_admin": {
+      "type": "string"
+    },
+    "completado": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_id",
+    "tipo_perfil"
+  ]
+}
