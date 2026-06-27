@@ -327,15 +327,19 @@ export default function BuscarPersona() {
               <input placeholder={es ? 'Ciudad' : 'City'} value={form.ciudad} onChange={e => set('ciudad', e.target.value)} className={inputCls} />
               <input placeholder={es ? 'Estado' : 'State'} value={form.estado_region} onChange={e => set('estado_region', e.target.value)} className={inputCls} />
             </div>
-            <input required placeholder={es ? 'Tu teléfono o WhatsApp' : 'Your phone or WhatsApp'} value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
-            <input type="email" placeholder={es ? 'Email para avisarte (opcional)' : 'Email for updates (optional)'} value={form.contacto_email} onChange={e => set('contacto_email', e.target.value)} className={inputCls} />
+            <input placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'} value={form.contacto_nombre} onChange={e => set('contacto_nombre', e.target.value)} className={inputCls} />
+            <input placeholder={es ? 'Tu teléfono o WhatsApp (opcional)' : 'Your phone or WhatsApp (optional)'} value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
+            <input type="email" placeholder={es ? 'Email para avisarte si hay novedades (opcional)' : 'Email to notify you of updates (optional)'} value={form.contacto_email} onChange={e => set('contacto_email', e.target.value)} className={inputCls} />
+            <p className="text-[11px] text-gray-400 leading-relaxed">
+              🔒 {es ? 'Tus datos no se publican. Si dejas email, te avisamos cuando alguien reporte información sobre esta persona.' : 'Your info is not published. If you leave an email, we notify you when someone reports info about this person.'}
+            </p>
             {!lowBw && (
               <div>
                 <p className="text-xs font-bold text-[#1A1F2E] mb-1">📷 {es ? 'Foto opcional (máx. 2)' : 'Optional photo (max 2)'}</p>
                 <FotosDragDrop category="personas" caseId={personaId} caseLabel={form.nombre_completo || 'persona-nueva'} maxFiles={2} onUploaded={setFotoUrls} disabled={enviando} />
               </div>
             )}
-            <button type="submit" disabled={enviando || !form.nombre_completo || !form.ultima_ubicacion_conocida || !form.contacto_telefono} className="w-full bg-[#1A1F2E] disabled:opacity-40 text-white font-black py-4 rounded-xl text-base transition-colors flex items-center justify-center gap-2 cursor-pointer">
+            <button type="submit" disabled={enviando || !form.nombre_completo || !form.ultima_ubicacion_conocida} className="w-full bg-[#1A1F2E] disabled:opacity-40 text-white font-black py-4 rounded-xl text-base transition-colors flex items-center justify-center gap-2 cursor-pointer">
               {enviando ? <Loader2 size={18} className="animate-spin" /> : '🔎'} {es ? 'Registrar búsqueda' : 'Register search'}
             </button>
           </form>
@@ -428,13 +432,13 @@ export default function BuscarPersona() {
             {/* Sección 3: Tu contacto */}
             <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-4">
               <h3 className="text-base font-black text-[#1A1F2E]">
-                {es ? '3. Tu contacto — para avisarte si hay novedades' : '3. Your contact — to notify you if there are updates'}
-              </h3>
-              <div className="bg-[#F0F4FD] rounded-xl px-3 py-2">
+                {es ? '3. Tu contacto (opcional) — para avisarte si hay novedades' : '3. Your contact (optional) — to notify you of updates'}
+                </h3>
+                <div className="bg-[#F0F4FD] rounded-xl px-3 py-2">
                 <p className="text-xs text-blue-800 font-medium">
-                  🔒 {es ? 'No se mostrará públicamente. Solo para notificaciones.' : 'Will not be shown publicly. For notifications only.'}
+                  🔒 {es ? 'No se mostrará públicamente. Si dejas email o teléfono, podemos avisarte si hay novedades.' : 'Not shown publicly. If you leave email or phone, we can notify you of updates.'}
                 </p>
-              </div>
+                </div>
 
               <div>
                 <FieldLabel label={es ? 'Tu nombre' : 'Your name'} />
@@ -443,8 +447,8 @@ export default function BuscarPersona() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <FieldLabel label={es ? 'Tu teléfono' : 'Your phone'} required />
-                  <input required placeholder="+58..." value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
+                  <FieldLabel label={es ? 'Tu teléfono (opcional)' : 'Your phone (optional)'} />
+                  <input placeholder="+58..." value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
                 </div>
                 <div>
                   <FieldLabel label="WhatsApp" />
@@ -482,7 +486,7 @@ export default function BuscarPersona() {
 
             <button
               type="submit"
-              disabled={enviando || !form.nombre_completo || !form.contacto_telefono}
+              disabled={enviando || !form.nombre_completo}
               className="w-full bg-[#1A1F2E] hover:bg-[#2d3549] disabled:opacity-40 text-white font-black py-5 rounded-2xl text-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               {enviando ? <Loader2 size={20} className="animate-spin" /> : '🔎'}

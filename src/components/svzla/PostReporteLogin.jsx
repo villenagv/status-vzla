@@ -292,17 +292,32 @@ export default function PostReporteLogin({ es, onSkip }) {
 
   // ── Menu principal ──
   return (
-    <div className="bg-[#FFF8EE] border border-[#E6C195] rounded-2xl p-5 space-y-4">
+    <div className="bg-[#FFF8EE] border-2 border-[#E6C195] rounded-2xl p-5 space-y-4">
       <div className="text-center">
-        <div className="text-2xl mb-1">🔔</div>
+        <div className="text-3xl mb-1">✅</div>
         <h3 className="font-bold text-[#1A1F2E] text-base">
-          {es ? 'Recibe alertas si hay novedades' : 'Get alerts if there are updates'}
+          {es ? '¡Tu reporte fue enviado!' : 'Your report was submitted!'}
         </h3>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 mt-1 leading-relaxed">
           {es
-            ? 'Te avisamos por email cuando el estado cambie. Gratis, sin spam.'
-            : "We'll email you when the status changes. Free, no spam."}
+            ? 'Cualquier persona puede reportar sin cuenta. Pero si creas una, obtienes ventajas importantes:'
+            : 'Anyone can report without an account. But if you create one, you get important benefits:'}
         </p>
+      </div>
+
+      {/* Por qué crear cuenta */}
+      <div className="bg-white border border-[#E6C195] rounded-xl px-4 py-3 space-y-2">
+        {[
+          { icon: '🔔', es: 'Recibir alertas por email cuando alguien actualice tu reporte', en: 'Get email alerts when someone updates your report' },
+          { icon: '✏️', es: 'Editar o actualizar tus reportes directamente', en: 'Edit or update your reports directly' },
+          { icon: '📋', es: 'Ver todos tus reportes en un solo lugar', en: 'See all your reports in one place' },
+          { icon: '🔒', es: 'Proteger tu información — solo tú puedes ver tus datos privados', en: 'Protect your info — only you can see your private data' },
+        ].map((b, i) => (
+          <div key={i} className="flex items-start gap-2">
+            <span className="text-base flex-shrink-0">{b.icon}</span>
+            <p className="text-xs text-gray-700 leading-snug">{es ? b.es : b.en}</p>
+          </div>
+        ))}
       </div>
 
       <div className="space-y-2">
@@ -311,25 +326,25 @@ export default function PostReporteLogin({ es, onSkip }) {
           className="w-full flex items-center justify-center gap-3 bg-white border-2 border-[#EDEBE8] rounded-xl py-3.5 text-sm font-bold text-[#1A1F2E] hover:border-[#D48C2E] transition-colors"
         >
           <GoogleSVG />
-          {es ? 'Continuar con Google' : 'Continue with Google'}
+          {es ? 'Crear cuenta con Google — 1 clic' : 'Create account with Google — 1 click'}
         </button>
 
         <button
           onClick={() => { setPaso('registro'); setError(''); }}
           className="w-full py-3.5 text-sm text-[#1A1F2E] border border-[#EDEBE8] rounded-xl bg-white hover:bg-gray-50 font-semibold"
         >
-          {es ? '✉️ Registrarme con email' : '✉️ Sign up with email'}
+          {es ? '✉️ Crear cuenta con email' : '✉️ Create account with email'}
         </button>
 
         <button
           onClick={() => { setPaso('login'); setError(''); }}
-          className="w-full py-3 text-sm text-[#D48C2E] font-semibold hover:underline"
+          className="w-full py-2.5 text-sm text-[#D48C2E] font-semibold hover:underline"
         >
           {es ? '¿Ya tienes cuenta? Iniciar sesión' : 'Already have account? Log in'}
         </button>
 
         <button onClick={onSkip} className="w-full text-xs text-gray-400 py-1 hover:text-gray-600">
-          {es ? 'Ahora no, gracias' : 'Not now, thanks'}
+          {es ? 'No por ahora — continuar sin cuenta' : 'Not now — continue without account'}
         </button>
       </div>
     </div>
