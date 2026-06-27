@@ -30,7 +30,7 @@ export default function ActualizacionPersonaRapida({ persona, es, onClose, onSav
           persona_buscada_id: esBusqueda ? persona.id : '',
           reportado_por_nombre: reportante.trim(),
           reportante_contacto_privado: contacto.trim(),
-          reportado_por_telefono: '',
+          reportado_por_telefono: contacto.trim(),
           notas_publicas: mensaje,
           nivel_verificacion: 'comunidad',
           fuente: 'web_publica',

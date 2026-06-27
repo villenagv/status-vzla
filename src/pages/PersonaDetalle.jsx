@@ -113,11 +113,10 @@ export default function PersonaDetalle() {
 
   const st = ESTADO_CONFIG[persona.estado_caso] || ESTADO_CONFIG['buscando'];
   const esBuscando = ['buscando', 'informacion_recibida', 'visto_no_confirmado'].includes(persona.estado_caso);
-  const contactosEncontrado = reportesEncontrado.map(r => ({
-    nombre: r.nombre_lugar || r.reportado_por_nombre || (es ? 'Reporte recibido' : 'Received report'),
-    lugar: r.ubicacion_actual || r.nombre_lugar,
-    privado: Boolean(r.reportante_contacto_privado || r.reportado_por_telefono || r.reportado_por_email || r.telefono_contacto || r.email_contacto),
-  })).filter(c => c.lugar || c.privado).slice(0, 6);
+  const contactosEncontrado = reportesEncontrado.flatMap(r => [
+    { nombre: r.reportado_por_nombre || (es ? 'Persona que reportó' : 'Reporter'), telefono: r.reportado_por_telefono, email: r.reportado_por_email, lugar: r.nombre_lugar || r.ubicacion_actual },
+    { nombre: r.nombre_lugar || (es ? 'Lugar reportado' : 'Reported place'), telefono: r.telefono_contacto, email: r.email_contacto, lugar: r.ubicacion_actual },
+  ]).filter(c => c.telefono || c.email).slice(0, 6);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -238,7 +237,8 @@ export default function PersonaDetalle() {
                 {contactosEncontrado.map((c, i) => (
                   <div key={i} className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
                     <p className="text-xs font-semibold text-blue-900">{c.nombre}</p>
-                    {c.privado && <p className="text-[10px] text-blue-700 mt-1">🔒 {es ? 'Contacto privado registrado para verificación.' : 'Private contact saved for verification.'}</p>}
+                    {c.telefono && <a href={`tel:${c.telefono}`} className="flex items-center gap-1.5 text-xs text-blue-800 mt-1"><Phone size={12} /> {c.telefono}</a>}
+                    {c.email && <a href={`mailto:${c.email}`} className="flex items-center gap-1.5 text-xs text-blue-800 mt-1"><Mail size={12} /> {c.email}</a>}
                     {c.lugar && <p className="text-[10px] text-blue-700 mt-1">📍 {c.lugar}</p>}
                   </div>
                 ))}
