@@ -10,6 +10,16 @@ const EMERGENCIAS = [
   { num: '911', op: 'Movistar' },
 ];
 
+const LINKS = [
+  { to: '/personas',        es: 'Personas buscadas',  en: 'Missing people'  },
+  { to: '/edificios',       es: 'Edificios',          en: 'Buildings'       },
+  { to: '/centros-apoyo',   es: 'Centros de apoyo',   en: 'Help centers'    },
+  { to: '/directorio',      es: 'Directorio',         en: 'Directory'       },
+  { to: '/guia-plataforma', es: 'Guía de uso',        en: 'User guide'      },
+  { to: '/contactanos',     es: 'Contáctanos',        en: 'Contact us'      },
+  { to: '/aliados',         es: 'Aliados',            en: 'Partners'        },
+];
+
 export default function Footer() {
   const { lang } = useLang();
   const es = lang === 'es';
@@ -34,101 +44,108 @@ export default function Footer() {
     setEnviandoSug(false);
   };
 
-  return (
-    <footer style={{ background: '#111318', borderTop: '0.5px solid rgba(255,255,255,0.08)', marginTop: 'auto' }}>
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '14px 16px 8px' }}>
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
-        {/* Toggle teléfonos */}
+  return (
+    <footer style={{ background: '#0D1117', borderTop: '1px solid rgba(255,255,255,0.07)', marginTop: 'auto' }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '28px 20px 20px' }}>
+
+        {/* Brand */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 12 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ width: 24, height: 24, borderRadius: 6, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🆘</div>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>CRIS · Status Venezuela</span>
+            </div>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', lineHeight: 1.5, maxWidth: 260, margin: 0 }}>
+              {t('Plataforma ciudadana de respuesta a emergencias. No partidista · Sin fines de lucro.',
+                 'Citizen emergency response platform. Non-partisan · Non-profit.',
+                 'Plataforma cidadã de resposta a emergências. Não partidária · Sem fins lucrativos.')}
+            </p>
+          </div>
+          <Link to="/admin" style={{ color: 'transparent', fontSize: 6, userSelect: 'none' }}>·</Link>
+        </div>
+
+        {/* Nav links */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', marginBottom: 20 }}>
+          {LINKS.map(l => (
+            <Link key={l.to} to={l.to} style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
+              {es ? l.es : l.en}
+            </Link>
+          ))}
+        </div>
+
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginBottom: 16 }} />
+
+        {/* Emergencias toggle */}
         <button onClick={() => setMostrarTels(v => !v)} style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: 'transparent', border: 'none', cursor: 'pointer',
-          paddingBottom: 10, borderBottom: '0.5px solid rgba(255,255,255,0.07)',
+          background: 'transparent', border: 'none', cursor: 'pointer', marginBottom: mostrarTels ? 10 : 14,
         }}>
-          <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            📞 {pt ? 'Telefones de emergência Venezuela' : es ? 'Teléfonos de emergencia Venezuela' : 'Venezuela emergency phones'}
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            📞 {t('Teléfonos de emergencia', 'Emergency phones', 'Telefones de emergência')}
           </span>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>{mostrarTels ? '▲' : '▼'}</span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.20)' }}>{mostrarTels ? '▲' : '▼'}</span>
         </button>
 
         {mostrarTels && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 6, marginTop: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 6, marginBottom: 14 }}>
             {EMERGENCIAS.map(e => (
               <a key={e.num} href={`tel:${e.num}`} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                background: '#C0392B', borderRadius: 8, padding: '7px 4px', textDecoration: 'none',
+                background: '#C0392B', borderRadius: 10, padding: '8px 4px', textDecoration: 'none',
               }}>
-                <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>{e.num}</span>
-                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.70)' }}>{e.op}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{e.num}</span>
+                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)' }}>{e.op}</span>
               </a>
             ))}
           </div>
         )}
 
-        {/* Avisos */}
-        <div style={{ marginTop: 12 }}>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', lineHeight: 1.5, marginBottom: 8 }}>
-            {pt
-              ? '♥ Ferramenta cidadã e apartidária. Em uma emergência médica, ligue primeiro para os serviços de resgate. Sempre verifique as informações antes de compartilhá-las.'
-              : es
-              ? '♥ Herramienta ciudadana y no partidista. Ante una emergencia médica, llama primero a los organismos de rescate. Verifica siempre la información antes de difundirla.'
-              : '♥ A citizen and non-partisan tool. In a medical emergency, call rescue services first. Always verify information before sharing it.'}
-          </p>
-          <div style={{ background: 'rgba(192,57,43,0.12)', border: '0.5px solid rgba(192,57,43,0.25)', borderRadius: 6, padding: '8px 12px', marginBottom: 12 }}>
-            <p style={{ fontSize: 11, color: '#f4a4b8', lineHeight: 1.4 }}>
-              ⚠️ {pt
-                ? 'Nunca envie dinheiro em troca de informações. Não autorizamos pagamentos, resgates privados ou intermediários anônimos. Se alguém pedir dinheiro, é uma fraude.'
-                : es
-                ? 'Nunca envíes dinero a cambio de información. No autorizamos pagos, rescates privados ni intermediarios anónimos. Si alguien pide dinero, es una estafa.'
-                : "Never send money in exchange for information. We do not authorize payments, private rescue fees, or anonymous intermediaries. If someone asks for money, it's a scam."}
-            </p>
-          </div>
-        </div>
-
-        <div style={{ background: 'rgba(36,113,163,0.12)', border: '0.5px solid rgba(36,113,163,0.28)', borderRadius: 6, padding: '8px 12px', marginBottom: 10 }}>
-          <p style={{ fontSize: 11, color: '#9cc8e6', lineHeight: 1.4 }}>
-            ✉️ {pt
-              ? 'Tem vários arquivos ou listas? Envie por e-mail para '
-              : es
-              ? '¿Tienes varios archivos o listados? Envíalos por correo a '
-              : 'Have several files or lists? Send them by email to '}
-            <a href="mailto:villenagv@gmail.com" style={{ color: '#cfe9ff', fontWeight: 600 }}>villenagv@gmail.com</a>
+        {/* Anti-fraude */}
+        <div style={{ background: 'rgba(192,57,43,0.09)', border: '1px solid rgba(192,57,43,0.20)', borderRadius: 10, padding: '10px 14px', marginBottom: 12 }}>
+          <p style={{ fontSize: 11, color: '#FCA5A5', lineHeight: 1.5, margin: 0 }}>
+            ⚠️ {t('Nunca envíes dinero a cambio de información. No autorizamos pagos, rescates privados ni intermediarios anónimos.',
+                   'Never send money in exchange for information. We do not authorize payments, private rescues, or anonymous intermediaries.',
+                   'Nunca envie dinheiro em troca de informações. Não autorizamos pagamentos, resgates privados ou intermediários anônimos.')}
           </p>
         </div>
 
-        {/* Formulario de sugerencias */}
-        <div style={{ marginBottom: 10 }}>
+        {/* Email */}
+        <div style={{ background: 'rgba(36,113,163,0.09)', border: '1px solid rgba(36,113,163,0.22)', borderRadius: 10, padding: '10px 14px', marginBottom: 12 }}>
+          <p style={{ fontSize: 11, color: '#93C5FD', lineHeight: 1.5, margin: 0 }}>
+            ✉️ {t('¿Tienes listas o archivos para subir? Escríbenos a ', 'Have lists or files to upload? Email us at ', 'Tem listas ou arquivos para enviar? Escreva para ')}
+            <a href="mailto:villenagv@gmail.com" style={{ color: '#BAE6FD', fontWeight: 700 }}>villenagv@gmail.com</a>
+          </p>
+        </div>
+
+        {/* Sugerencias */}
+        <div style={{ marginBottom: 16 }}>
           <button onClick={() => setMostrarSugerencia(v => !v)} style={{
-            background: 'transparent', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 6,
-            padding: '6px 12px', cursor: 'pointer', fontSize: 11, color: 'rgba(255,255,255,0.35)',
-            width: '100%', textAlign: 'left',
+            background: 'transparent', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 8,
+            padding: '7px 13px', cursor: 'pointer', fontSize: 11, color: 'rgba(255,255,255,0.30)',
+            width: '100%', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
-            💡 {pt ? 'Tenho uma sugestão ou ideia' : es ? 'Tengo una sugerencia o idea de mejora' : 'I have a suggestion or idea'} {mostrarSugerencia ? '▲' : '▼'}
+            <span>💡 {t('Tengo una sugerencia', 'I have a suggestion', 'Tenho uma sugestão')}</span>
+            <span>{mostrarSugerencia ? '▲' : '▼'}</span>
           </button>
           {mostrarSugerencia && (
             <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {sugOk ? (
-                <p style={{ fontSize: 12, color: '#6fcf97', textAlign: 'center', padding: '8px 0' }}>✅ {pt ? 'Obrigado! Sua sugestão foi enviada.' : es ? '¡Gracias! Tu sugerencia fue enviada.' : 'Thanks! Your suggestion was sent.'}</p>
+                <p style={{ fontSize: 12, color: '#6fcf97', textAlign: 'center', padding: '8px 0' }}>
+                  ✅ {t('¡Gracias! Tu sugerencia fue enviada.', 'Thanks! Your suggestion was sent.', 'Obrigado! Sua sugestão foi enviada.')}
+                </p>
               ) : (
                 <>
-                  <textarea
-                    value={sugerencia}
-                    onChange={e => setSugerencia(e.target.value)}
-                    rows={3}
-                    maxLength={500}
-                    placeholder={pt ? 'Escreva sua ideia, sugestão ou relato de erro...' : es ? 'Escribe tu idea, sugerencia o reporte de error...' : 'Write your idea, suggestion or bug report...'}
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: '#fff', resize: 'none', outline: 'none', width: '100%' }}
-                  />
-                  <input
-                    value={emailSug}
-                    onChange={e => setEmailSug(e.target.value)}
-                    placeholder={pt ? 'Seu e-mail (opcional, para responder)' : es ? 'Tu email (opcional, para responderte)' : 'Your email (optional, to reply)'}
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '7px 10px', fontSize: 12, color: '#fff', outline: 'none', width: '100%' }}
-                  />
-                  <button
-                    onClick={enviarSugerencia}
-                    disabled={!sugerencia.trim() || enviandoSug}
-                    style={{ background: '#2471A3', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 0', fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: !sugerencia.trim() || enviandoSug ? 0.5 : 1 }}>
-                    {enviandoSug ? (pt ? 'Enviando...' : es ? 'Enviando...' : 'Sending...') : (pt ? 'Enviar sugestão' : es ? 'Enviar sugerencia' : 'Send suggestion')}
+                  <textarea value={sugerencia} onChange={e => setSugerencia(e.target.value)} rows={3} maxLength={500}
+                    placeholder={t('Tu idea, sugerencia o reporte de error...', 'Your idea, suggestion or bug report...', 'Sua ideia, sugestão ou relatório de erro...')}
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '9px 11px', fontSize: 12, color: '#fff', resize: 'none', outline: 'none', width: '100%' }} />
+                  <input value={emailSug} onChange={e => setEmailSug(e.target.value)}
+                    placeholder={t('Tu email (opcional)', 'Your email (optional)', 'Seu email (opcional)')}
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 11px', fontSize: 12, color: '#fff', outline: 'none', width: '100%' }} />
+                  <button onClick={enviarSugerencia} disabled={!sugerencia.trim() || enviandoSug}
+                    style={{ background: '#2471A3', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 0', fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: !sugerencia.trim() || enviandoSug ? 0.5 : 1 }}>
+                    {enviandoSug ? t('Enviando...', 'Sending...', 'Enviando...') : t('Enviar sugerencia', 'Send suggestion', 'Enviar sugestão')}
                   </button>
                 </>
               )}
@@ -137,13 +154,12 @@ export default function Footer() {
         </div>
 
         {/* Bottom */}
-        <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 8, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.20)' }}>
-            <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.28)' }}>Status Venezuela</span> · {pt ? 'Não partidário · Sem fins lucrativos' : es ? 'No partidista · Sin fines de lucro' : 'Non-partisan · Non-profit'}
-            <Link to="/admin" style={{ marginLeft: 4, color: 'transparent', fontSize: 6, userSelect: 'none' }}>·</Link>
+        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.18)', margin: 0 }}>
+            © 2024–2025 Status Venezuela · {t('Hecho por venezolanos ♥', 'Made by Venezuelans ♥', 'Feito por venezuelanos ♥')}
           </p>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)' }}>
-            {pt ? 'Feito por venezuelanos ♥' : es ? 'Hecho por venezolanos ♥' : 'Made by Venezuelans ♥'}
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.14)', margin: 0 }}>
+            {t('No partidista · Sin fines de lucro', 'Non-partisan · Non-profit', 'Não partidário · Sem fins lucrativos')}
           </p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-/* Sistema de diseño — Status Venezuela */
+/* Sistema de diseño — CRIS · Status Venezuela */
 /* Tipografía: sistema nativo del dispositivo — sin Google Fonts externas */
 
 @tailwind base;
@@ -7,116 +7,97 @@
 
 @layer base {
   :root {
-    /* — Shadcn tokens (requeridos) — */
-    --background: 0 0% 97%;
-    --foreground: 0 0% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
-    --primary: 0 0% 8%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 8%;
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 42%;
-    --accent: 0 0% 94%;
-    --accent-foreground: 0 0% 8%;
+    /* — Shadcn tokens — */
+    --background: 216 19% 7%;
+    --foreground: 0 0% 95%;
+    --card: 216 16% 11%;
+    --card-foreground: 0 0% 95%;
+    --popover: 216 16% 11%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 0 0% 95%;
+    --primary-foreground: 216 19% 7%;
+    --secondary: 216 14% 16%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 216 14% 16%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 216 14% 18%;
+    --accent-foreground: 0 0% 95%;
     --destructive: 4 67% 47%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 0 0% 8%;
+    --border: 216 14% 18%;
+    --input: 216 14% 18%;
+    --ring: 0 0% 85%;
     --radius: 0.625rem;
 
-    /* — Tipografía — fuente del sistema, sin importar externas */
+    /* — Tipografía nativa — */
     --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     --font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 
-    /* — Superficies — */
-    --surface-0: #F5F5F7;   /* fondo de página */
-    --surface-1: #EFEFF1;   /* secciones internas */
-    --surface-2: #FFFFFF;   /* tarjeta principal */
+    /* — Paleta base (dark-first) — */
+    --surface-0: #0D1117;   /* fondo de página */
+    --surface-1: #111318;   /* header / footer */
+    --surface-2: #161B22;   /* tarjetas principales */
+    --surface-3: #1C2128;   /* tarjetas secundarias / inputs */
 
     /* — Texto — */
-    --text-primary: #141414;
-    --text-secondary: #555555;
-    --text-muted: #888888;
+    --text-primary:   #F0F6FC;
+    --text-secondary: #8B949E;
+    --text-muted:     #484F58;
 
-    /* — Bordes — hairline 0.5px */
-    --border-color: rgba(0,0,0,0.12);
-    --border-strong: rgba(0,0,0,0.20);
+    /* — Bordes — */
+    --border-color:  rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
 
     /* — Modo emergencia (rojo) — */
-    --emergency-bg:     #fdf1f0;
-    --emergency-border: #e8b4b0;
+    --emergency-bg:     rgba(192,57,43,0.12);
+    --emergency-border: rgba(239,68,68,0.35);
     --emergency-accent: #C0392B;
-    --emergency-text:   #7a2a22;
-    --emergency-badge-bg: #fde8e8;
+    --emergency-text:   #FCA5A5;
+    --emergency-badge:  rgba(239,68,68,0.18);
 
     /* — Modo consulta (azul) — */
-    --consulta-bg:     #f0f4fd;
-    --consulta-border: #b0c4e8;
+    --consulta-bg:     rgba(36,113,163,0.12);
+    --consulta-border: rgba(59,130,246,0.35);
     --consulta-accent: #2471A3;
-    --consulta-badge-bg: #e8f0fd;
+    --consulta-badge:  rgba(59,130,246,0.18);
 
     /* — Modo institucional (verde) — */
-    --inst-bg:     #f0faf4;
-    --inst-border: #a8d8bc;
-    --inst-accent: #1A7A4A;
-    --inst-badge-bg: #e6f5ed;
+    --inst-bg:     rgba(21,128,61,0.12);
+    --inst-border: rgba(34,197,94,0.30);
+    --inst-accent: #15803D;
+    --inst-badge:  rgba(34,197,94,0.16);
 
     /* — Módulo personas (morado) — */
-    --personas-accent:   #6C3483;
-    --personas-badge-bg: #f3e8fd;
+    --personas-accent:  #7C3AED;
+    --personas-badge:   rgba(124,58,237,0.18);
 
     /* — Semáforo de daño — */
-    --dano-gris:     #888888;
-    --dano-amarillo: #c09a1a;
-    --dano-amarillo-bg: #fefae8;
-    --dano-naranja:  #d4621a;
-    --dano-naranja-bg: #fef3e8;
-    --dano-rojo:     #C0392B;
-    --dano-rojo-bg:  #fde8e8;
-    --dano-verde:    #1A7A4A;
-    --dano-verde-bg: #e6f5ed;
+    --dano-leve:        #D97706;
+    --dano-moderado:    #EA580C;
+    --dano-grave:       #DC2626;
+    --dano-critico:     #991B1B;
+    --dano-colapsado:   #450A0A;
+    --dano-verde:       #16A34A;
+    --dano-gris:        #6B7280;
 
-    /* — Advertencia / alerta — */
-    --warn-bg:     #fef3e8;
-    --warn-border: #f0c8a0;
-    --warn-text:   #7a4010;
+    /* — Advertencia amber — */
+    --warn-bg:     rgba(180,83,9,0.12);
+    --warn-border: rgba(251,146,60,0.30);
+    --warn-text:   #FED7AA;
   }
 
-  .dark {
-    --background: 0 0% 6%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 0 0% 95%;
-    --primary-foreground: 0 0% 6%;
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 0 0% 14%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 0 0% 14%;
-    --accent-foreground: 0 0% 95%;
-    --destructive: 4 67% 40%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 0 0% 85%;
-
-    --surface-0: #0E0E10;
-    --surface-1: #1A1A1C;
-    --surface-2: #242426;
-    --text-primary: #F0F0F0;
-    --text-secondary: #AAAAAA;
-    --text-muted: #666666;
-    --border-color: rgba(255,255,255,0.10);
-    --border-strong: rgba(255,255,255,0.18);
+  /* Light mode overrides for components that explicitly need white backgrounds */
+  .light-surface {
+    --surface-0: #F5F5F7;
+    --surface-1: #EFEFF1;
+    --surface-2: #FFFFFF;
+    --surface-3: #F2F2F5;
+    --text-primary: #141414;
+    --text-secondary: #555;
+    --text-muted: #888;
+    --border-color: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.16);
   }
 }
 
@@ -126,211 +107,222 @@
     font-family: var(--font-body);
     background-color: var(--surface-0);
     color: var(--text-primary);
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  /* Prevent layout shift from scrollbar appearing */
+  html { scrollbar-gutter: stable; }
 }
 
-/* — Escala tipográfica CRIS — */
+/* ── Tipografía CRIS ── */
 .cris-label {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   color: var(--text-muted);
 }
-.cris-title-screen { font-size: 18px; font-weight: 500; }
-.cris-title-card   { font-size: 16px; font-weight: 500; }
-.cris-title-sec    { font-size: 14px; font-weight: 500; }
-.cris-subtitle     { font-size: 12px; font-weight: 400; color: var(--text-secondary); }
-.cris-body         { font-size: 13px; font-weight: 400; line-height: 1.5; }
-.cris-secondary    { font-size: 12px; font-weight: 400; line-height: 1.4; color: var(--text-secondary); }
+.cris-title-screen { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.cris-title-card   { font-size: 16px; font-weight: 700; }
+.cris-title-sec    { font-size: 14px; font-weight: 600; }
+.cris-body         { font-size: 14px; font-weight: 400; line-height: 1.55; }
+.cris-secondary    { font-size: 12px; font-weight: 400; line-height: 1.45; color: var(--text-secondary); }
 .cris-meta         { font-size: 11px; font-weight: 400; color: var(--text-muted); }
 
-/* — Componentes — */
-
-/* Tarjeta de modo */
-.entry-card {
-  border-radius: 12px;
-  border: 0.5px solid var(--border-color);
-  padding: 20px 20px 18px;
-  min-height: 64px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  cursor: pointer;
-  transition: transform 120ms ease;
-  text-decoration: none;
-}
-.entry-card:active { transform: scale(0.98); }
-
-/* Chips / filtros */
-.chip {
-  border: 0.5px solid var(--border-strong);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 400;
+/* ── Tarjeta base ── */
+.cris-card {
   background: var(--surface-2);
-  color: var(--text-secondary);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.chip.active {
-  background: var(--text-primary);
-  color: var(--surface-2);
-  border-color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 18px;
 }
 
-/* Campo de texto */
+/* ── Input ── */
 .cris-input {
-  border: 0.5px solid var(--border-strong);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 13px;
-  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-size: 14px;
+  background: var(--surface-3);
   color: var(--text-primary);
   width: 100%;
   outline: none;
   transition: border-color 150ms;
 }
-.cris-input:focus { border-color: var(--consulta-accent); }
+.cris-input:focus { border-color: #2471A3; }
 .cris-input::placeholder { color: var(--text-muted); }
 
-/* Sección de formulario */
-.cris-section {
-  background: var(--surface-1);
-  border: 0.5px solid var(--border-color);
-  border-radius: 10px;
-  padding: 16px;
-}
-
-/* Badge de estado */
-.badge {
-  font-size: 10px;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 20px;
-  display: inline-flex;
-  align-items: center;
-}
-
-/* Botón primario */
+/* ── Botones ── */
 .btn-primary {
   width: 100%;
-  border-radius: 10px;
-  padding: 13px 16px;
+  border-radius: 12px;
+  padding: 14px 18px;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 700;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 48px;
+  min-height: 50px;
+  transition: opacity 150ms, transform 150ms;
 }
+.btn-primary:active { transform: scale(0.98); }
 .btn-emergency { background: var(--emergency-accent); color: #fff; }
 .btn-consulta  { background: var(--consulta-accent);  color: #fff; }
 .btn-inst      { background: var(--inst-accent);      color: #fff; }
 .btn-personas  { background: var(--personas-accent);  color: #fff; }
-.btn-dark      { background: var(--text-primary);     color: var(--surface-2); }
+.btn-dark      { background: var(--text-primary);     color: var(--surface-0); }
 
-/* Botón secundario */
 .btn-secondary {
-  border: 0.5px solid var(--border-strong);
-  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
   padding: 12px 16px;
-  background: var(--surface-2);
+  background: var(--surface-3);
   color: var(--text-secondary);
   font-size: 13px;
   cursor: pointer;
   width: 100%;
+  transition: border-color 150ms;
+}
+.btn-secondary:hover { border-color: rgba(255,255,255,0.25); }
+
+/* ── Badge ── */
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-/* Nota de privacidad / advertencia */
+/* ── Sección ── */
+.cris-section {
+  background: var(--surface-2);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* ── Aviso ── */
 .cris-warning {
   background: var(--warn-bg);
-  border: 0.5px solid var(--warn-border);
-  border-radius: 8px;
+  border: 1px solid var(--warn-border);
+  border-radius: 10px;
   padding: 10px 14px;
   font-size: 12px;
   color: var(--warn-text);
+  line-height: 1.5;
 }
 
-/* Línea de tiempo */
+/* ── Chip / filtro ── */
+.chip {
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 5px 13px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms, color 150ms;
+}
+.chip.active {
+  background: var(--text-primary);
+  color: var(--surface-0);
+  border-color: transparent;
+}
+
+/* ── Timeline ── */
 .timeline-item {
   display: flex;
   gap: 10px;
   padding: 8px 0;
-  border-bottom: 0.5px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 .timeline-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px; height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
-  margin-top: 4px;
+  margin-top: 5px;
 }
 
-/* Tarjeta de persona */
+/* ── Person card ── */
 .person-card {
-  border: 0.5px solid var(--border-color);
-  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 14px;
   background: var(--surface-2);
 }
 
-/* Divider */
+/* ── Divider ── */
 .cris-divider {
   border: none;
-  border-top: 0.5px solid var(--border-color);
+  border-top: 1px solid var(--border-color);
   margin: 14px 0;
 }
 
-/* Número de paso */
+/* ── Step number ── */
 .step-number {
-  width: 22px;
-  height: 22px;
+  width: 22px; height: 22px;
   border-radius: 50%;
   background: var(--text-primary);
-  color: var(--surface-2);
+  color: var(--surface-0);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-/* Barra de progreso */
+/* ── Progress bar ── */
 .progress-bar {
-  height: 2px;
+  height: 3px;
   background: var(--border-color);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 .progress-fill {
   height: 100%;
   background: var(--emergency-accent);
-  border-radius: 2px;
-  transition: width 200ms ease;
+  border-radius: 3px;
+  transition: width 250ms ease;
 }
 
-/* Upload foto */
+/* ── Photo upload area ── */
 .photo-upload {
-  border: 0.5px dashed var(--border-strong);
-  border-radius: 8px;
-  padding: 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  padding: 18px;
   text-align: center;
-  background: var(--surface-1);
+  background: var(--surface-3);
   cursor: pointer;
+  transition: border-color 150ms;
 }
+.photo-upload:hover { border-color: rgba(255,255,255,0.28); }
 
-/* Fondo modo oscuro */
-.cris-dark-surface {
-  background: #111318;
+/* ── Light surfaces (for forms, modals on light bg) ── */
+.cris-form-surface {
+  background: #FFFFFF;
+  color: #141414;
 }
+.cris-form-surface .cris-input {
+  background: #F5F5F7;
+  border-color: rgba(0,0,0,0.14);
+  color: #141414;
+}
+.cris-form-surface .cris-input::placeholder { color: #aaa; }
+
+/* ── Animate pulse dot ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
