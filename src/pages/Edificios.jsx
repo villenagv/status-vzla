@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X, Eye } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -155,9 +155,18 @@ export default function Edificios() {
     setBuscando(false); setBuscado(true);
   };
 
-  // ── REPORTAR ──
-  const [tipo, setTipo] = useState('');
+  // ── REPORTAR: FLUJO DE 3 ETAPAS ──
+  const [etapa, setEtapa] = useState('validacion'); // 'validacion' | 'resultados' | 'formulario'
+  const [valNombre, setValNombre] = useState('');
+  const [valDireccion, setValDireccion] = useState('');
+  const [posiblesDups, setPosiblesDups] = useState([]);
+  const [buscandoDup, setBuscandoDup] = useState(false);
+  const [dupBuscado, setDupBuscado] = useState(false);
+
+  // Formulario completo (etapa 3)
   const [nombreLugar, setNombreLugar] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const [tipo, setTipo] = useState('');
   const [nivel, setNivel] = useState('');
   const [atrapados, setAtrapados] = useState('');
   const [riesgoGas, setRiesgoGas] = useState(false);
@@ -173,7 +182,6 @@ export default function Edificios() {
   const [racionamientoElec, setRacionamientoElec] = useState(false);
   const [horarioAgua, setHorarioAgua] = useState('');
   const [horarioElec, setHorarioElec] = useState('');
-  const [direccion, setDireccion] = useState('');
   const [ciudad, setCiudad] = useState('');
   const [estado, setEstado] = useState('');
   const [descripcion, setDescripcion] = useState('');
@@ -186,26 +194,38 @@ export default function Edificios() {
   const quitarContacto = (i) => setContactosAcceso(prev => prev.filter((_, idx) => idx !== i));
   const setContacto = (i, k, v) => setContactosAcceso(prev => prev.map((c, idx) => idx === i ? { ...c, [k]: v } : c));
   const [fotos, setFotos] = useState([]);
-  const [posiblesDups, setPosiblesDups] = useState([]);
-  const [checkDup, setCheckDup] = useState(false);
-  const [buscandoDup, setBuscandoDup] = useState(false);
-  const [decisionDup, setDecisionDup] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [exito, setExito] = useState(null);
 
   const esCritico = nivel === 'critico' || nivel === 'grave' || nivel === 'colapsado' || atrapados === 'si' || atrapados === 'voces';
 
-  const buscarDuplicados = async () => {
-    if (!direccion.trim() && !nombreLugar.trim()) return;
+  // ── ETAPA 1: Validación de duplicados ──
+  const verificarEdificio = async () => {
+    if (!valDireccion.trim()) return;
     setBuscandoDup(true);
+    setDupBuscado(false);
     try {
-      const queryStr = normalizar(direccion || nombreLugar);
-      const dups = todos.filter(r => similitud(queryStr, normalizar(r.direccion || '')) > 0.55 || similitud(queryStr, normalizar(r.nombre_lugar || '')) > 0.55);
+      const q = normalizar(valDireccion + ' ' + valNombre);
+      const dups = todos.filter(r => {
+        const dir = normalizar(r.direccion || '');
+        const nombre = normalizar(r.nombre_lugar || '');
+        return similitud(q, dir) > 0.45 || similitud(q, nombre) > 0.5 || dir.includes(q.slice(0, 10));
+      }).sort((a, b) => (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5));
       setPosiblesDups(dups);
+      setDupBuscado(true);
+      setEtapa('resultados');
     } catch {}
-    setBuscandoDup(false); setCheckDup(true);
+    setBuscandoDup(false);
   };
 
+  // Ir a formulario con datos precargados
+  const irAFormulario = () => {
+    setNombreLugar(valNombre);
+    setDireccion(valDireccion);
+    setEtapa('formulario');
+  };
+
+  // ── SUBIR FOTOS ──
   const subirFoto = async (file) => {
     if (fotos.length >= MAX_FOTOS) return;
     const id = Date.now();
@@ -217,26 +237,29 @@ export default function Edificios() {
       setFotos(prev => prev.map(f => f.id === id ? { ...f, uploading: false, error: true } : f));
     }
   };
-
   const handleFotoInput = (e) => {
     Array.from(e.target.files || []).slice(0, MAX_FOTOS - fotos.length).forEach(subirFoto);
     e.target.value = '';
   };
-
   const quitarFoto = (id) => setFotos(prev => prev.filter(f => f.id !== id));
 
+  // ── RESET ──
   const resetForm = () => {
-    setTipo(''); setNombreLugar(''); setNivel(''); setAtrapados('');
+    setEtapa('validacion');
+    setValNombre(''); setValDireccion('');
+    setPosiblesDups([]); setDupBuscado(false);
+    setTipo(''); setNivel(''); setAtrapados('');
     setRiesgoGas(false); setRiesgoElec(false); setRiesgoIncendio(false);
     setAccesoCalle(''); setAccesoVehiculos(''); setNotasAcceso('');
     setElectricidad(''); setAgua(''); setGas('');
     setRacionamientoAgua(false); setRacionamientoElec(false);
     setHorarioAgua(''); setHorarioElec('');
-    setDireccion(''); setCiudad(''); setEstado(''); setDescripcion('');
+    setCiudad(''); setEstado(''); setDescripcion('');
     setRepNombre(''); setRepTelefono(''); setRepEmail('');
-    setFotos([]); setContactosAcceso([]); setCheckDup(false); setDecisionDup(null); setPosiblesDups([]);
+    setFotos([]); setContactosAcceso([]);
   };
 
+  // ── ENVIAR ──
   const handleSubmit = async () => {
     setEnviando(true);
     try {
@@ -244,7 +267,7 @@ export default function Edificios() {
       const foto_urls = fotos.filter(f => f.url).map(f => f.url);
       const contactosFiltrados = contactosAcceso.filter(c => c.nombre.trim() || c.telefono.trim() || c.email.trim());
       const nuevo = await base44.entities.ReportesDano.create({
-        tipo_estructura: tipo || 'otro', nombre_lugar: nombreLugar,
+        tipo_estructura: tipo || 'otro', nombre_lugar: valNombre,
         nivel_dano: nivel || 'no_evaluado', personas_atrapadas: atrapados || 'no_sabe',
         riesgo_gas: riesgoGas, riesgo_electrico: riesgoElec, riesgo_incendio: riesgoIncendio,
         acceso_calle: accesoCalle || 'no_sabe',
@@ -253,7 +276,7 @@ export default function Edificios() {
         electricidad: electricidad || 'no_confirmado',
         agua: agua || 'no_confirmado',
         gas: gas || 'no_confirmado',
-        direccion, ciudad, estado_region: estado, descripcion, foto_urls, prioridad,
+        direccion: valDireccion, ciudad, estado_region: estado, descripcion, foto_urls, prioridad,
         reportante_nombre: repNombre, reportante_telefono: repTelefono, reportante_email: repEmail,
         contactos_acceso: contactosFiltrados,
         estado_verificacion: 'recibido', nivel_verificacion: 'sin_verificar', fuente: 'ciudadano',
@@ -721,7 +744,7 @@ export default function Edificios() {
           </div>
         )}
 
-        {/* ── REPORTAR ── */}
+        {/* ── REPORTAR ── FLUJO DE 3 ETAPAS */}
         {tab === 'reportar' && (
           <div className="max-w-2xl">
             {exito === true && (
@@ -739,95 +762,188 @@ export default function Edificios() {
                 </div>
               </div>
             )}
+
             {exito !== true && (
-              <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                  <p className="text-sm text-blue-800 leading-relaxed">
-                    {t('Completa este formulario con lo que ves desde un lugar seguro. No entres a estructuras dañadas.',
-                       'Fill this form with what you see from a safe location. Do not enter damaged structures.',
-                       'Preencha este formulário com o que você vê de um lugar seguro. Não entre em estruturas danificadas.')}
-                  </p>
-                </div>
-
-                {/* 1. Tipo */}
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-3">1. {t('¿Qué tipo de estructura es?', 'What type of structure?', 'Que tipo de estrutura?')} <span className="text-red-500">*</span></h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {TIPO_OPTS.map(tb => (
-                      <button key={tb.val} onClick={() => setTipo(tb.val)}
-                        className={`py-2.5 px-3 rounded-lg text-xs font-medium border text-left cursor-pointer transition-colors ${tipo === tb.val ? 'bg-blue-700 text-white border-blue-700' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}>
-                        {es ? tb.es : tb.en}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. Ubicación */}
-                <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-gray-800">2. {t('¿Dónde está?', 'Where is it?', 'Onde fica?')} <span className="text-red-500">*</span></h3>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Nombre del lugar (si lo sabes)', 'Place name (if known)', 'Nome do lugar (se souber)')}</label>
-                    <input value={nombreLugar} onChange={e => setNombreLugar(e.target.value)}
-                      placeholder={t('Ej: Edificio Las Torres, Hospital Central...', 'E.g: Las Torres building, Central Hospital...', 'Ex: Edifício Las Torres, Hospital Central...')}
-                      className={inputCls} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Dirección o referencia', 'Address or reference', 'Endereço ou referência')} <span className="text-red-600">*</span></label>
-                    <input value={direccion} onChange={e => { setDireccion(e.target.value); setCheckDup(false); setDecisionDup(null); }}
-                      onBlur={buscarDuplicados}
-                      placeholder={t('Ej: Av. Soublette, frente al mercado, La Guaira', 'E.g: Soublette Ave, next to market, La Guaira', 'Ex: Av. Soublette, em frente ao mercado, La Guaira')}
-                      className={inputCls} />
-                    {buscandoDup && <p className="text-xs text-gray-400 mt-1">⏳ {t('Verificando duplicados...', 'Checking for duplicates...', 'Verificando duplicatas...')}</p>}
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Ciudad', 'City', 'Cidade')} <span className="text-red-600">*</span></label>
-                      <input value={ciudad} onChange={e => setCiudad(e.target.value)} placeholder="La Guaira" className={inputCls} />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Estado', 'State', 'Estado')} <span className="text-red-600">*</span></label>
-                      <input value={estado} onChange={e => setEstado(e.target.value)} placeholder="Vargas" className={inputCls} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Duplicados */}
-                {checkDup && posiblesDups.length > 0 && decisionDup === null && (
-                  <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 space-y-3">
-                    <div className="flex gap-2 items-start">
-                      <AlertTriangle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-bold text-amber-800">
-                          {t(`⚠️ Encontramos ${posiblesDups.length} reporte(s) similar(es). ¿Es el mismo lugar?`,
-                             `⚠️ We found ${posiblesDups.length} similar report(s). Is it the same place?`,
-                             `⚠️ Encontramos ${posiblesDups.length} relatório(s) similar(es). É o mesmo lugar?`)}
-                        </p>
-                        <p className="text-xs text-amber-700 mt-0.5">{t('Revisa si ya existe antes de crear uno nuevo.', 'Check if it exists before creating a new one.', 'Verifique se já existe antes de criar um novo.')}</p>
-                      </div>
-                    </div>
-                    {posiblesDups.slice(0, 3).map(d => {
-                      const c = cfg(d.nivel_dano);
-                      return (
-                        <div key={d.id} className="bg-white border border-amber-300 rounded-xl p-3">
-                          <p className="text-xs font-bold text-gray-800 truncate">{d.nombre_lugar || d.tipo_estructura}</p>
-                          <p className="text-xs text-gray-500 truncate">📍 {d.direccion} · {d.ciudad}</p>
-                          <span className="text-xs font-semibold" style={{ color: c.color }}>{c.icon} {t(c.label.es, c.label.en, c.label.es)}</span>
-                          <div className="flex gap-2 mt-2">
-                            <Link to={`/edificio?id=${d.id}`} className="flex-1 text-center text-xs bg-blue-600 text-white px-3 py-2 rounded-lg font-bold no-underline hover:bg-blue-700">
-                              👁️ {t('Ver ficha →', 'View record →', 'Ver ficha →')}
-                            </Link>
-                          </div>
+              <>
+                {/* ── ETAPA 1: VALIDACIÓN ── */}
+                {etapa === 'validacion' && (
+                  <div className="space-y-4">
+                    <div className="bg-white border border-gray-200 rounded-xl p-5">
+                      <h2 className="text-base font-bold text-gray-800 mb-1">
+                        {t('Verificar si el lugar ya existe', 'Check if the place already exists', 'Verificar se o local já existe')}
+                      </h2>
+                      <p className="text-sm text-gray-500 mb-4">
+                        {t('Primero verificamos si este lugar ya fue reportado. Así evitamos duplicados y mantenemos la información actualizada.',
+                           'First we check if this place was already reported. This avoids duplicates and keeps information up to date.',
+                           'Primeiro verificamos se este local já foi reportado. Assim evitamos duplicatas e mantemos as informações atualizadas.')}
+                      </p>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Nombre del lugar (si lo sabes)', 'Place name (if known)', 'Nome do lugar (se souber)')}</label>
+                          <input value={valNombre} onChange={e => { setValNombre(e.target.value); setEtapa('validacion'); }}
+                            onKeyDown={e => e.key === 'Enter' && verificarEdificio()}
+                            placeholder={t('Ej: Hospital Central, Edificio Las Torres...', 'E.g: Central Hospital, Las Torres building...', 'Ex: Hospital Central, Edifício Las Torres...')}
+                            className={inputCls} />
                         </div>
-                      );
-                    })}
-                    <button onClick={() => setDecisionDup('nuevo')} className="w-full text-sm text-gray-500 border border-gray-200 bg-white py-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
-                      {t('No, es un lugar diferente — crear nuevo', 'No, different place — create new', 'Não, é um lugar diferente — criar novo')}
-                    </button>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Dirección o zona', 'Address or area', 'Endereço ou área')} <span className="text-red-500">*</span></label>
+                          <input value={valDireccion} onChange={e => { setValDireccion(e.target.value); setEtapa('validacion'); }}
+                            onKeyDown={e => e.key === 'Enter' && verificarEdificio()}
+                            placeholder={t('Ej: Av. Soublette, frente al mercado, La Guaira', 'E.g: Soublette Ave, next to market, La Guaira', 'Ex: Av. Soublette, em frente ao mercado, La Guaira')}
+                            className={inputCls} />
+                        </div>
+                        <button onClick={verificarEdificio} disabled={buscandoDup || !valDireccion.trim()}
+                          className="btn-primary bg-blue-700 hover:bg-blue-800 text-white disabled:opacity-40">
+                          {buscandoDup ? <Loader2 size={16} className="animate-spin" /> : '🔍'}
+                          {buscandoDup ? t('Verificando...', 'Checking...', 'Verificando...') : t('Verificar lugar', 'Check place', 'Verificar local')}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-3 text-center">{t('Tu privacidad importa. No compartimos tus datos sin tu consentimiento.', 'Your privacy matters. We do not share your data without consent.', 'Sua privacidade importa. Não compartilhamos seus dados sem consentimento.')}</p>
+                    </div>
                   </div>
                 )}
 
-                {(decisionDup === 'nuevo' || posiblesDups.length === 0 || !checkDup) && (
-                  <>
+                {/* ── ETAPA 2: RESULTADOS ── */}
+                {etapa === 'resultados' && (
+                  <div className="space-y-4">
+                    {buscandoDup ? (
+                      <div className="text-center py-8 text-gray-400 text-sm">
+                        <Loader2 size={20} className="animate-spin mx-auto mb-2" />
+                        {t('Verificando duplicados...', 'Checking for duplicates...', 'Verificando duplicatas...')}
+                      </div>
+                    ) : posiblesDups.length > 0 ? (
+                      <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 space-y-3">
+                        <div className="flex gap-2 items-start">
+                          <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-bold text-amber-800">
+                              {t(`Encontramos ${posiblesDups.length} reporte(s) similar(es)`, `We found ${posiblesDups.length} similar report(s)`, `Encontramos ${posiblesDups.length} relatório(s) similar(es)`)}
+                            </p>
+                            <p className="text-xs text-amber-700 mt-0.5">{t('Selecciona uno para agregar tu información o crea un reporte nuevo.', 'Select one to add your info or create a new report.', 'Selecione um para adicionar suas informações ou crie um novo relatório.')}</p>
+                          </div>
+                        </div>
+                        {posiblesDups.slice(0, 4).map(d => {
+                          const c = cfg(d.nivel_dano);
+                          const esNoEntrar = ['grave', 'critico', 'colapsado'].includes(d.nivel_dano);
+                          return (
+                            <div key={d.id} className="bg-white border border-amber-300 rounded-xl p-3">
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-bold text-gray-800 truncate">{d.nombre_lugar || d.tipo_estructura?.replace(/_/g, ' ') || t('Sin nombre', 'Unnamed', 'Sem nome')}</p>
+                                  <p className="text-xs text-gray-500 truncate">📍 {d.direccion || '—'} · {d.ciudad || '—'}</p>
+                                </div>
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ color: c.color, background: c.bg, border: `1px solid ${c.border}` }}>
+                                  {c.icon} {t(c.label.es, c.label.en, c.label.es)}
+                                </span>
+                              </div>
+                              {esNoEntrar && <span className="text-[9px] font-black text-white bg-red-600 px-1.5 py-0.5 rounded">🚫 {t('NO ENTRAR', 'DO NOT ENTER', 'NÃO ENTRAR')}</span>}
+                              {(d.personas_atrapadas === 'si' || d.personas_atrapadas === 'voces') && (
+                                <span className="text-[9px] font-bold bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full ml-1">🆘</span>
+                              )}
+                              <div className="flex gap-2 mt-2">
+                                <Link to={`/edificio?id=${d.id}`}
+                                  className="flex-1 text-center text-xs bg-blue-600 text-white px-3 py-2 rounded-lg font-bold no-underline hover:bg-blue-700 transition-colors">
+                                  👁️ {t('Ver y actualizar', 'View & update', 'Ver e atualizar')}
+                                </Link>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <button onClick={irAFormulario}
+                          className="w-full text-sm font-bold bg-white border-2 border-amber-400 text-amber-800 hover:bg-amber-50 py-3 rounded-xl cursor-pointer transition-colors flex items-center justify-center gap-2">
+                          ➕ {t('No es el mismo — Reportar edificio nuevo', 'It is different — Report new building', 'Não é o mesmo — Reportar novo edifício')}
+                        </button>
+                        <button onClick={() => setEtapa('validacion')}
+                          className="w-full text-xs text-gray-400 underline cursor-pointer">
+                          {t('Volver a buscar', 'Search again', 'Voltar a buscar')}
+                        </button>
+                      </div>
+                    ) : (
+                      /* Sin duplicados encontrados — ir directo al formulario */
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-center">
+                        <CheckCircle size={28} className="text-green-600 mx-auto mb-2" />
+                        <p className="font-bold text-green-800 text-sm">
+                          {t('Sin reportes previos para este lugar.', 'No previous reports for this place.', 'Nenhum relatório anterior para este local.')}
+                        </p>
+                        <p className="text-xs text-green-600 mt-1 mb-4">
+                          {t('Puedes crear un nuevo reporte. Toda la información ayuda.', 'You can create a new report. All information helps.', 'Você pode criar um novo relatório. Toda informação ajuda.')}
+                        </p>
+                        <button onClick={irAFormulario}
+                          className="bg-green-700 hover:bg-green-800 text-white text-sm font-bold px-8 py-3.5 rounded-xl cursor-pointer transition-colors">
+                          ➕ {t('Crear reporte de daño', 'Create damage report', 'Criar relatório de dano')}
+                        </button>
+                        <button onClick={() => setEtapa('validacion')}
+                          className="block mx-auto mt-3 text-xs text-gray-400 underline cursor-pointer">
+                          {t('Buscar otro lugar', 'Search another place', 'Buscar outro local')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ── ETAPA 3: FORMULARIO COMPLETO ── */}
+                {etapa === 'formulario' && (
+                  <div className="space-y-4">
+                    {/* Barra de progreso */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <button onClick={() => setEtapa('validacion')} className="text-xs text-gray-400 underline cursor-pointer flex items-center gap-1">
+                        <ChevronLeft size={12} /> {t('Volver', 'Back', 'Voltar')}
+                      </button>
+                      <div className="flex-1 text-right">
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                          {t('Nuevo reporte', 'New report', 'Novo relatório')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Advertencia de seguridad */}
+                    <div className="bg-red-50 border-2 border-red-300 rounded-xl p-3 flex gap-3">
+                      <AlertTriangle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-red-800 font-medium leading-relaxed">
+                        {t('No entres a estructuras dañadas. Si hay grietas graves, olor a gas, cables caídos, incendio o personas atrapadas — espera a Protección Civil (171), Bomberos o rescatistas autorizados.',
+                           'Do not enter damaged structures. If there are major cracks, gas smell, fallen wires, fire or trapped people — wait for Civil Protection (171), Firefighters or authorized rescue teams.',
+                           'Não entre em estruturas danificadas. Se houver rachaduras graves, cheiro de gás, fios caídos, incêndio ou pessoas presas — aguarde Proteção Civil (171), Bombeiros ou equipes de resgate autorizadas.')}
+                      </p>
+                    </div>
+
+                    {/* 1. Tipo */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4">
+                      <h3 className="text-sm font-semibold text-gray-800 mb-3">1. {t('¿Qué tipo de estructura es?', 'What type of structure?', 'Que tipo de estrutura?')} <span className="text-red-500">*</span></h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {TIPO_OPTS.map(tb => (
+                          <button key={tb.val} onClick={() => setTipo(tb.val)}
+                            className={`py-2.5 px-3 rounded-lg text-xs font-medium border text-left cursor-pointer transition-colors ${tipo === tb.val ? 'bg-blue-700 text-white border-blue-700' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}>
+                            {es ? tb.es : tb.en}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 2. Confirmar ubicación */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+                      <h3 className="text-sm font-semibold text-gray-800">2. {t('Ubicación', 'Location', 'Localização')} <span className="text-red-500">*</span></h3>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Nombre del lugar', 'Place name', 'Nome do lugar')}</label>
+                        <input value={valNombre} onChange={e => setValNombre(e.target.value)}
+                          placeholder={t('Ej: Edificio Las Torres', 'E.g: Las Torres building', 'Ex: Edifício Las Torres')}
+                          className={inputCls} />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Dirección o referencia', 'Address or reference', 'Endereço ou referência')}</label>
+                        <p className="text-xs text-green-600 mb-1 flex items-center gap-1"><CheckCircle size={10} />{valDireccion}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Ciudad', 'City', 'Cidade')} <span className="text-red-600">*</span></label>
+                          <input value={ciudad} onChange={e => setCiudad(e.target.value)} placeholder="La Guaira" className={inputCls} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Estado', 'State', 'Estado')} <span className="text-red-600">*</span></label>
+                          <input value={estado} onChange={e => setEstado(e.target.value)} placeholder="Vargas" className={inputCls} />
+                        </div>
+                      </div>
+                    </div>
+
                     {/* 3. Nivel */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
                       <h3 className="text-sm font-semibold text-gray-800 mb-3">3. {t('Nivel de daño visible', 'Visible damage level', 'Nível de dano visível')} <span className="text-red-500">*</span></h3>
@@ -881,7 +997,6 @@ export default function Edificios() {
                     {/* 6. Acceso */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
                       <h3 className="text-sm font-semibold text-gray-800">6. {t('Acceso al lugar', 'Access to the site', 'Acesso ao local')}</h3>
-
                       <div>
                         <p className="text-xs font-semibold text-gray-700 mb-2">🚶 {t('¿Cómo está la calle para llegar?', 'How is the street to get there?', 'Como está a rua para chegar?')}</p>
                         <div className="grid grid-cols-2 gap-2">
@@ -900,7 +1015,6 @@ export default function Edificios() {
                           ))}
                         </div>
                       </div>
-
                       <div>
                         <p className="text-xs font-semibold text-gray-700 mb-2">🚗 {t('¿Qué vehículo puede llegar?', 'What vehicle can reach it?', 'Que veículo pode chegar?')}</p>
                         <p className="text-[10px] text-gray-400 mb-2">{t('Ayuda a coordinar ambulancias y rescatistas.', 'Helps coordinate ambulances and rescue teams.', 'Ajuda a coordenar ambulâncias e equipes de resgate.')}</p>
@@ -919,7 +1033,6 @@ export default function Edificios() {
                           ))}
                         </div>
                       </div>
-
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-1">📝 {t('Nota sobre acceso (opcional)', 'Access note (optional)', 'Nota de acesso (opcional)')}</label>
                         <input value={notasAcceso} onChange={e => setNotasAcceso(e.target.value)}
@@ -931,9 +1044,8 @@ export default function Edificios() {
                     {/* 7. Servicios básicos */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
                       <h3 className="text-sm font-semibold text-gray-800">7. {t('Servicios básicos', 'Basic services', 'Serviços básicos')}</h3>
-                      <p className="text-xs text-gray-400 -mt-2">{t('Marca solo lo que sabes con certeza. Ayuda a evaluar el impacto.', 'Only mark what you know for sure. Helps assess the impact.', 'Marque apenas o que sabe com certeza. Ajuda a avaliar o impacto.')}</p>
+                      <p className="text-xs text-gray-400 -mt-2">{t('Marca solo lo que sabes con certeza.', 'Only mark what you know for sure.', 'Marque apenas o que sabe com certeza.')}</p>
 
-                      {/* Electricidad */}
                       <div>
                         <p className="text-xs font-semibold text-gray-700 mb-2">⚡ {t('Electricidad', 'Electricity', 'Eletricidade')}</p>
                         <div className="grid grid-cols-2 gap-2 mb-2">
@@ -957,14 +1069,12 @@ export default function Edificios() {
                             </label>
                             {racionamientoElec && (
                               <input value={horarioElec} onChange={e => setHorarioElec(e.target.value)}
-                                placeholder={t('Horario: ej. 6am-10am y 6pm-10pm', 'Schedule: e.g. 6am-10am and 6pm-10pm', 'Horário: ex. 6h-10h e 18h-22h')}
-                                className={inputCls} />
+                                placeholder={t('Horario: ej. 6am-10am y 6pm-10pm', 'Schedule: e.g. 6am-10am and 6pm-10pm', 'Horário: ex. 6h-10h e 18h-22h')} className={inputCls} />
                             )}
                           </div>
                         )}
                       </div>
 
-                      {/* Agua */}
                       <div>
                         <p className="text-xs font-semibold text-gray-700 mb-2">💧 {t('Agua corriente', 'Running water', 'Água corrente')}</p>
                         <div className="grid grid-cols-2 gap-2 mb-2">
@@ -988,14 +1098,12 @@ export default function Edificios() {
                             </label>
                             {racionamientoAgua && (
                               <input value={horarioAgua} onChange={e => setHorarioAgua(e.target.value)}
-                                placeholder={t('Horario: ej. Martes y viernes 5am-8am', 'Schedule: e.g. Tue & Fri 5am-8am', 'Horário: ex. Ter e Sex 5h-8h')}
-                                className={inputCls} />
+                                placeholder={t('Horario: ej. Martes y viernes 5am-8am', 'Schedule: e.g. Tue & Fri 5am-8am', 'Horário: ex. Ter e Sex 5h-8h')} className={inputCls} />
                             )}
                           </div>
                         )}
                       </div>
 
-                      {/* Gas */}
                       <div>
                         <p className="text-xs font-semibold text-gray-700 mb-2">🔥 {t('Gas doméstico', 'Gas service', 'Gás doméstico')}</p>
                         <div className="grid grid-cols-2 gap-2">
@@ -1024,7 +1132,7 @@ export default function Edificios() {
                     {/* 8. Fotos */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
                       <h3 className="text-sm font-semibold text-gray-800 mb-1">8. {t('Fotos del daño (máx. 5, opcional)', 'Photos of damage (max 5, optional)', 'Fotos do dano (máx. 5, opcional)')}</h3>
-                      <p className="text-xs text-gray-400 mb-3">{t('Solo desde un lugar seguro. No entres al edificio para tomar fotos.', 'Only from a safe location. Do not enter the building to take photos.', 'Somente de um lugar seguro. Não entre no edifício para tirar fotos.')}</p>
+                      <p className="text-xs text-gray-400 mb-3">{t('Solo desde un lugar seguro. No entres al edificio.', 'Only from a safe location. Do not enter the building.', 'Somente de um lugar seguro. Não entre no edifício.')}</p>
                       {fotos.length < MAX_FOTOS && (
                         <label className="flex items-center gap-3 border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors mb-3">
                           <Camera size={20} className="text-gray-400" />
@@ -1050,18 +1158,18 @@ export default function Edificios() {
                       )}
                     </div>
 
-                    {/* 7. Contactos de acceso para inspección */}
+                    {/* 9. Contactos de acceso */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
                       <div>
                         <h3 className="text-sm font-semibold text-gray-800">9. {t('¿Quién puede dar acceso para inspección?', 'Who can grant access for inspection?', 'Quem pode dar acesso para inspeção?')}</h3>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {t('Agrega personas (conserje, propietario, vecino) que puedan contactarse cuando un ingeniero o rescatista necesite entrar. Sus datos son privados — no se muestran públicamente.',
-                             'Add people (caretaker, owner, neighbor) who can be contacted when an engineer or rescuer needs access. Their data is private — not shown publicly.',
-                             'Adicione pessoas (zelador, proprietário, vizinho) que possam ser contatadas quando um engenheiro ou resgatista precisar entrar. Dados privados.')}
+                          {t('Agrega personas (conserje, propietario, vecino). Datos privados — no se muestran públicamente.',
+                             'Add people (caretaker, owner, neighbor). Private data — not shown publicly.',
+                             'Adicione pessoas (zelador, proprietário, vizinho). Dados privados.')}
                         </p>
                       </div>
                       {contactosAcceso.length === 0 && (
-                        <p className="text-xs text-gray-400 italic">{t('Ningún contacto agregado. Opcional pero muy útil para inspecciones.', 'No contacts added. Optional but very useful for inspections.', 'Nenhum contato adicionado. Opcional mas muito útil.')}</p>
+                        <p className="text-xs text-gray-400 italic">{t('Ningún contacto. Opcional pero útil.', 'No contacts. Optional but useful.', 'Nenhum contato. Opcional mas útil.')}</p>
                       )}
                       <div className="space-y-3">
                         {contactosAcceso.map((c, i) => (
@@ -1071,19 +1179,14 @@ export default function Edificios() {
                               <button onClick={() => quitarContacto(i)} className="text-red-400 hover:text-red-600 text-xs font-bold cursor-pointer px-1">✕</button>
                             </div>
                             <input value={c.nombre} onChange={e => setContacto(i, 'nombre', e.target.value)}
-                              placeholder={t('Nombre completo *', 'Full name *', 'Nome completo *')}
-                              className={inputCls} />
+                              placeholder={t('Nombre completo *', 'Full name *', 'Nome completo *')} className={inputCls} />
                             <div className="grid grid-cols-2 gap-2">
                               <input value={c.telefono} onChange={e => setContacto(i, 'telefono', e.target.value)}
-                                placeholder={t('Teléfono / WhatsApp', 'Phone / WhatsApp', 'Telefone / WhatsApp')}
-                                className={inputCls} />
-                              <input value={c.email} onChange={e => setContacto(i, 'email', e.target.value)}
-                                placeholder="Email"
-                                className={inputCls} />
+                                placeholder={t('Teléfono / WhatsApp', 'Phone / WhatsApp', 'Telefone / WhatsApp')} className={inputCls} />
+                              <input value={c.email} onChange={e => setContacto(i, 'email', e.target.value)} placeholder="Email" className={inputCls} />
                             </div>
                             <input value={c.rol} onChange={e => setContacto(i, 'rol', e.target.value)}
-                              placeholder={t('Rol: conserje, propietario, vecino...', 'Role: caretaker, owner, neighbor...', 'Papel: zelador, proprietário, vizinho...')}
-                              className={inputCls} />
+                              placeholder={t('Rol: conserje, propietario, vecino...', 'Role: caretaker, owner, neighbor...', 'Papel: zelador, proprietário, vizinho...')} className={inputCls} />
                           </div>
                         ))}
                       </div>
@@ -1096,14 +1199,14 @@ export default function Edificios() {
                       <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
                         <span className="text-amber-600 text-xs flex-shrink-0 mt-0.5">🔒</span>
                         <p className="text-[10px] text-amber-800 leading-relaxed">
-                          {t('Los datos de contacto son privados. Solo los verán los voluntarios e ingenieros autorizados para inspección.',
-                             'Contact data is private. Only authorized volunteers and engineers for inspection will see it.',
-                             'Os dados de contato são privados. Apenas voluntários e engenheiros autorizados para inspeção os verão.')}
+                          {t('Datos privados. Solo los verán voluntarios e ingenieros autorizados para inspección.',
+                             'Private data. Only authorized volunteers and engineers for inspection will see it.',
+                             'Dados privados. Apenas voluntários e engenheiros autorizados para inspeção verão.')}
                         </p>
                       </div>
                     </div>
 
-                    {/* 8. Descripción y datos */}
+                    {/* 10. Descripción y datos */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
                       <h3 className="text-sm font-semibold text-gray-800">10. {t('Descripción y tus datos', 'Description and your info', 'Descrição e seus dados')}</h3>
                       <div>
@@ -1115,20 +1218,14 @@ export default function Edificios() {
                       </div>
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
                         <p className="text-xs font-bold text-blue-800">🔒 {t('Tus datos de contacto (privados)', 'Your contact info (private)', 'Seus dados de contato (privados)')}</p>
-                        <div className="bg-white border border-blue-100 rounded-lg px-3 py-2">
-                          <p className="text-[11px] text-blue-700 leading-relaxed font-medium">
-                            🏠 {t('Si vives en este edificio, trataremos de contactarte para ayudarte a coordinar la inspección.',
-                                 'If you live in this building, we will try to contact you to help coordinate the inspection.',
-                                 'Se você mora neste edifício, tentaremos contatá-lo para ajudar a coordenar a inspeção.')}
-                          </p>
-                        </div>
+                        <p className="text-[11px] text-blue-700 leading-relaxed font-medium">
+                          🏠 {t('Si vives aquí, trataremos de contactarte para coordinar la inspección.', 'If you live here, we will try to contact you to coordinate the inspection.', 'Se você mora aqui, tentaremos contatá-lo para coordenar a inspeção.')}
+                        </p>
                         <input value={repNombre} onChange={e => setRepNombre(e.target.value)} placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')} className={inputCls} />
                         <input value={repTelefono} onChange={e => setRepTelefono(e.target.value)} placeholder={t('Teléfono / WhatsApp — para coordinar inspección', 'Phone / WhatsApp — to coordinate inspection', 'Telefone / WhatsApp — para coordenar inspeção')} className={inputCls} />
                         <input value={repEmail} onChange={e => setRepEmail(e.target.value)} placeholder={t('Email — para coordinar inspección', 'Email — to coordinate inspection', 'Email — para coordenar inspeção')} className={inputCls} />
                         <p className="text-[10px] text-gray-500 leading-relaxed">
-                          {t('✅ Tus datos no se muestran públicamente. Solo los usamos si un ingeniero o voluntario necesita coordinarse para la inspección.',
-                             '✅ Your data is not displayed publicly. Only used if an engineer or volunteer needs to coordinate for the inspection.',
-                             '✅ Seus dados não são exibidos publicamente. Usados apenas se um engenheiro ou voluntário precisar coordenar a inspeção.')}
+                          {t('✅ Tus datos no se muestran públicamente.', '✅ Your data is not displayed publicly.', '✅ Seus dados não são exibidos publicamente.')}
                         </p>
                       </div>
                     </div>
@@ -1141,19 +1238,19 @@ export default function Edificios() {
                     )}
 
                     <button onClick={handleSubmit}
-                      disabled={enviando || !tipo || !nivel || !atrapados || !direccion || !ciudad || !estado || fotos.some(f => f.uploading) || contactosAcceso.some(c => !c.nombre.trim() && (c.telefono.trim() || c.email.trim()))}
+                      disabled={enviando || !tipo || !nivel || !atrapados || !ciudad || !estado || fotos.some(f => f.uploading) || contactosAcceso.some(c => !c.nombre.trim() && (c.telefono.trim() || c.email.trim()))}
                       className={`w-full py-4 rounded-xl text-base font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 transition-colors ${esCritico ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-700 hover:bg-blue-800 text-white'}`}>
                       {enviando ? <Loader2 size={18} className="animate-spin" /> : (esCritico ? '🚨' : '📋')}
                       {fotos.some(f => f.uploading) ? t('Subiendo fotos...', 'Uploading photos...', 'Enviando fotos...')
                         : esCritico ? t('Enviar alerta crítica', 'Send critical alert', 'Enviar alerta crítico')
                         : t('Enviar reporte de daño', 'Submit damage report', 'Enviar relatório de dano')}
                     </button>
-                    {(!tipo || !nivel || !atrapados || !direccion || !ciudad || !estado) && (
+                    {(!tipo || !nivel || !atrapados || !ciudad || !estado) && (
                       <p className="text-center text-xs text-gray-400">{t('Completa los campos obligatorios (*) para enviar.', 'Fill in required fields (*) to submit.', 'Preencha os campos obrigatórios (*) para enviar.')}</p>
                     )}
-                  </>
+                  </div>
                 )}
-              </div>
+              </>
             )}
           </div>
         )}
