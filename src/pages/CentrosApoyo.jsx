@@ -75,12 +75,14 @@ export default function CentrosApoyo() {
     if (!yaExpandido && !personasPorCentro[centroId]) {
       setCargandoPersonas(prev => ({ ...prev, [centroId]: true }));
       try {
-        // Buscar por centro_apoyo o por institucion_nombre
-        const porCentro = await base44.entities.PersonaRegistrada.filter({ centro_apoyo: centroId }, '-created_date', 100);
+        const porCentro = await base44.entities.PersonaRegistrada.filter({ institucion_id: centroId }, '-created_date', 100);
         const porNombre = await base44.entities.PersonaRegistrada.filter({ institucion_nombre: nombreCentro }, '-created_date', 100);
-        // Unificar sin duplicados por id
+        const encontradas = await base44.entities.PersonasEncontradas.filter({ nombre_lugar: nombreCentro }, '-created_date', 100);
         const map = {};
-        [...porCentro, ...porNombre].forEach(p => { map[p.id] = p; });
+        [...porCentro, ...porNombre].forEach(p => { map[`reg-${p.id}`] = p; });
+        encontradas.forEach(p => {
+          map[`enc-${p.id}`] = { ...p, id: `enc-${p.id}`, nombre_completo: p.nombre_o_descripcion };
+        });
         setPersonasPorCentro(prev => ({ ...prev, [centroId]: Object.values(map) }));
       } catch {
         setPersonasPorCentro(prev => ({ ...prev, [centroId]: [] }));

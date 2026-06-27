@@ -28,7 +28,8 @@ export default function TopBar() {
   const isActive = (path) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
   return (
-    <header style={{ background: '#111318', position: 'sticky', top: 0, zIndex: 50, borderBottom: '0.5px solid rgba(255,255,255,0.08)' }}>
+    <>
+    <header style={{ background: '#111318', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, borderBottom: '0.5px solid rgba(255,255,255,0.08)' }}>
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
 
         {/* Brand */}
@@ -162,5 +163,7 @@ export default function TopBar() {
         </Link>
       )}
     </header>
+    <div style={{ height: 52, flexShrink: 0 }} />
+    </>
   );
 }

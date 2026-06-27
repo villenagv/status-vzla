@@ -52,7 +52,7 @@ export default function Entrada() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="border-b border-gray-100 bg-white sticky top-0 z-40">
+      <header className="border-b border-gray-100 bg-white fixed top-0 left-0 right-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div>
             <span className="text-xl font-bold text-gray-900 tracking-tight">
@@ -79,6 +79,7 @@ export default function Entrada() {
           </div>
         </div>
       </header>
+      <div className="h-[57px] flex-shrink-0" />
 
       <div className="md:hidden bg-red-600 text-white px-4 py-2.5 flex items-center gap-2">
         <span className={`w-2 h-2 rounded-full bg-white ${!lowBw ? 'animate-pulse' : ''} flex-shrink-0`} />
