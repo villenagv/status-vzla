@@ -22,8 +22,11 @@ export default function ContadoresEntrada() {
             edificios: cached.total_reportes || 0,
             criticos: cached.criticos || 0,
             atrapados: cached.atrapados || 0,
-            buscados: cached.personas_buscando || 0,
+            buscados: cached.busquedas_activas_total || cached.personas_buscando || 0,
+            buscadosDirectos: cached.personas_buscando || 0,
+            registradas: cached.personas_registradas || 0,
             encontrados: cached.personas_encontradas || 0,
+            encontradosDirectos: cached.personas_encontradas_directas || 0,
             puntos: cached.puntos_abiertos || 0,
             fallecidos: cached.fallecidos || 0,
           });
@@ -31,7 +34,7 @@ export default function ContadoresEntrada() {
         }
 
         // Cache simple en localStorage (1 minuto) para evitar carga repetida
-        const cacheKey = 'contadores-entrada';
+        const cacheKey = 'contadores-entrada-v2';
         const cached = (() => { try { const r = JSON.parse(localStorage.getItem(cacheKey)); return r && Date.now() - r.ts < 60000 ? r.value : null; } catch { return null; } })();
         if (cached) {
           setDatos(cached);
@@ -39,11 +42,17 @@ export default function ContadoresEntrada() {
         }
 
         // Carga ligera: solo IDs para conteos, en lugar de listas completas de 200
-        const [totalReportes, totalBuscados, totalEncontrados] = await Promise.all([
-          base44.entities.ReportesDano.list('-created_date', 50).then(d => d.length),
-          base44.entities.PersonasBuscadas.filter({ estado_caso: 'buscando' }, null, 20).then(d => d.length),
-          base44.entities.PersonasEncontradas.list('-created_date', 20).then(d => d.length),
+        const [totalReportes, buscadas, encontradas, registradas] = await Promise.all([
+          base44.entities.ReportesDano.list('-created_date', 2000).then(d => d.length),
+          base44.entities.PersonasBuscadas.list('-updated_date', 2000),
+          base44.entities.PersonasEncontradas.list('-updated_date', 3000),
+          base44.entities.PersonaRegistrada.list('-updated_date', 3000).catch(() => []),
         ]);
+        const totalBuscados = buscadas.filter(p => ['buscando', 'informacion_recibida', 'visto_no_confirmado'].includes(p.estado_caso)).length;
+        const totalRegistradas = registradas.length;
+        const totalEncontradosDirectos = encontradas.length;
+        const totalEncontrados = totalEncontradosDirectos + totalRegistradas;
+        const totalPersonasSeguimiento = totalBuscados + totalEncontrados;
 
         // Solo cargar 50 reportes para datos críticos en vez de 200
         const criticosData = await base44.entities.ReportesDano.list('-created_date', 50);
@@ -58,14 +67,17 @@ export default function ContadoresEntrada() {
           edificios: totalReportes,
           criticos: Math.max(criticos, conAtrapados),
           atrapados: conAtrapados,
-          buscados: totalBuscados,
+          buscados: totalPersonasSeguimiento,
+          buscadosDirectos: totalBuscados,
+          registradas: totalRegistradas,
           encontrados: totalEncontrados,
+          encontradosDirectos: totalEncontradosDirectos,
           puntos: 0,
           fallecidos: muertosBuscados || 0,
         };
 
         setDatos(res);
-        localStorage.setItem(`cris_cache_${cacheKey}`, JSON.stringify({ ts: Date.now(), value: res }));
+        localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), value: res }));
       } catch {}
     };
     cargar();
@@ -82,7 +94,7 @@ export default function ContadoresEntrada() {
 
   // Versión simplificada: mostramos solo los 5 contadores más importantes
   const items = [
-    { val: datos.buscados, icon: '🔍', label: { es: 'Búsquedas activas', en: 'Active searches' }, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-100' },
+    { val: datos.buscados, icon: '🔍', label: { es: 'Búsquedas + fichas', en: 'Searches + records' }, hint: { es: `${datos.buscadosDirectos || 0} búsq. · ${datos.registradas || 0} hosp.`, en: `${datos.buscadosDirectos || 0} searches · ${datos.registradas || 0} hospitals` }, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-100' },
     { val: datos.criticos, icon: '🚨', label: { es: 'Alertas críticas', en: 'Critical alerts' }, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-100', pulse: true },
     { val: datos.atrapados, icon: '🆘', label: { es: 'Personas atrapadas', en: 'Trapped people' }, color: 'text-red-800', bg: 'bg-red-50', border: 'border-red-200', pulse: true },
     { val: datos.encontrados, icon: '✅', label: { es: 'Personas encontradas', en: 'People found' }, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-100' },
@@ -101,6 +113,7 @@ export default function ContadoresEntrada() {
           <span className="text-[10px] text-gray-500 leading-tight text-center">
             {es ? item.label.es : item.label.en}
           </span>
+          {item.hint && <span className="text-[9px] text-gray-400 leading-tight text-center">{es ? item.hint.es : item.hint.en}</span>}
         </div>
       ))}
     </div>

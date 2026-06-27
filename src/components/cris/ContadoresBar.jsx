@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Users, MapPin, Heart } from 'lucide-react';
-import { getContadores } from '@/lib/counters';
+import { COUNTERS_CACHE_KEY, getContadores } from '@/lib/counters';
 import { getNextRefreshIn } from '@/lib/cache';
 
 export default function ContadoresBar() {
@@ -10,7 +10,7 @@ export default function ContadoresBar() {
   useEffect(() => {
     getContadores().then(d => {
       setData(d);
-      setNextRefresh(getNextRefreshIn('contadores_globales'));
+      setNextRefresh(getNextRefreshIn(COUNTERS_CACHE_KEY));
     });
   }, []);
 
@@ -38,6 +38,11 @@ export default function ContadoresBar() {
             <MapPin size={14} className="text-[#D48C2E]" />
             <span className="font-bold text-white">{data.total_reportes}</span>
             <span className="text-gray-300"> reportes</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <Heart size={14} className="text-green-400" />
+            <span className="font-bold text-green-300">{data.personas_encontradas || 0}</span>
+            <span className="text-gray-300"> encontradas incl. hospitales</span>
           </span>
           <span className="flex items-center gap-1">
             <Heart size={14} className="text-green-400" />

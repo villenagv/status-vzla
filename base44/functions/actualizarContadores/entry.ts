@@ -8,22 +8,28 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Carga ligera: límites reducidos para bajar consumo de recursos
-    const [reportes, personasBuscadas, personasEncontradas, puntos] = await Promise.all([
-      base44.entities.ReportesDano.list(null, 200),
-      base44.entities.PersonasBuscadas.list(null, 200),
-      base44.entities.PersonasEncontradas.list(null, 200),
-      base44.entities.PuntosAyuda.list(null, 200),
+    const [reportes, personasBuscadas, personasEncontradas, personasRegistradas, puntos] = await Promise.all([
+      base44.entities.ReportesDano.list('-created_date', 2000),
+      base44.entities.PersonasBuscadas.list('-updated_date', 2000),
+      base44.entities.PersonasEncontradas.list('-updated_date', 3000),
+      base44.entities.PersonaRegistrada.list('-updated_date', 3000),
+      base44.entities.PuntosAyuda.list('-updated_date', 2000),
     ]);
+
+    const personasBuscando = personasBuscadas.filter(p => ['buscando', 'informacion_recibida', 'visto_no_confirmado'].includes(p.estado_caso)).length;
+    const personasEncontradasTotal = personasEncontradas.length + personasRegistradas.length;
 
     const values = [
       { clave: 'edificios_reporte', valor: reportes.length },
       { clave: 'alertas_criticas', valor: reportes.filter(r => r.prioridad === 'critica').length },
-      { clave: 'personas_atrapadas', valor: reportes.filter(r => r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces' || r.personas_atrapadas === 'posible').length },
-      { clave: 'busquedas_activas', valor: personasBuscadas.filter(p => p.estado_caso === 'buscando').length },
-      { clave: 'personas_encontradas', valor: personasEncontradas.length },
-      { clave: 'fallecidos_reportados', valor: personasBuscadas.filter(p => p.estado_caso === 'fallecido_reportado').length },
-      { clave: 'puntos_ayuda', valor: puntos.filter(p => p.estado_operativo === 'abierto').length },
+      { clave: 'personas_atrapadas', valor: reportes.filter(r => ['si', 'voces', 'posible'].includes(r.personas_atrapadas)).length },
+      { clave: 'busquedas_activas', valor: personasBuscando + personasEncontradasTotal },
+      { clave: 'personas_buscando', valor: personasBuscando },
+      { clave: 'personas_registradas', valor: personasRegistradas.length },
+      { clave: 'personas_encontradas', valor: personasEncontradasTotal },
+      { clave: 'personas_encontradas_directas', valor: personasEncontradas.length },
+      { clave: 'fallecidos_reportados', valor: personasBuscadas.filter(p => p.estado_caso === 'fallecido_reportado').length + personasEncontradas.filter(p => p.condicion === 'fallecido_reportado').length },
+      { clave: 'puntos_ayuda', valor: puntos.filter(p => ['abierto', 'recibe_personas', 'recibe_heridos'].includes(p.estado_operativo)).length },
     ];
 
     const upserted = [];
@@ -33,7 +39,7 @@ Deno.serve(async (req) => {
         await base44.entities.ContadoresCache.update(existing[0].id, { valor: v.valor, ultima_actualizacion: new Date().toISOString() });
         upserted.push({ clave: v.clave, accion: 'actualizado', valor: v.valor });
       } else {
-        const created = await base44.entities.ContadoresCache.create({ clave: v.clave, valor: v.valor, ultima_actualizacion: new Date().toISOString() });
+        await base44.entities.ContadoresCache.create({ clave: v.clave, valor: v.valor, ultima_actualizacion: new Date().toISOString() });
         upserted.push({ clave: v.clave, accion: 'creado', valor: v.valor });
       }
     }
