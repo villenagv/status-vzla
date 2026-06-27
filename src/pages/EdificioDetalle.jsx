@@ -99,7 +99,7 @@ export default function EdificioDetalle() {
 
   // Formulario actualización
   const [editando, setEditando] = useState(false);
-  const [updateForm, setUpdateForm] = useState({ tipo: '', nivel: '', atrapados: '', gas: false, elect: false, inc: false, desc: '', nombre: '', contacto: '', telefono: '', red_social: '' });
+  const [updateForm, setUpdateForm] = useState({ tipo: '', nivel: '', atrapados: '', gas: false, elect: false, inc: false, accesoPie: '', accesoVehiculos: '', desc: '', nombre: '', contacto: '', telefono: '', red_social: '' });
   const [enviando, setEnviando] = useState(false);
   const [updateFotos, setUpdateFotos] = useState([]);
 
@@ -188,6 +188,15 @@ export default function EdificioDetalle() {
       if (updateForm.gas) updateData.riesgo_gas = true;
       if (updateForm.elect) updateData.riesgo_electrico = true;
       if (updateForm.inc) updateData.riesgo_incendio = true;
+      if (updateForm.accesoPie || updateForm.accesoVehiculos) {
+        await base44.entities.EstadoOperativoEdificio.create({
+          edificio_id: id,
+          acceso_calle: updateForm.accesoPie || 'no_confirmado',
+          acceso_vehiculos: updateForm.accesoVehiculos || 'no_confirmado',
+          reportante_nombre: updateForm.nombre || undefined,
+          fuente: 'ciudadano',
+        }).catch(() => {});
+      }
       updateData.prioridad = prioridad;
       if (updateForm.desc) updateData.descripcion = updateForm.desc;
       const fotosNuevas = updateFotos.filter(f => f.url).map(f => f.url);
@@ -208,7 +217,7 @@ export default function EdificioDetalle() {
         lang,
       }).catch(() => {});
       setEditando(false);
-      setUpdateForm({ tipo: '', nivel: '', atrapados: '', gas: false, elect: false, inc: false, desc: '', nombre: '', contacto: '', telefono: '', red_social: '' });
+      setUpdateForm({ tipo: '', nivel: '', atrapados: '', gas: false, elect: false, inc: false, accesoPie: '', accesoVehiculos: '', desc: '', nombre: '', contacto: '', telefono: '', red_social: '' });
       setUpdateFotos([]);
     } catch { alert(es ? 'Error al enviar.' : 'Error sending.'); }
     setEnviando(false);
@@ -494,14 +503,55 @@ export default function EdificioDetalle() {
               </div>
             </div>
 
+            {/* Acceso a pie */}
+            <div>
+              <p className="text-xs font-semibold text-gray-600 mb-1.5">🚶 {es ? '¿Cómo está la calle / acceso a pie?' : 'How is the street / foot access?'}</p>
+              <div className="flex flex-col gap-1.5">
+                {[
+                  { val: 'normal',        es: '✅ Paso libre — sin problemas',          en: '✅ Clear — no issues'              },
+                  { val: 'dificultad',    es: '⚠️ Se puede pasar, pero con dificultad', en: '⚠️ Passable with difficulty'       },
+                  { val: 'solo_peatonal', es: '🚶 Solo a pie — vehículos no pasan',     en: '🚶 On foot only — no vehicles'     },
+                  { val: 'bloqueada',     es: '🚫 Calle bloqueada — no se puede pasar', en: '🚫 Blocked — cannot pass'          },
+                  { val: 'insegura',      es: '☠️ Peligrosa — no intentes pasar',       en: '☠️ Dangerous — do not attempt'     },
+                ].map(a => (
+                  <button key={a.val} onClick={() => setUpdateForm(f => ({ ...f, accesoPie: f.accesoPie === a.val ? '' : a.val }))}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left ${updateForm.accesoPie === a.val ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                    {es ? a.es : a.en}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Acceso vehículos */}
+            <div>
+              <p className="text-xs font-semibold text-gray-600 mb-1.5">🚗 {es ? '¿Qué vehículos pueden llegar hasta aquí?' : 'What vehicles can reach this building?'}</p>
+              <div className="flex flex-col gap-1.5">
+                {[
+                  { val: 'carros',     es: '🚗 Sí llegan carros normales',            en: '🚗 Regular cars can reach it'      },
+                  { val: 'ambulancias',es: '🚑 Sí llegan ambulancias',                en: '🚑 Ambulances can reach it'        },
+                  { val: 'camiones',   es: '🚛 Sí llegan camiones o grúas',           en: '🚛 Trucks / cranes can reach it'   },
+                  { val: 'solo_motos', es: '🏍️ Solo motos — carros no pasan',         en: '🏍️ Motorcycles only — no cars'     },
+                  { val: 'bloqueado',  es: '🚫 Nada pasa — vía completamente cerrada', en: '🚫 Nothing passes — road closed'  },
+                ].map(a => (
+                  <button key={a.val} onClick={() => setUpdateForm(f => ({ ...f, accesoVehiculos: f.accesoVehiculos === a.val ? '' : a.val }))}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left ${updateForm.accesoVehiculos === a.val ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                    {es ? a.es : a.en}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Riesgos */}
-            <div className="grid grid-cols-3 gap-1.5">
-              {[{ k: 'gas', icon: '💨', label: 'Gas' }, { k: 'elect', icon: '⚡', label: es ? 'Eléctrico' : 'Electrical' }, { k: 'inc', icon: '🔥', label: es ? 'Incendio' : 'Fire' }].map(r => (
-                <button key={r.k} onClick={() => setUpdateForm(f => ({ ...f, [r.k]: !f[r.k] }))}
-                  className={`py-2.5 rounded-xl text-xs font-semibold border cursor-pointer ${updateForm[r.k] ? 'bg-orange-600 text-white border-orange-600' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
-                  {r.icon} {r.label}
-                </button>
-              ))}
+            <div>
+              <p className="text-xs font-semibold text-gray-600 mb-1.5">⚠️ {es ? '¿Hay alguno de estos riesgos?' : 'Are any of these hazards present?'}</p>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[{ k: 'gas', icon: '💨', es: 'Olor a gas', en: 'Gas smell' }, { k: 'elect', icon: '⚡', es: 'Cables caídos', en: 'Fallen wires' }, { k: 'inc', icon: '🔥', label: es ? 'Hay fuego / humo' : 'Fire / smoke' }].map(r => (
+                  <button key={r.k} onClick={() => setUpdateForm(f => ({ ...f, [r.k]: !f[r.k] }))}
+                    className={`py-2.5 px-1 rounded-xl text-xs font-semibold border cursor-pointer text-center ${updateForm[r.k] ? 'bg-orange-600 text-white border-orange-600' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                    {r.icon} {r.label || (es ? r.es : r.en)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Descripción */}

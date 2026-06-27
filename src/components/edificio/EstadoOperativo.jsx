@@ -12,20 +12,20 @@ const SERVICIO_CONFIG = {
   no_confirmado:  { color: '#6b7280', bg: '#f9fafb', border: '#e5e7eb', dot: '⚪', es: 'Sin confirmar', en: 'Unconfirmed'   },
 };
 const ACCESO_LABELS = {
-  normal:         { es: 'Acceso normal',          en: 'Normal access'          },
-  dificultad:     { es: 'Con dificultad',         en: 'With difficulty'        },
-  solo_peatonal:  { es: 'Solo peatonal',          en: 'Pedestrian only'        },
-  bloqueada:      { es: 'Calle bloqueada',        en: 'Blocked street'         },
-  insegura:       { es: 'Calle insegura',         en: 'Unsafe street'          },
-  no_confirmado:  { es: 'Sin confirmar',          en: 'Unconfirmed'            },
+  normal:         { es: '✅ Paso libre — se llega sin problemas',  en: '✅ Clear path — no issues'           },
+  dificultad:     { es: '⚠️ Se puede pasar, pero con dificultad', en: '⚠️ Passable, but with difficulty'    },
+  solo_peatonal:  { es: '🚶 Solo a pie — vehículos no pasan',     en: '🚶 On foot only — no vehicles'       },
+  bloqueada:      { es: '🚫 Calle bloqueada — no se puede pasar', en: '🚫 Blocked street — cannot pass'     },
+  insegura:       { es: '☠️ Peligrosa — no intentes pasar',       en: '☠️ Dangerous — do not attempt'       },
+  no_confirmado:  { es: '❓ No sé / no lo vi',                    en: '❓ Unknown / I did not see it'        },
 };
 const VEHICULOS_LABELS = {
-  carros:         { es: '🚗 Pueden llegar carros',          en: '🚗 Cars can access'           },
-  ambulancias:    { es: '🚑 Pueden llegar ambulancias',     en: '🚑 Ambulances can access'     },
-  camiones:       { es: '🚛 Pueden llegar camiones',        en: '🚛 Trucks can access'         },
-  solo_motos:     { es: '🏍️ Solo motos o peatones',         en: '🏍️ Motorcycles/pedestrians'   },
-  bloqueado:      { es: '🚫 Vía bloqueada',                 en: '🚫 Road blocked'              },
-  no_confirmado:  { es: '❓ Sin confirmar',                 en: '❓ Unconfirmed'               },
+  carros:         { es: '🚗 Sí llegan carros normales',           en: '🚗 Regular cars can reach it'         },
+  ambulancias:    { es: '🚑 Sí llegan ambulancias',               en: '🚑 Ambulances can reach it'           },
+  camiones:       { es: '🚛 Sí llegan camiones o grúas',          en: '🚛 Trucks / cranes can reach it'      },
+  solo_motos:     { es: '🏍️ Solo motos — carros no pasan',        en: '🏍️ Motorcycles only — no cars'        },
+  bloqueado:      { es: '🚫 Nada pasa — vía completamente cerrada', en: '🚫 Nothing passes — road closed'    },
+  no_confirmado:  { es: '❓ No sé / no lo vi',                    en: '❓ Unknown / I did not see it'        },
 };
 const TIPO_DANO_LABELS = {
   sin_danos:      { es: 'Sin daños visibles',     en: 'No visible damage'      },
@@ -97,8 +97,8 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
 
   const categorias = [
     { key: 'danos',       icon: '🏗️', es: 'Tipo de daños',      en: 'Damage type'     },
-    { key: 'acceso',      icon: '🚶', es: 'Acceso por calle',    en: 'Street access'   },
-    { key: 'vehiculos',   icon: '🚗', es: 'Llegada de vehículos',en: 'Vehicle access'  },
+    { key: 'acceso',      icon: '🚶', es: '¿Cómo está la calle?', en: 'Street walkability' },
+    { key: 'vehiculos',   icon: '🚗', es: '¿Llega ayuda / vehículos?', en: 'Can vehicles reach it?' },
     { key: 'servicios',   icon: '⚡', es: 'Servicios básicos',   en: 'Basic services'  },
     { key: 'racionamiento', icon: '🕐', es: 'Racionamiento',     en: 'Rationing'       },
   ];
@@ -142,17 +142,20 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
       {/* Acceso calle */}
       {paso === 'acceso' && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
-          <p className="text-xs font-bold text-gray-700">🚶 {es ? '¿Se puede acceder al edificio por la calle?' : 'Can you access the building by street?'}</p>
-          <div className="grid grid-cols-2 gap-1.5">
+          <p className="text-xs font-bold text-gray-700">🚶 {es ? '¿Cómo está la calle para llegar al edificio?' : 'How is the street to reach the building?'}</p>
+          <p className="text-[10px] text-gray-500 leading-relaxed">
+            {es ? 'Cuéntanos si puedes llegar a pie sin problemas, si hay escombros u obstáculos.' : 'Tell us if you can reach it on foot, or if there are debris or obstacles.'}
+          </p>
+          <div className="flex flex-col gap-1.5">
             {Object.entries(ACCESO_LABELS).map(([val, lbl]) => (
               <button key={val} onClick={() => set('acceso_calle', val)}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold border cursor-pointer ${form.acceso_calle === val ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700'}`}>
+                className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left ${form.acceso_calle === val ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700'}`}>
                 {es ? lbl.es : lbl.en}
               </button>
             ))}
           </div>
           <input value={form.notas_acceso} onChange={e => set('notas_acceso', e.target.value)}
-            placeholder={es ? 'Detalles del acceso (opcional)' : 'Access details (optional)'}
+            placeholder={es ? 'Ej: Hay escombros en la entrada, la acera está rota...' : 'E.g.: Debris at entrance, sidewalk is broken...'}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none" />
         </div>
       )}
@@ -160,48 +163,82 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
       {/* Vehículos */}
       {paso === 'vehiculos' && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
-          <p className="text-xs font-bold text-gray-700">🚗 {es ? '¿Pueden llegar vehículos de ayuda?' : 'Can rescue vehicles reach the building?'}</p>
-          <p className="text-[10px] text-gray-500">{es ? 'Importante para coordinar ambulancias y ayuda.' : 'Important for coordinating ambulances and aid.'}</p>
-          <div className="grid grid-cols-1 gap-1.5">
+          <p className="text-xs font-bold text-gray-700">🚗 {es ? '¿Qué tipo de vehículo puede llegar hasta el edificio?' : 'What type of vehicle can reach the building?'}</p>
+          <p className="text-[10px] text-gray-500 leading-relaxed">
+            {es ? 'Esto ayuda a coordinar ambulancias, bomberos y camiones de rescate. Sé lo más preciso posible.' : 'This helps coordinate ambulances, firefighters and rescue trucks. Be as specific as possible.'}
+          </p>
+          <div className="flex flex-col gap-1.5">
             {Object.entries(VEHICULOS_LABELS).map(([val, lbl]) => (
               <button key={val} onClick={() => set('acceso_vehiculos', val)}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left ${form.acceso_vehiculos === val ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700'}`}>
+                className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left ${form.acceso_vehiculos === val ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700'}`}>
                 {es ? lbl.es : lbl.en}
               </button>
             ))}
           </div>
+          {form.acceso_vehiculos === 'bloqueado' && (
+            <div className="flex gap-1.5 bg-red-50 border border-red-200 rounded-lg px-2.5 py-2">
+              <AlertTriangle size={12} className="text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-[10px] text-red-700 font-semibold">{es ? 'Información crítica para rescatistas. Gracias por reportarlo.' : 'Critical info for rescue teams. Thank you for reporting.'}</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Servicios básicos */}
       {paso === 'servicios' && (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-3">
-          <p className="text-xs font-bold text-gray-700">⚡ {es ? 'Estado de servicios básicos' : 'Basic services status'}</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-4">
+          <div>
+            <p className="text-xs font-bold text-gray-700">⚡ {es ? '¿Cómo están los servicios en este edificio?' : 'How are the services in this building?'}</p>
+            <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">
+              {es ? 'Marca solo lo que sabes con certeza. Si no sabes, deja "No sé".' : 'Only mark what you know for sure. Leave "Unknown" if unsure.'}
+            </p>
+          </div>
           {[
-            { key: 'electricidad', icon: '⚡', es: 'Electricidad', en: 'Electricity', opts: ['disponible','no_disponible','intermitente','no_confirmado'] },
-            { key: 'agua',         icon: '💧', es: 'Agua corriente', en: 'Running water', opts: ['disponible','no_disponible','intermitente','no_confirmado'] },
-            { key: 'gas',          icon: '🔥', es: 'Gas',          en: 'Gas',         opts: ['disponible','no_disponible','suspendido','fuga_reportada','no_confirmado'] },
+            {
+              key: 'electricidad', icon: '⚡', es: 'Luz / Electricidad', en: 'Electricity / Power',
+              opts: [
+                { val: 'disponible',    es: '✅ Hay luz — funciona normal',       en: '✅ Power on — working fine'       },
+                { val: 'intermitente',  es: '⚡ A veces hay, a veces no',         en: '⚡ Comes and goes'                },
+                { val: 'no_disponible', es: '❌ Sin luz — cortaron el servicio',  en: '❌ No power — service cut'        },
+                { val: 'no_confirmado', es: '❓ No sé',                           en: '❓ Unknown'                       },
+              ],
+            },
+            {
+              key: 'agua', icon: '💧', es: 'Agua corriente', en: 'Running water',
+              opts: [
+                { val: 'disponible',    es: '✅ Hay agua — sale por el grifo',    en: '✅ Water on — flows from tap'     },
+                { val: 'intermitente',  es: '💧 A ratos hay, a ratos no',         en: '💧 Comes and goes'                },
+                { val: 'no_disponible', es: '❌ Sin agua — no sale nada',         en: '❌ No water — nothing flows'      },
+                { val: 'no_confirmado', es: '❓ No sé',                           en: '❓ Unknown'                       },
+              ],
+            },
+            {
+              key: 'gas', icon: '🔥', es: 'Gas doméstico', en: 'Gas service',
+              opts: [
+                { val: 'disponible',    es: '✅ Gas normal — funciona bien',      en: '✅ Gas on — working fine'         },
+                { val: 'suspendido',    es: '🚫 Gas cortado — lo suspendieron',   en: '🚫 Gas cut — service suspended'   },
+                { val: 'intermitente',  es: '⚡ Gas intermitente',               en: '⚡ Intermittent gas'              },
+                { val: 'fuga_reportada',es: '☠️ FUGA — huele a gas, peligro',   en: '☠️ LEAK — gas smell, danger'      },
+                { val: 'no_disponible', es: '❌ Sin gas',                         en: '❌ No gas'                        },
+                { val: 'no_confirmado', es: '❓ No sé',                           en: '❓ Unknown'                       },
+              ],
+            },
           ].map(srv => (
-            <div key={srv.key}>
-              <p className="text-[10px] font-bold text-gray-600 mb-1.5">{srv.icon} {es ? srv.es : srv.en}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {srv.opts.map(opt => {
-                  const cfg = SERVICIO_CONFIG[opt];
-                  const selected = form[srv.key] === opt;
-                  return (
-                    <button key={opt} onClick={() => set(srv.key, opt)}
-                      className={`py-1.5 px-3 rounded-xl text-[10px] font-semibold border cursor-pointer transition-colors
-                        ${selected ? 'text-white' : 'bg-white text-gray-600'}`}
-                      style={selected ? { background: cfg.color, borderColor: cfg.color } : { borderColor: '#e5e7eb' }}>
-                      {cfg.dot} {es ? cfg.es : cfg.en}
-                    </button>
-                  );
-                })}
+            <div key={srv.key} className="border border-gray-200 rounded-xl bg-white p-3 space-y-2">
+              <p className="text-xs font-bold text-gray-700">{srv.icon} {es ? srv.es : srv.en}</p>
+              <div className="flex flex-col gap-1.5">
+                {srv.opts.map(opt => (
+                  <button key={opt.val} onClick={() => set(srv.key, opt.val)}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left transition-colors
+                      ${form[srv.key] === opt.val ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                    {es ? opt.es : opt.en}
+                  </button>
+                ))}
               </div>
               {srv.key === 'gas' && form.gas === 'fuga_reportada' && (
-                <div className="mt-1.5 flex gap-1.5 bg-red-50 border border-red-200 rounded-lg px-2 py-1.5">
-                  <AlertTriangle size={11} className="text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-red-700 font-semibold">{es ? '⚠️ Se marcará como urgencia. Evacúa el edificio.' : '⚠️ Will be flagged as urgent. Evacuate the building.'}</p>
+                <div className="flex gap-1.5 bg-red-50 border-2 border-red-300 rounded-lg px-2.5 py-2">
+                  <AlertTriangle size={12} className="text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-red-700 font-bold">{es ? '🚨 URGENCIA: Se notificará como peligro inmediato. Evacúa el edificio ahora.' : '🚨 URGENT: Will be flagged as immediate danger. Evacuate the building now.'}</p>
                 </div>
               )}
             </div>
