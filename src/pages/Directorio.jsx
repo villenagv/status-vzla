@@ -335,23 +335,27 @@ export default function Directorio() {
                 const badge = FUENTE_BADGE[p._fuente] || FUENTE_BADGE.busqueda;
                 const esCritico = p.estado_caso === 'buscando';
                 return (
-                  <div key={p.id}
-                    onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })}
-                    className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-400' : ''}`}>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
+                  <div key={p.id} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-400' : ''}`}>
+                    <div onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 cursor-pointer ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
                       {p._fuente === 'encontrada' ? '🙋' : p._fuente === 'cris' ? '📍' : '👤'}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className="flex-1 min-w-0 cursor-pointer">
                       <p className="font-bold text-sm text-[#1A1F2E] truncate">{p._nombre}</p>
                       <p className="text-xs text-gray-400 truncate flex items-center gap-1">
                         <MapPin size={9} />{[p.ultima_ubicacion_conocida, p.ciudad].filter(Boolean).join(' · ')}
                       </p>
                     </div>
-                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${st.cls}`}>{es ? st.es : st.en}</span>
-                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{es ? badge.es : badge.en}</span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${st.cls}`}>{es ? st.es : st.en}</span>
+                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{es ? badge.es : badge.en}</span>
+                      </div>
+                      <button onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })}
+                        className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1 rounded-lg cursor-pointer hover:bg-blue-100 whitespace-nowrap">
+                        🔔 {es ? 'Avisar' : 'Notify'}
+                      </button>
+                      <span onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className="text-gray-300 text-xs cursor-pointer">›</span>
                     </div>
-                    <span className="text-gray-300 text-xs flex-shrink-0">›</span>
                   </div>
                 );
               })}
@@ -365,27 +369,32 @@ export default function Directorio() {
                 const esCritico = p.estado_caso === 'buscando';
                 return (
                   <div key={p.id}
-                    onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })}
-                    className={`bg-white rounded-2xl border-2 p-4 space-y-2 cursor-pointer hover:shadow-md active:scale-[0.98] transition-all ${esCritico ? 'border-red-200' : 'border-gray-100'}`}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-black text-sm text-[#1A1F2E] leading-tight">{p._nombre}</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {p.edad_aprox && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{p.edad_aprox} {es ? 'años' : 'yrs'}</span>}
-                          {p.sexo && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full capitalize">{p.sexo}</span>}
+                    className={`bg-white rounded-2xl border-2 p-4 space-y-2 hover:shadow-md transition-all ${esCritico ? 'border-red-200' : 'border-gray-100'}`}>
+                    <div onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className="cursor-pointer space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-black text-sm text-[#1A1F2E] leading-tight">{p._nombre}</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {p.edad_aprox && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{p.edad_aprox} {es ? 'años' : 'yrs'}</span>}
+                            {p.sexo && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full capitalize">{p.sexo}</span>}
+                          </div>
                         </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${st.cls}`}>{es ? st.es : st.en}</span>
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${st.cls}`}>{es ? st.es : st.en}</span>
+                      {(p.ultima_ubicacion_conocida || p.ciudad) && (
+                        <p className="text-xs text-gray-500 flex items-start gap-1">
+                          <MapPin size={10} className="flex-shrink-0 mt-0.5" />
+                          {[p.ultima_ubicacion_conocida, p.ciudad, p.estado_region].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
                     </div>
-                    {(p.ultima_ubicacion_conocida || p.ciudad) && (
-                      <p className="text-xs text-gray-500 flex items-start gap-1">
-                        <MapPin size={10} className="flex-shrink-0 mt-0.5" />
-                        {[p.ultima_ubicacion_conocida, p.ciudad, p.estado_region].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between pt-1 border-t border-gray-100">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.cls}`}>{es ? badge.es : badge.en}</span>
-                      <span className="text-[10px] text-gray-400 font-semibold">{es ? 'Toca para acciones →' : 'Tap for actions →'}</span>
+                    <div className="flex items-center justify-between pt-1 border-t border-gray-100 gap-2">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${badge.cls}`}>{es ? badge.es : badge.en}</span>
+                      <button
+                        onClick={ev => { ev.stopPropagation(); setFichaSeleccionada({ item: p, tipo: 'persona' }); }}
+                        className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2.5 py-1 rounded-xl cursor-pointer hover:bg-blue-100 whitespace-nowrap flex-shrink-0">
+                        🔔 {es ? 'Avisar' : 'Notify'}
+                      </button>
                     </div>
                   </div>
                 );
@@ -399,47 +408,63 @@ export default function Directorio() {
           const EdificioCard = ({ e, compact }) => {
             const dano = DANO_CONFIG[e.nivel_dano] || DANO_CONFIG.no_evaluado;
             const esCritico = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano) || e.hayAtrapados;
-            const abrir = () => setFichaSeleccionada({ item: e, tipo: 'edificio' });
+            const abrir = (ev) => { ev.stopPropagation(); setFichaSeleccionada({ item: e, tipo: 'edificio' }); };
+            const irFicha = () => { window.location.href = `/edificio?id=${e.id}`; };
+
             if (compact) return (
-              <div onClick={abrir} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-500' : ''}`}>
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
+              <div className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-500' : ''}`}>
+                <div onClick={irFicha} className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 cursor-pointer ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
                   {e.hayAtrapados ? '🆘' : esCritico ? '🚫' : '🏗️'}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div onClick={irFicha} className="flex-1 min-w-0 cursor-pointer">
                   <p className="font-bold text-sm text-[#1A1F2E] truncate">{e._nombre}</p>
                   <p className="text-xs text-gray-400 truncate flex items-center gap-1">
                     <MapPin size={9} />{[e.direccion, e.ciudad].filter(Boolean).join(' · ')}
                   </p>
                 </div>
-                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${dano.cls}`}>{es ? dano.es : dano.en}</span>
+                  <button onClick={abrir}
+                    className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1 rounded-lg cursor-pointer hover:bg-blue-100 whitespace-nowrap">
+                    🔔 {es ? 'Avisar' : 'Notify'}
+                  </button>
+                  <span onClick={irFicha} className="text-gray-300 text-xs cursor-pointer">›</span>
                 </div>
-                <span className="text-gray-300 text-xs flex-shrink-0">›</span>
               </div>
             );
+
             return (
-              <div onClick={abrir} className={`bg-white rounded-2xl border-2 p-4 space-y-2 cursor-pointer hover:shadow-md active:scale-[0.98] transition-all ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
+              <div className={`bg-white rounded-2xl border-2 p-4 space-y-2 hover:shadow-md transition-all ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
                 {e.hayAtrapados && <div className="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">🆘 {es ? 'PERSONAS ATRAPADAS' : 'TRAPPED PEOPLE'}</div>}
                 {esCritico && !e.hayAtrapados && <div className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-bold px-3 py-1.5 rounded-lg">🚫 {es ? 'NO ENTRAR — Estructura comprometida' : 'DO NOT ENTER — Compromised structure'}</div>}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-black text-sm text-[#1A1F2E] leading-tight">{e._nombre}</p>
-                    {e.tipo_estructura && <p className="text-[11px] text-gray-400 mt-0.5">{e.tipo_estructura}</p>}
+                <div onClick={irFicha} className="cursor-pointer space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-black text-sm text-[#1A1F2E] leading-tight">{e._nombre}</p>
+                      {e.tipo_estructura && <p className="text-[11px] text-gray-400 mt-0.5">{e.tipo_estructura}</p>}
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${dano.cls}`}>{es ? dano.es : dano.en}</span>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${dano.cls}`}>{es ? dano.es : dano.en}</span>
+                  {(e.direccion || e.ciudad) && (
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <MapPin size={10} /> {[e.direccion, e.ciudad, e.estado_region].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-1.5">
+                    {e.riesgo_gas && <span className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
+                    {e.riesgo_electrico && <span className="text-[10px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1.5 py-0.5 rounded-full">⚡ Eléctrico</span>}
+                    {e.riesgo_incendio && <span className="text-[10px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded-full">🔥 Incendio</span>}
+                  </div>
                 </div>
-                {(e.direccion || e.ciudad) && (
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
-                    <MapPin size={10} /> {[e.direccion, e.ciudad, e.estado_region].filter(Boolean).join(' · ')}
-                  </p>
-                )}
-                <div className="flex flex-wrap gap-1.5">
-                  {e.riesgo_gas && <span className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
-                  {e.riesgo_electrico && <span className="text-[10px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1.5 py-0.5 rounded-full">⚡ Eléctrico</span>}
-                  {e.riesgo_incendio && <span className="text-[10px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded-full">🔥 Incendio</span>}
-                </div>
-                <div className="pt-1 border-t border-gray-100">
-                  <span className="text-[10px] text-gray-400 font-semibold">{es ? 'Toca para ver acciones →' : 'Tap for actions →'}</span>
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100 gap-2">
+                  <button onClick={abrir}
+                    className="flex items-center gap-1 text-[11px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-blue-100">
+                    🔔 {es ? 'Avisar cambios' : 'Notify me'}
+                  </button>
+                  <button onClick={irFicha}
+                    className="flex items-center gap-1 text-[11px] font-semibold bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-gray-100">
+                    {es ? 'Ver ficha →' : 'View record →'}
+                  </button>
                 </div>
               </div>
             );
@@ -452,7 +477,7 @@ export default function Directorio() {
           );
           return (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {visibles.map(e => <EdificioCard key={e.id} e={e} compact={false} />)}
+              {visibles.map(e => <EdificioCard key={e.id} e={e} />)}
             </div>
           );
         })()}
