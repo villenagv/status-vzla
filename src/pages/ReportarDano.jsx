@@ -92,7 +92,7 @@ const ROL = [
 const CRITICOS = ['colapso_total', 'atrapados', 'gas', 'incendio', 'electrico'];
 const CRITICOS_ATRAPADOS = ['si', 'voces', 'familiares'];
 
-const inputCls = "w-full border-2 border-[#EDEBE8] rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E] placeholder-gray-400";
+const inputCls = "w-full border-2 border-[#D1CFC9] rounded-xl px-4 py-3 text-sm bg-white text-gray-900 focus:outline-none focus:border-[#1A1F2E] focus:ring-2 focus:ring-gray-200 placeholder-gray-500";
 
 function genCodigo() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -213,7 +213,7 @@ export default function ReportarDano() {
         <h1 className="text-xl font-black text-[#1A1F2E] mb-1">
           🚨 {es ? 'Reportar daño o riesgo' : 'Report damage or risk'}
         </h1>
-        <p className="text-xs text-gray-500 mb-3 leading-relaxed">
+        <p className="text-xs text-gray-700 mb-3 leading-relaxed">
           {es
             ? 'Usa este formulario para reportar daños visibles, personas atrapadas o riesgos. No entres a edificios dañados.'
             : 'Use this form to report visible damage, trapped people or hazards. Do not enter damaged buildings.'}
@@ -325,7 +325,7 @@ export default function ReportarDano() {
               {/* Acceso vehicular */}
               <div>
                 <p className="text-xs font-bold text-gray-700 mb-1.5">🚗 {es ? '¿Qué tipo de vehículo puede llegar?' : 'What type of vehicle can reach it?'}</p>
-                <p className="text-[10px] text-gray-400 mb-1.5">{es ? 'Esto ayuda a coordinar ambulancias y rescatistas.' : 'This helps coordinate ambulances and rescue teams.'}</p>
+                <p className="text-[10px] text-gray-600 mb-1.5">{es ? 'Esto ayuda a coordinar ambulancias y rescatistas.' : 'This helps coordinate ambulances and rescue teams.'}</p>
                 <div className="flex flex-col gap-1.5">
                   {ACCESO_VEHICULOS.map(a => (
                     <button key={a.val} type="button" onClick={() => setAccesoVehiculos(a.val)}
@@ -355,7 +355,7 @@ export default function ReportarDano() {
               {/* Servicios básicos */}
               <div>
                 <p className="text-xs font-bold text-gray-700 mb-1">⚡ {es ? 'Servicios básicos (si lo sabes)' : 'Basic services (if you know)'}</p>
-                <p className="text-[10px] text-gray-400 mb-2">{es ? 'Marca solo lo que sabes con certeza.' : 'Only mark what you know for sure.'}</p>
+                <p className="text-[10px] text-gray-600 mb-2">{es ? 'Marca solo lo que sabes con certeza.' : 'Only mark what you know for sure.'}</p>
                 <div className="space-y-3">
                   {SERVICIO_OPTS.map(srv => (
                     <div key={srv.key}>
@@ -441,8 +441,8 @@ export default function ReportarDano() {
                 </label>
                 <textarea rows={3} maxLength={200} value={form.descripcion} onChange={e => set('descripcion', e.target.value)}
                   placeholder={es ? 'Describe brevemente lo que ves...' : 'Briefly describe what you see...'}
-                  className="w-full border-2 border-[#EDEBE8] rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E] resize-none placeholder-gray-400" />
-                <p className="text-right text-[10px] text-gray-400">{form.descripcion.length}/200</p>
+                  className="w-full border-2 border-[#D1CFC9] rounded-xl px-4 py-3 text-sm bg-white text-gray-900 focus:outline-none focus:border-[#1A1F2E] focus:ring-2 focus:ring-gray-200 resize-none placeholder-gray-500" />
+                <p className="text-right text-[10px] text-gray-500">{form.descripcion.length}/200</p>
               </div>
             </div>
           )}

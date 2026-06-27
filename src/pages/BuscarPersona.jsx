@@ -25,7 +25,7 @@ const ESTADO_LABEL = {
   caso_cerrado:        { es: 'Caso cerrado',       en: 'Case closed',     color: 'bg-gray-100 text-gray-500' },
 };
 
-const inputCls = "w-full border-2 border-[#EDEBE8] rounded-xl px-4 py-3 text-base bg-white focus:outline-none focus:border-[#1A1F2E] placeholder-gray-400";
+const inputCls = "w-full border-2 border-[#D1CFC9] rounded-xl px-4 py-3 text-base bg-white text-gray-900 focus:outline-none focus:border-[#1A1F2E] focus:ring-2 focus:ring-gray-200 placeholder-gray-500";
 
 function FieldLabel({ label, required, hint }) {
   return (
@@ -33,7 +33,7 @@ function FieldLabel({ label, required, hint }) {
       <label className="block text-sm font-bold text-[#1A1F2E]">
         {label}{required && <span className="text-[#B83A52] ml-0.5">*</span>}
       </label>
-      {hint && <p className="text-xs text-gray-400 mt-0.5">{hint}</p>}
+      {hint && <p className="text-xs text-gray-600 mt-0.5">{hint}</p>}
     </div>
   );
 }
@@ -223,7 +223,7 @@ export default function BuscarPersona() {
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
           🔎 {es ? 'Busco a alguien' : "I'm looking for someone"}
         </h1>
-        <p className="text-sm text-gray-500 mb-3 leading-relaxed">
+        <p className="text-sm text-gray-700 mb-3 leading-relaxed">
           {es
             ? 'Registra a la persona que buscas. Responde solo lo que sepas. Tus datos de contacto no se publicarán.'
             : "Register the person you're looking for. Answer only what you know. Your contact details won't be published."}
@@ -330,7 +330,7 @@ export default function BuscarPersona() {
             <input placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'} value={form.contacto_nombre} onChange={e => set('contacto_nombre', e.target.value)} className={inputCls} />
             <input placeholder={es ? 'Tu teléfono o WhatsApp (opcional)' : 'Your phone or WhatsApp (optional)'} value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
             <input type="email" placeholder={es ? 'Email para avisarte si hay novedades (opcional)' : 'Email to notify you of updates (optional)'} value={form.contacto_email} onChange={e => set('contacto_email', e.target.value)} className={inputCls} />
-            <p className="text-[11px] text-gray-400 leading-relaxed">
+            <p className="text-[11px] text-gray-600 leading-relaxed">
               🔒 {es ? 'Tus datos no se publican. Si dejas email, te avisamos cuando alguien reporte información sobre esta persona.' : 'Your info is not published. If you leave an email, we notify you when someone reports info about this person.'}
             </p>
             {!lowBw && (

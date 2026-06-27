@@ -64,7 +64,7 @@ const PERSONA_ESTADO = {
   fallecido_reportado:  { es: 'Fallecimiento rep.',  en: 'Death reported',  cls: 'bg-gray-200 text-gray-700'   },
 };
 
-const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 placeholder-gray-400";
+const inputCls = "w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 placeholder-gray-400";
 const MAX_FOTOS = 5;
 
 // ── Orden de prioridad para sorting ──
@@ -274,7 +274,7 @@ export default function Edificios() {
             <ChevronLeft size={15} /> {t('Inicio', 'Home', 'Início')}
           </Link>
           <h1 className="text-xl font-bold text-gray-900">🏗️ {t('Edificios y estructuras', 'Buildings & structures', 'Edifícios e estruturas')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t('Directorio de edificios reportados · Consulta y reporta daños.', 'Directory of reported buildings · Check and report damage.', 'Diretório de edifícios reportados · Consulte e reporte danos.')}</p>
+          <p className="text-sm text-gray-600 mt-1">{t('Directorio de edificios reportados · Consulta y reporta daños.', 'Directory of reported buildings · Check and report damage.', 'Diretório de edifícios reportados · Consulte e reporte danos.')}</p>
         </div>
 
         {/* Banner guía de seguridad */}
@@ -324,7 +324,7 @@ export default function Edificios() {
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <input value={filtroDir} onChange={e => { setFiltroDir(e.target.value); setPageDir(12); }}
                 placeholder={t('Buscar por nombre, dirección, ciudad...', 'Search by name, address, city...', 'Buscar por nome, endereço, cidade...')}
-                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-blue-400 placeholder-gray-400" />
+                className="flex-1 border-2 border-gray-300 rounded-xl px-4 py-3 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 placeholder-gray-400" />
               <button onClick={() => setTab('reportar')} className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer whitespace-nowrap flex-shrink-0">
                 + {t('Reportar daño', 'Report damage', 'Reportar dano')}
               </button>
@@ -492,7 +492,7 @@ export default function Edificios() {
                 <h2 className="text-base font-bold text-gray-800">👤 {t('Personas buscadas y encontradas', 'Missing & Found people', 'Pessoas procuradas e encontradas')}</h2>
                 <input value={filtroPer} onChange={e => { setFiltroPer(e.target.value); setPagePer(8); }}
                   placeholder={t('Filtrar por nombre, ciudad...', 'Filter by name, city...', 'Filtrar por nome, cidade...')}
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400 placeholder-gray-400 w-full sm:w-64" />
+                  className="border-2 border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 placeholder-gray-400 w-full sm:w-64" />
               </div>
               {cargandoPer ? (
                 <div className="text-center py-6 text-gray-400 text-sm">{t('Cargando...', 'Loading...', 'Carregando...')}</div>
@@ -590,7 +590,7 @@ export default function Edificios() {
               <div className="flex gap-2">
                 <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && buscarEdificio()}
                   placeholder={t('Ej: Edif. Las Torres, Av. Principal, La Guaira...', 'E.g: Las Torres building, Main Ave, La Guaira...', 'Ex: Ed. Las Torres, Av. Principal, La Guaira...')}
-                  className="flex-1 border border-gray-200 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:border-blue-500" />
+                  className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-600" />
                 <button onClick={buscarEdificio} disabled={buscando}
                   className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50 cursor-pointer">
                   {buscando ? <Loader2 size={15} className="animate-spin" /> : <Search size={15} />}
@@ -651,7 +651,7 @@ export default function Edificios() {
                         <div className="mt-3 flex gap-2">
                           <input value={subEmail} onChange={e => setSubEmail(e.target.value)}
                             placeholder={t('Tu email...', 'Your email...', 'Seu email...')}
-                            className="flex-1 border border-gray-200 rounded-lg px-2.5 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 placeholder-gray-400" />
+                            className="flex-1 border-2 border-gray-300 rounded-lg px-2.5 py-2 text-xs bg-white text-gray-900 focus:outline-none focus:border-blue-600 placeholder-gray-400" />
                           <button onClick={() => suscribirse(r.id)} disabled={subEnviando}
                             className="bg-blue-600 text-white text-xs font-medium px-3 py-2 rounded-lg disabled:opacity-40 cursor-pointer">
                             {t('Suscribir', 'Subscribe', 'Inscrever')}
@@ -738,13 +738,13 @@ export default function Edificios() {
                 <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
                   <h3 className="text-sm font-semibold text-gray-800">2. {t('¿Dónde está?', 'Where is it?', 'Onde fica?')} <span className="text-red-500">*</span></h3>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{t('Nombre del lugar (si lo sabes)', 'Place name (if known)', 'Nome do lugar (se souber)')}</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Nombre del lugar (si lo sabes)', 'Place name (if known)', 'Nome do lugar (se souber)')}</label>
                     <input value={nombreLugar} onChange={e => setNombreLugar(e.target.value)}
                       placeholder={t('Ej: Edificio Las Torres, Hospital Central...', 'E.g: Las Torres building, Central Hospital...', 'Ex: Edifício Las Torres, Hospital Central...')}
                       className={inputCls} />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{t('Dirección o referencia', 'Address or reference', 'Endereço ou referência')} <span className="text-red-500">*</span></label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Dirección o referencia', 'Address or reference', 'Endereço ou referência')} <span className="text-red-600">*</span></label>
                     <input value={direccion} onChange={e => { setDireccion(e.target.value); setCheckDup(false); setDecisionDup(null); }}
                       onBlur={buscarDuplicados}
                       placeholder={t('Ej: Av. Soublette, frente al mercado, La Guaira', 'E.g: Soublette Ave, next to market, La Guaira', 'Ex: Av. Soublette, em frente ao mercado, La Guaira')}
@@ -753,11 +753,11 @@ export default function Edificios() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">{t('Ciudad', 'City', 'Cidade')} <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Ciudad', 'City', 'Cidade')} <span className="text-red-600">*</span></label>
                       <input value={ciudad} onChange={e => setCiudad(e.target.value)} placeholder="La Guaira" className={inputCls} />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">{t('Estado', 'State', 'Estado')} <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Estado', 'State', 'Estado')} <span className="text-red-600">*</span></label>
                       <input value={estado} onChange={e => setEstado(e.target.value)} placeholder="Vargas" className={inputCls} />
                     </div>
                   </div>
@@ -883,10 +883,10 @@ export default function Edificios() {
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
                       <h3 className="text-sm font-semibold text-gray-800">7. {t('Descripción y tus datos', 'Description and your info', 'Descrição e seus dados')}</h3>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('Describe lo que ves (opcional)', 'Describe what you see (optional)', 'Descreva o que você vê (opcional)')}</label>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Describe lo que ves (opcional)', 'Describe what you see (optional)', 'Descreva o que você vê (opcional)')}</label>
                         <textarea rows={3} value={descripcion} onChange={e => setDescripcion(e.target.value)} maxLength={200}
                           placeholder={t('Ej: Fachada colapsada, cables caídos, se escuchan voces...', 'E.g: Facade collapsed, wires on street, voices heard...', 'Ex: Fachada colapsada, fios caídos, ouvem-se vozes...')}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-500 resize-none placeholder-gray-400" />
+                          className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-600 resize-none placeholder-gray-400" />
                         <p className="text-right text-xs text-gray-400">{descripcion.length}/200</p>
                       </div>
                       <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-2">
