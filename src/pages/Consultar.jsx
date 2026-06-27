@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Search, MapPin, AlertTriangle, Users, Phone, Bell } from 'lucide-react';
+import { ChevronLeft, Search, MapPin, AlertTriangle, Users, Phone, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
@@ -16,7 +16,6 @@ const ESTADO_OP_COLOR = {
   necesita_suministros: 'bg-blue-100 text-blue-700',
   necesita_voluntarios: 'bg-purple-100 text-purple-700',
 };
-
 const ESTADO_OP_LABEL = {
   abierto: { es: '✅ Abierto', en: '✅ Open' },
   saturado: { es: '⚠️ Saturado', en: '⚠️ Saturated' },
@@ -26,7 +25,7 @@ const ESTADO_OP_LABEL = {
 };
 
 const PERSONA_ESTADO_COLOR = {
-  buscando: 'bg-yellow-100 text-yellow-800',
+  buscando: 'bg-red-100 text-red-700',
   informacion_recibida: 'bg-blue-100 text-blue-700',
   visto_no_confirmado: 'bg-orange-100 text-orange-700',
   encontrado_con_vida: 'bg-green-100 text-green-800',
@@ -34,23 +33,29 @@ const PERSONA_ESTADO_COLOR = {
   fallecido_reportado: 'bg-gray-200 text-gray-700',
   caso_cerrado: 'bg-gray-100 text-gray-500',
 };
-
 const PERSONA_ESTADO_LABEL = {
-  buscando: { es: 'Buscando', en: 'Searching' },
-  informacion_recibida: { es: 'Info recibida', en: 'Info received' },
-  visto_no_confirmado: { es: 'Visto – sin confirmar', en: 'Seen – unconfirmed' },
-  encontrado_con_vida: { es: 'Encontrado ✅', en: 'Found alive ✅' },
-  en_hospital_refugio: { es: 'En hospital/refugio', en: 'In hospital/shelter' },
-  fallecido_reportado: { es: 'Fallecido reportado', en: 'Death reported' },
-  caso_cerrado: { es: 'Caso cerrado', en: 'Case closed' },
+  buscando: { es: '🔴 Sin contacto', en: '🔴 Missing' },
+  informacion_recibida: { es: '🔵 Con pistas', en: '🔵 Has leads' },
+  visto_no_confirmado: { es: '🟠 Visto sin confirmar', en: '🟠 Seen unconfirmed' },
+  encontrado_con_vida: { es: '✅ Localizado', en: '✅ Located' },
+  en_hospital_refugio: { es: '🏥 Hospital/refugio', en: '🏥 Hospital/shelter' },
+  fallecido_reportado: { es: '⚫ Fallecimiento reportado', en: '⚫ Death reported' },
+  caso_cerrado: { es: '🔒 Caso cerrado', en: '🔒 Case closed' },
 };
 
+const MODOS = [
+  { val: 'todo',     es: '🔍 Todo',      en: '🔍 All' },
+  { val: 'personas', es: '👤 Personas',  en: '👤 People' },
+  { val: 'danos',    es: '🚨 Daños',     en: '🚨 Damage' },
+  { val: 'ayuda',    es: '🏥 Centros',   en: '🏥 Centers' },
+];
+
 export default function Consultar() {
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   const { lowBw } = useLowBw();
   const es = lang === 'es';
   const [query, setQuery] = useState('');
-  const [modo, setModo] = useState('todo'); // 'todo' | 'personas' | 'danos' | 'ayuda'
+  const [modo, setModo] = useState('todo');
   const [reportes, setReportes] = useState([]);
   const [puntos, setPuntos] = useState([]);
   const [personas, setPersonas] = useState([]);
@@ -66,31 +71,22 @@ export default function Consultar() {
     setBuscado(false);
     try {
       const q = query.toLowerCase();
-      const promises = [];
       const includeDanos = modo === 'todo' || modo === 'danos';
       const includeAyuda = modo === 'todo' || modo === 'ayuda';
       const includePersonas = modo === 'todo' || modo === 'personas';
 
-      if (includeDanos) promises.push(base44.entities.InfraestructuraSos.list('-created_date', 200));
-      else promises.push(Promise.resolve([]));
-
-      if (includeAyuda) promises.push(base44.entities.PuntosAyuda.list('-updated_date', 200));
-      else promises.push(Promise.resolve([]));
-
-      if (includePersonas) promises.push(base44.entities.PersonasBuscadas.list('-updated_date', 300));
-      else promises.push(Promise.resolve([]));
-
-      const [r, p, per] = await Promise.all(promises);
+      const [r, p, per] = await Promise.all([
+        includeDanos ? base44.entities.InfraestructuraSos.list('-created_date', 200) : Promise.resolve([]),
+        includeAyuda ? base44.entities.PuntosAyuda.list('-updated_date', 200) : Promise.resolve([]),
+        includePersonas ? base44.entities.PersonasBuscadas.list('-updated_date', 300) : Promise.resolve([]),
+      ]);
 
       setReportes(r.filter(x =>
         (x.ciudad || '').toLowerCase().includes(q) ||
         (x.estado_region || '').toLowerCase().includes(q) ||
         (x.direccion || '').toLowerCase().includes(q) ||
         (x.tipo_reporte || '').toLowerCase().includes(q)
-      ).sort((a, b) => {
-        const ord = { critica: 0, alta: 1, normal: 2 };
-        return (ord[a.prioridad] ?? 2) - (ord[b.prioridad] ?? 2);
-      }));
+      ).sort((a, b) => ({ critica: 0, alta: 1, normal: 2 }[a.prioridad] ?? 2) - ({ critica: 0, alta: 1, normal: 2 }[b.prioridad] ?? 2)));
 
       setPuntos(p.filter(x =>
         (x.ciudad || '').toLowerCase().includes(q) ||
@@ -120,103 +116,129 @@ export default function Consultar() {
   return (
     <div className="min-h-screen bg-[#F4F4F8] flex flex-col">
       <TopBar />
-      <div className="max-w-lg mx-auto w-full px-4 py-6">
+      <div className="max-w-lg mx-auto w-full px-4 py-5">
         <Link to="/" className="flex items-center gap-1 text-sm text-gray-500 mb-4 hover:text-[#1A1F2E]">
-          <ChevronLeft size={16} /> {t.btn_volver}
+          <ChevronLeft size={16} /> {es ? 'Volver' : 'Go back'}
         </Link>
 
-        <h1 className="text-xl font-bold text-[#1A1F2E] mb-1">{t.consult_title}</h1>
-        <p className="text-sm text-gray-500 mb-3 leading-relaxed">{t.consult_desc}</p>
+        <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
+          🔍 {es ? 'Buscar información' : 'Search information'}
+        </h1>
+        <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+          {es
+            ? 'Busca personas, zonas de daño o centros de ayuda. Escribe el nombre de una ciudad, barrio, municipio o persona.'
+            : 'Search for people, damage areas, or help centers. Type a city, neighborhood, municipality, or person name.'}
+        </p>
 
-        {/* Instrucción contextual */}
-        <div className="flex gap-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5 mb-4">
+        {/* Instrucción de uso */}
+        <div className="flex gap-2 bg-blue-50 border border-blue-200 rounded-2xl px-3 py-3 mb-4">
           <span className="text-sm flex-shrink-0">💡</span>
           <p className="text-xs text-blue-800 leading-relaxed">
             {es
-              ? 'Escribe el nombre de una ciudad, barrio, municipio o persona. Filtra por tipo antes de buscar para resultados más rápidos.'
-              : 'Type a city, neighborhood, municipality or person name. Filter by type before searching for faster results.'}
+              ? 'Selecciona primero el tipo de búsqueda y luego escribe. Puedes buscar por ciudad, zona, nombre de persona o dirección.'
+              : 'Select the search type first, then type your query. You can search by city, area, person name, or address.'}
           </p>
         </div>
 
         {/* Filtro de modo */}
         <div className="flex gap-1.5 mb-3 flex-wrap">
-          {[
-            { val: 'todo', es: '🔍 Todo', en: '🔍 All' },
-            { val: 'personas', es: '👤 Personas', en: '👤 People' },
-            { val: 'danos', es: '🚨 Daños', en: '🚨 Damage' },
-            { val: 'ayuda', es: '🏥 Ayuda', en: '🏥 Help' },
-          ].map(m => (
-            <button key={m.val} onClick={() => setModo(m.val)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${modo === m.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-600'}`}>
+          {MODOS.map(m => (
+            <button
+              key={m.val}
+              onClick={() => setModo(m.val)}
+              className={`px-3 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${modo === m.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-600'}`}
+            >
               {es ? m.es : m.en}
             </button>
           ))}
         </div>
 
-        {/* Search */}
-        <div className="flex gap-2 mb-6">
+        {/* Barra de búsqueda */}
+        <div className="flex gap-2 mb-2">
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && buscar()}
-            placeholder={es ? 'Nombre, ciudad, zona...' : 'Name, city, zone...'}
-            className="flex-1 border border-[#EDEBE8] rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E]"
+            placeholder={es ? 'Ej: La Guaira, María González, Av. Bolívar...' : 'E.g: La Guaira, Maria Gonzalez, Bolivar Ave...'}
+            className="flex-1 border-2 border-[#EDEBE8] rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-[#1A1F2E] placeholder-gray-400"
           />
-          <button onClick={buscar} disabled={buscando}
-            className="bg-[#1A1F2E] text-white px-5 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
-            <Search size={16} />
-            {t.btn_buscar}
+          <button
+            onClick={buscar}
+            disabled={buscando || !query.trim()}
+            className="bg-[#1A1F2E] text-white px-5 py-3 rounded-xl text-sm font-black flex items-center gap-2 disabled:opacity-50"
+          >
+            {buscando ? <Loader2 size={15} className="animate-spin" /> : <Search size={15} />}
+            {es ? 'Buscar' : 'Search'}
           </button>
         </div>
+        <p className="text-[11px] text-gray-400 mb-6">
+          {es ? 'Presiona Enter o toca "Buscar" para ver resultados.' : 'Press Enter or tap "Search" to see results.'}
+        </p>
 
-        {buscando && <p className="text-center text-sm text-gray-400 py-8">{t.counters_loading}</p>}
+        {/* Cargando */}
+        {buscando && (
+          <div className="text-center py-10">
+            <Loader2 size={28} className="animate-spin text-gray-300 mx-auto mb-2" />
+            <p className="text-sm text-gray-400">{es ? 'Buscando...' : 'Searching...'}</p>
+          </div>
+        )}
 
+        {/* Sin resultados */}
         {buscado && !buscando && totalResultados === 0 && (
           <div className="text-center py-8 space-y-3">
-            <p className="text-3xl">🔍</p>
-            <p className="text-sm font-semibold text-gray-600">
+            <p className="text-4xl">🔍</p>
+            <p className="text-base font-black text-gray-600">
               {es ? `Sin resultados para "${query}"` : `No results for "${query}"`}
             </p>
             <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
               {es
-                ? 'Intenta con otro término. Puedes buscar por ciudad, barrio, nombre de persona o zona.'
-                : 'Try a different term. You can search by city, neighborhood, person name or area.'}
+                ? 'Prueba con el nombre de una ciudad, barrio o municipio cercano. También puedes registrar nueva información.'
+                : 'Try a city, neighborhood, or nearby municipality name. You can also register new information.'}
             </p>
             <div className="flex flex-col gap-2 items-center pt-2">
-              <Link to="/buscar-persona" className="text-sm text-[#D48C2E] font-semibold underline underline-offset-2">
-                {es ? '→ Registrar búsqueda de persona' : '→ Register missing person search'}
+              <Link to="/buscar-persona" className="text-sm text-[#6C3483] font-black bg-purple-50 border border-purple-200 px-4 py-2.5 rounded-xl no-underline">
+                👤 {es ? 'Registrar persona buscada' : 'Register missing person'}
               </Link>
-              <Link to="/reportar" className="text-sm text-[#B83A52] font-semibold underline underline-offset-2">
-                {es ? '→ Reportar emergencia en esta zona' : '→ Report emergency in this area'}
+              <Link to="/reportar" className="text-sm text-[#B83A52] font-black bg-red-50 border border-red-200 px-4 py-2.5 rounded-xl no-underline">
+                🚨 {es ? 'Reportar emergencia en esta zona' : 'Report emergency in this area'}
               </Link>
-              <Link to="/institucional" className="text-sm text-blue-600 font-semibold underline underline-offset-2">
-                {es ? '→ Registrar un centro de apoyo' : '→ Register a support center'}
+              <Link to="/institucional" className="text-sm text-[#1A5C3A] font-black bg-green-50 border border-green-200 px-4 py-2.5 rounded-xl no-underline">
+                🏛️ {es ? 'Registrar centro de apoyo' : 'Register support center'}
               </Link>
             </div>
           </div>
         )}
 
+        {/* Contador de resultados */}
         {buscado && !buscando && totalResultados > 0 && (
-          <p className="text-xs text-gray-400 mb-4">
-            {es ? `${totalResultados} resultado(s) para "${query}"` : `${totalResultados} result(s) for "${query}"`}
-          </p>
+          <div className="bg-white border border-[#EDEBE8] rounded-2xl px-4 py-2.5 mb-4 flex items-center gap-2">
+            <Search size={13} className="text-gray-400" />
+            <p className="text-xs text-gray-500 font-semibold">
+              {es ? `${totalResultados} resultado(s) para "${query}"` : `${totalResultados} result(s) for "${query}"`}
+            </p>
+          </div>
         )}
 
-        {/* Personas buscadas */}
+        {/* ── Personas buscadas ── */}
         {personasPage.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-2">
-              👤 {es ? 'Personas buscadas' : 'Missing people'} ({personas.length})
-            </h2>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-sm">👤</span>
+              <h2 className="text-xs font-black uppercase tracking-widest text-gray-500">
+                {es ? 'Personas buscadas' : 'Missing people'} ({personas.length})
+              </h2>
+            </div>
             <div className="flex flex-col gap-2">
               {personasPage.map(p => {
                 const st = PERSONA_ESTADO_LABEL[p.estado_caso] || { es: p.estado_caso, en: p.estado_caso };
                 const stColor = PERSONA_ESTADO_COLOR[p.estado_caso] || 'bg-gray-100 text-gray-600';
                 return (
-                  <div key={p.id} className="bg-white rounded-xl border border-[#EDEBE8] px-4 py-3">
-                    <div className="flex items-start justify-between gap-2 mb-1">
+                  <div key={p.id} className="bg-white rounded-2xl border border-[#EDEBE8] px-4 py-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-[#1A1F2E] truncate">{p.nombre_completo}</p>
+                        <Link to={`/persona?id=${p.id}`} className="font-black text-sm text-[#1A1F2E] truncate block no-underline hover:underline">
+                          {p.nombre_completo}
+                        </Link>
                         {p.edad_aprox && <p className="text-xs text-gray-400">{es ? 'Edad aprox.:' : 'Age approx.:'} {p.edad_aprox}</p>}
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${stColor}`}>
@@ -224,124 +246,110 @@ export default function Consultar() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 flex items-center gap-1">
-                      <MapPin size={10} /> {p.ultima_ubicacion_conocida} · {p.ciudad}, {p.estado_region}
+                      <MapPin size={10} />
+                      {p.ultima_ubicacion_conocida} · {p.ciudad}, {p.estado_region}
                     </p>
-                    {p.descripcion_fisica && !lowBw && (
-                      <p className="text-xs text-gray-400 mt-1 line-clamp-1">{p.descripcion_fisica}</p>
+                    {!lowBw && p.descripcion_fisica && (
+                      <p className="text-xs text-gray-400 line-clamp-1">{p.descripcion_fisica}</p>
                     )}
-                    {/* Anti-extorsión */}
-                    <div className="mt-2 bg-[#FDF1F0] border border-[#E8B4B0] rounded-lg px-3 py-1.5">
-                      <p className="text-[10px] text-[#B83A52]">
-                        {es ? '⚠️ Nunca envíes dinero a cambio de información.' : '⚠️ Never send money in exchange for information.'}
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                      <p className="text-[10px] text-amber-800 font-semibold">
+                        ⚠️ {es ? 'Nunca envíes dinero a cambio de información. Es una estafa.' : 'Never send money in exchange for information. It is a scam.'}
                       </p>
                     </div>
+                    <Link to={`/persona?id=${p.id}`} className="block text-xs font-bold text-[#6C3483] text-center bg-purple-50 border border-purple-200 py-2 rounded-xl no-underline">
+                      {es ? 'Ver perfil completo →' : 'View full profile →'}
+                    </Link>
                   </div>
                 );
               })}
             </div>
             {personas.length > personasPage.length && (
-              <button onClick={() => setPagePer(p => p + 1)} className="w-full mt-3 py-2.5 text-sm text-[#1A1F2E] border border-[#EDEBE8] rounded-xl bg-white hover:bg-gray-50">
-                {t.ver_mas}
+              <button onClick={() => setPagePer(p => p + 1)} className="w-full mt-3 py-3 text-sm font-semibold text-[#1A1F2E] border-2 border-[#EDEBE8] rounded-2xl bg-white">
+                {es ? `Ver más (${personas.length - personasPage.length} restantes)` : `Show more (${personas.length - personasPage.length} remaining)`}
               </button>
             )}
           </div>
         )}
 
-        {/* Reportes de daño */}
+        {/* ── Reportes de daño ── */}
         {reportesPage.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-2">
-              <AlertTriangle size={12} className="text-[#B83A52]" />
-              {es ? 'Reportes de daño' : 'Damage reports'} ({reportes.length})
-            </h2>
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle size={13} className="text-[#B83A52]" />
+              <h2 className="text-xs font-black uppercase tracking-widest text-gray-500">
+                {es ? 'Reportes de daño' : 'Damage reports'} ({reportes.length})
+              </h2>
+            </div>
             <div className="flex flex-col gap-2">
               {reportesPage.map(r => (
-                <div key={r.id} className="bg-white rounded-xl border border-[#EDEBE8] px-4 py-3">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <span className="font-semibold text-sm text-[#1A1F2E]">{r.tipo_reporte}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                      r.prioridad === 'critica' ? 'bg-red-100 text-red-700' :
-                      r.prioridad === 'alta' ? 'bg-orange-100 text-orange-700' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      {r.prioridad === 'critica' ? (es ? 'CRÍTICA' : 'CRITICAL') : r.prioridad === 'alta' ? (es ? 'Alta' : 'High') : (es ? 'Normal' : 'Normal')}
+                <div key={r.id} className="bg-white rounded-2xl border border-[#EDEBE8] px-4 py-3 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-bold text-sm text-[#1A1F2E]">{r.tipo_reporte}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${r.prioridad === 'critica' ? 'bg-red-100 text-red-700' : r.prioridad === 'alta' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>
+                      {r.prioridad === 'critica' ? (es ? '🔴 CRÍTICA' : '🔴 CRITICAL') : r.prioridad === 'alta' ? (es ? '🟠 Alta' : '🟠 High') : (es ? 'Normal' : 'Normal')}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 flex items-center gap-1">
                     <MapPin size={10} /> {r.direccion || r.ciudad}, {r.estado_region}
                   </p>
                   {r.personas_atrapadas === 'si' && (
-                    <span className="inline-block mt-1 text-[10px] font-bold bg-[#F4D5DD] text-[#B83A52] px-2 py-0.5 rounded-full">
-                      ⚠️ {es ? 'Personas atrapadas' : 'Trapped people'}
+                    <span className="inline-block text-[10px] font-bold bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded-full">
+                      🆘 {es ? 'Personas atrapadas' : 'Trapped people'}
                     </span>
                   )}
-                  {r.nivel_dano && (
-                    <p className="text-xs text-gray-400 mt-1">{es ? 'Daño:' : 'Damage:'} {r.nivel_dano}</p>
-                  )}
-                  {r.descripcion && !lowBw && (
-                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">{r.descripcion}</p>
-                  )}
+                  {r.nivel_dano && <p className="text-xs text-gray-400">{es ? 'Daño:' : 'Damage:'} {r.nivel_dano}</p>}
+                  {!lowBw && r.descripcion && <p className="text-xs text-gray-400 line-clamp-2">{r.descripcion}</p>}
                 </div>
               ))}
             </div>
             {reportes.length > reportesPage.length && (
-              <button onClick={() => setPageR(p => p + 1)} className="w-full mt-3 py-2.5 text-sm text-[#1A1F2E] border border-[#EDEBE8] rounded-xl bg-white hover:bg-gray-50">
-                {t.ver_mas}
+              <button onClick={() => setPageR(p => p + 1)} className="w-full mt-3 py-3 text-sm font-semibold text-[#1A1F2E] border-2 border-[#EDEBE8] rounded-2xl bg-white">
+                {es ? `Ver más (${reportes.length - reportesPage.length} restantes)` : `Show more (${reportes.length - reportesPage.length} remaining)`}
               </button>
             )}
           </div>
         )}
 
-        {/* Puntos de ayuda */}
+        {/* ── Puntos de ayuda ── */}
         {puntosPage.length > 0 && (
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-2">
-              🏥 {es ? 'Puntos de ayuda' : 'Help points'} ({puntos.length})
-            </h2>
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-sm">🏥</span>
+              <h2 className="text-xs font-black uppercase tracking-widest text-gray-500">
+                {es ? 'Centros de ayuda' : 'Help centers'} ({puntos.length})
+              </h2>
+            </div>
             <div className="flex flex-col gap-2">
               {puntosPage.map(p => (
-                <div key={p.id} className="bg-white rounded-xl border border-[#EDEBE8] px-4 py-3">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <span className="font-semibold text-sm text-[#1A1F2E] flex-1 truncate">{p.nombre_lugar}</span>
+                <div key={p.id} className="bg-white rounded-2xl border border-[#EDEBE8] px-4 py-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-bold text-sm text-[#1A1F2E] flex-1 truncate">{p.nombre_lugar}</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${ESTADO_OP_COLOR[p.estado_operativo] || 'bg-gray-100 text-gray-600'}`}>
                       {(() => { const l = ESTADO_OP_LABEL[p.estado_operativo]; return l ? (es ? l.es : l.en) : p.estado_operativo; })()}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">{p.tipo_lugar} · {p.ciudad}, {p.estado_region}</p>
-                  {p.direccion && (
-                    <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1"><MapPin size={10} /> {p.direccion}</p>
-                  )}
+                  {p.direccion && <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin size={10} /> {p.direccion}</p>}
                   {p.personas_actuales != null && (
-                    <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                    <p className="text-xs text-gray-400 flex items-center gap-1">
                       <Users size={10} /> {p.personas_actuales}{p.capacidad_maxima ? `/${p.capacidad_maxima}` : ''} {es ? 'personas' : 'people'}
                     </p>
                   )}
                   {!lowBw && p.servicios_disponibles?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
+                    <div className="flex flex-wrap gap-1">
                       {p.servicios_disponibles.slice(0, 4).map(s => (
-                        <span key={s} className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full">{s}</span>
-                      ))}
-                      {p.servicios_disponibles.length > 4 && (
-                        <span className="text-[10px] text-gray-400">+{p.servicios_disponibles.length - 4}</span>
-                      )}
-                    </div>
-                  )}
-                  {!lowBw && p.necesidades_urgentes?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {p.necesidades_urgentes.slice(0, 3).map(n => (
-                        <span key={n} className="text-[10px] bg-[#FDF1F0] text-[#B83A52] px-1.5 py-0.5 rounded-full border border-[#E8B4B0]">
-                          🆘 {n}
-                        </span>
+                        <span key={s} className="text-[10px] bg-green-50 text-green-700 border border-green-100 px-1.5 py-0.5 rounded-full">{s}</span>
                       ))}
                     </div>
                   )}
                   {p.telefono_publico && (
-                    <a href={`tel:${p.telefono_publico}`} className="flex items-center gap-1 text-xs text-[#1A1F2E] hover:underline mt-1.5">
+                    <a href={`tel:${p.telefono_publico}`} className="flex items-center gap-1 text-xs font-semibold text-[#1A1F2E] hover:underline">
                       <Phone size={10} /> {p.telefono_publico}
                     </a>
                   )}
                   {p.whatsapp && (
-                    <a href={`https://wa.me/${p.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-green-700 hover:underline mt-0.5">
+                    <a href={`https://wa.me/${p.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-green-700 hover:underline">
                       💬 WhatsApp
                     </a>
                   )}
@@ -349,10 +357,28 @@ export default function Consultar() {
               ))}
             </div>
             {puntos.length > puntosPage.length && (
-              <button onClick={() => setPageP(p => p + 1)} className="w-full mt-3 py-2.5 text-sm text-[#1A1F2E] border border-[#EDEBE8] rounded-xl bg-white hover:bg-gray-50">
-                {t.ver_mas}
+              <button onClick={() => setPageP(p => p + 1)} className="w-full mt-3 py-3 text-sm font-semibold text-[#1A1F2E] border-2 border-[#EDEBE8] rounded-2xl bg-white">
+                {es ? `Ver más (${puntos.length - puntosPage.length} restantes)` : `Show more (${puntos.length - puntosPage.length} remaining)`}
               </button>
             )}
+          </div>
+        )}
+
+        {/* Acciones si hay resultados */}
+        {buscado && !buscando && totalResultados > 0 && (
+          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-2">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{es ? '¿No encuentras lo que buscas?' : "Can't find what you're looking for?"}</p>
+            <div className="flex flex-col gap-1.5">
+              <Link to="/buscar-persona" className="text-xs text-[#6C3483] font-semibold underline underline-offset-2">
+                {es ? '→ Registrar nueva persona buscada' : '→ Register a new missing person'}
+              </Link>
+              <Link to="/reportar" className="text-xs text-[#B83A52] font-semibold underline underline-offset-2">
+                {es ? '→ Reportar nueva emergencia en esta zona' : '→ Report new emergency in this area'}
+              </Link>
+              <Link to="/institucional" className="text-xs text-blue-600 font-semibold underline underline-offset-2">
+                {es ? '→ Registrar un centro de apoyo' : '→ Register a support center'}
+              </Link>
+            </div>
           </div>
         )}
       </div>

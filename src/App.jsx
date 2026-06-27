@@ -10,10 +10,10 @@ import { LangProvider } from '@/lib/LangContext';
 import { LowBwProvider } from '@/lib/LowBwContext';
 
 // Pages — all public, no auth required
-import Entrada from './pages/Entrada';
+import Entrada from './pages/Entrada.jsx';
 import Reportar from './pages/Reportar';
-import Consultar from './pages/Consultar';
-import Institucional from './pages/Institucional';
+import Consultar from './pages/Consultar.jsx';
+import Institucional from './pages/Institucional.jsx';
 import BuscarPersona from './pages/BuscarPersona';
 import MiPerfil from './pages/MiPerfil';
 import PortalInstitucional from './pages/PortalInstitucional';
