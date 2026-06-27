@@ -1,17 +1,9 @@
 import { useState } from 'react';
 import { Loader2, Share2 } from 'lucide-react';
 
-const ESTADO_LABEL = {
-  buscando: { es: 'BUSCANDO INFORMACIÓN', en: 'LOOKING FOR INFORMATION', color: '#C0392B' },
-  informacion_recibida: { es: 'INFORMACIÓN RECIBIDA', en: 'INFORMATION RECEIVED', color: '#2471A3' },
-  visto_no_confirmado: { es: 'VISTO SIN CONFIRMAR', en: 'SEEN UNCONFIRMED', color: '#D48C2E' },
-  encontrado_con_vida: { es: 'ENCONTRADO CON VIDA', en: 'FOUND ALIVE', color: '#15803D' },
-  en_hospital_refugio: { es: 'EN HOSPITAL O REFUGIO', en: 'IN HOSPITAL OR SHELTER', color: '#0F766E' },
-  fallecido_reportado: { es: 'FALLECIMIENTO REPORTADO', en: 'DEATH REPORTED', color: '#4B5563' },
-  caso_cerrado: { es: 'CASO CERRADO', en: 'CASE CLOSED', color: '#6B7280' },
-};
+const FOUND_STATES = ['encontrado_con_vida', 'en_hospital_refugio', 'caso_cerrado'];
 
-function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 4) {
+function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 3) {
   const words = String(text || '').split(' ').filter(Boolean);
   let line = '';
   let lines = 0;
@@ -54,127 +46,140 @@ function drawCover(ctx, img, x, y, w, h, radius) {
   ctx.restore();
 }
 
+function canvasToBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    try {
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('No se pudo generar la imagen')), 'image/png');
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 export default function FichaPersonaDescargable({ persona, es }) {
   const [generando, setGenerando] = useState(false);
 
-  const generar = async () => {
-    setGenerando(true);
+  const generar = async (usarFoto = true) => {
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
     canvas.height = 1920;
     const ctx = canvas.getContext('2d');
-    const nombre = persona.nombre_completo || persona.nombre_o_descripcion || (es ? 'Persona reportada' : 'Reported person');
-    const fichaUrl = `https://statusvzla.com/persona?id=${persona.id}`;
-    const estado = ESTADO_LABEL[persona.estado_caso] || ESTADO_LABEL.buscando;
 
-    ctx.fillStyle = '#F4F4F8';
+    const nombre = persona.nombre_completo || persona.nombre_o_descripcion || (es ? 'Persona reportada' : 'Reported person');
+    const esEncontrado = FOUND_STATES.includes(persona.estado_caso) || persona.condicion;
+    const estadoColor = esEncontrado ? '#15803D' : '#C0392B';
+    const estadoTexto = esEncontrado ? (es ? 'ENCONTRADO' : 'FOUND') : (es ? 'DESAPARECIDO' : 'MISSING');
+    const fichaUrl = `https://statusvzla.com/persona?id=${persona.id}`;
+    const lugar = [persona.nombre_lugar, persona.ubicacion_actual, persona.ultima_ubicacion_conocida, persona.ciudad, persona.estado_region].filter(Boolean).join(' · ');
+    const contacto = esEncontrado
+      ? [persona.nombre_lugar, persona.telefono_contacto && `${es ? 'Tel' : 'Phone'}: ${persona.telefono_contacto}`, persona.email_contacto && `Email: ${persona.email_contacto}`].filter(Boolean)
+      : [persona.contacto_nombre, persona.contacto_telefono && `${es ? 'Tel' : 'Phone'}: ${persona.contacto_telefono}`, persona.contacto_whatsapp && `WhatsApp: ${persona.contacto_whatsapp}`, persona.contacto_email && `Email: ${persona.contacto_email}`].filter(Boolean);
+
+    ctx.fillStyle = '#F3F4F6';
     ctx.fillRect(0, 0, 1080, 1920);
     ctx.fillStyle = '#111318';
-    ctx.fillRect(0, 0, 1080, 170);
+    ctx.fillRect(0, 0, 1080, 160);
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 56px Arial';
-    ctx.fillText('STATUS', 68, 100);
+    ctx.font = '900 52px Arial';
+    ctx.fillText('STATUS', 68, 96);
     ctx.fillStyle = '#D48C2E';
-    ctx.fillText('VZLA', 292, 100);
-    ctx.font = '700 24px Arial';
-    ctx.fillText('.com', 430, 100);
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.fillText('VZLA', 284, 96);
     ctx.font = '700 22px Arial';
-    ctx.fillText(es ? 'Ficha para compartir · Formato story 9:16' : 'Share card · 9:16 story format', 68, 138);
+    ctx.fillText('.com', 418, 96);
+    ctx.fillStyle = 'rgba(255,255,255,0.68)';
+    ctx.font = '700 22px Arial';
+    ctx.fillText(es ? 'Tarjeta para redes · comparte para ayudar' : 'Social card · share to help', 68, 132);
 
-    ctx.fillStyle = estado.color;
+    ctx.fillStyle = estadoColor;
     ctx.beginPath();
-    ctx.roundRect(68, 218, 944, 86, 24);
+    ctx.roundRect(68, 200, 944, 118, 30);
     ctx.fill();
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 34px Arial';
-    ctx.fillText(estado[es ? 'es' : 'en'], 98, 272);
+    ctx.font = '900 56px Arial';
+    ctx.fillText(estadoTexto, 98, 276);
 
-    try {
-      const img = await loadImage(persona.foto_url || persona.foto_url_2);
-      drawCover(ctx, img, 68, 342, 944, 560, 36);
-    } catch {
+    if (usarFoto && (persona.foto_url || persona.foto_url_2)) {
+      try {
+        const img = await loadImage(persona.foto_url || persona.foto_url_2);
+        drawCover(ctx, img, 68, 350, 944, 670, 42);
+      } catch {
+        usarFoto = false;
+      }
+    }
+    if (!usarFoto) {
       ctx.fillStyle = '#FFFFFF';
       ctx.beginPath();
-      ctx.roundRect(68, 342, 944, 560, 36);
+      ctx.roundRect(68, 350, 944, 670, 42);
       ctx.fill();
       ctx.fillStyle = '#D1D5DB';
-      ctx.font = '900 170px Arial';
-      ctx.fillText('👤', 430, 650);
+      ctx.font = '900 190px Arial';
+      ctx.fillText('👤', 415, 745);
     }
 
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
-    ctx.roundRect(68, 848, 944, 238, 36);
+    ctx.roundRect(68, 960, 944, 280, 38);
     ctx.fill();
     ctx.fillStyle = '#111827';
     ctx.font = '900 58px Arial';
-    let y = wrapText(ctx, nombre, 108, 925, 864, 66, 2);
+    let y = wrapText(ctx, nombre, 108, 1040, 864, 66, 2);
     if (persona.apodo) {
       ctx.fillStyle = '#6B7280';
       ctx.font = '700 30px Arial';
       y = wrapText(ctx, `“${persona.apodo}”`, 108, y + 4, 864, 38, 1);
     }
-    ctx.fillStyle = '#374151';
-    ctx.font = '700 28px Arial';
-    const chips = [persona.edad_aprox && `${persona.edad_aprox} ${es ? 'años' : 'yrs'}`, persona.sexo].filter(Boolean).join(' · ');
-    if (chips) wrapText(ctx, chips, 108, y + 4, 864, 36, 1);
+    const datosBasicos = [persona.edad_aprox && `${persona.edad_aprox} ${es ? 'años' : 'yrs'}`, persona.sexo].filter(Boolean).join(' · ');
+    if (datosBasicos) {
+      ctx.fillStyle = '#374151';
+      ctx.font = '800 29px Arial';
+      wrapText(ctx, datosBasicos, 108, y + 8, 864, 38, 1);
+    }
 
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
-    ctx.roundRect(68, 1124, 944, 450, 34);
+    ctx.roundRect(68, 1280, 944, 300, 34);
     ctx.fill();
+    ctx.fillStyle = estadoColor;
+    ctx.font = '900 31px Arial';
+    ctx.fillText(esEncontrado ? (es ? 'LUGAR Y CONTACTO' : 'PLACE & CONTACT') : (es ? 'QUIÉN LO BUSCA' : 'WHO IS SEARCHING'), 108, 1340);
     ctx.fillStyle = '#111827';
-    ctx.font = '900 30px Arial';
-    ctx.fillText(es ? 'INFORMACIÓN DISPONIBLE' : 'AVAILABLE INFORMATION', 108, 1180);
-    ctx.font = '26px Arial';
+    ctx.font = '800 34px Arial';
+    let contactoY = 1400;
+    if (contacto.length) {
+      contacto.slice(0, 4).forEach(linea => {
+        contactoY = wrapText(ctx, linea, 108, contactoY, 864, 42, 2) + 6;
+      });
+    } else {
+      contactoY = wrapText(ctx, es ? 'Ver detalles en StatusVzla.com' : 'See details at StatusVzla.com', 108, contactoY, 864, 42, 2);
+    }
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.roundRect(68, 1615, 944, 138, 30);
+    ctx.fill();
     ctx.fillStyle = '#374151';
-    let infoY = 1235;
-    const datos = [
-      persona.ultima_ubicacion_conocida && `${es ? 'Última ubicación' : 'Last location'}: ${persona.ultima_ubicacion_conocida}`,
-      (persona.ciudad || persona.estado_region) && `${es ? 'Zona' : 'Area'}: ${[persona.ciudad, persona.estado_region].filter(Boolean).join(', ')}`,
-      persona.fecha_ultima_vez && `${es ? 'Vista por última vez' : 'Last seen'}: ${persona.fecha_ultima_vez}${persona.hora_ultima_vez ? ` · ${persona.hora_ultima_vez}` : ''}`,
-      persona.descripcion_fisica && `${es ? 'Descripción' : 'Description'}: ${persona.descripcion_fisica}`,
-      persona.notas_publicas && `${es ? 'Notas' : 'Notes'}: ${persona.notas_publicas}`,
-      persona.contacto_nombre && `${es ? 'Contacto' : 'Contact'}: ${persona.contacto_nombre}`,
-      persona.contacto_telefono && `${es ? 'Teléfono' : 'Phone'}: ${persona.contacto_telefono}`,
-      persona.contacto_email && `${es ? 'Email' : 'Email'}: ${persona.contacto_email}`,
-      persona.contacto_whatsapp && `WhatsApp: ${persona.contacto_whatsapp}`,
-    ].filter(Boolean);
-    datos.slice(0, 9).forEach((dato) => {
-      if (infoY < 1540) infoY = wrapText(ctx, dato, 108, infoY, 864, 34, 2) + 8;
-    });
+    ctx.font = '26px Arial';
+    wrapText(ctx, lugar ? `${es ? 'Ubicación' : 'Location'}: ${lugar}` : (es ? 'Ubicación pendiente de confirmar' : 'Location pending confirmation'), 108, 1670, 864, 34, 2);
 
     ctx.fillStyle = '#FDF1F0';
     ctx.beginPath();
-    ctx.roundRect(68, 1612, 944, 116, 28);
+    ctx.roundRect(68, 1780, 944, 92, 24);
     ctx.fill();
     ctx.fillStyle = '#7A2A22';
-    ctx.font = '800 25px Arial';
-    wrapText(ctx, es ? 'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni intermediarios anónimos.' : 'Never send money in exchange for information. This platform does not authorize payments or anonymous intermediaries.', 108, 1662, 864, 34, 2);
+    ctx.font = '800 23px Arial';
+    wrapText(ctx, es ? 'Nunca envíes dinero a cambio de información. Verifica antes de compartir.' : 'Never send money in exchange for information. Verify before sharing.', 108, 1822, 864, 30, 2);
 
-    ctx.fillStyle = '#111318';
-    ctx.beginPath();
-    ctx.roundRect(68, 1762, 944, 92, 28);
-    ctx.fill();
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 28px Arial';
-    ctx.fillText(es ? 'VER ACTUALIZACIONES:' : 'VIEW UPDATES:', 108, 1818);
-    ctx.fillStyle = '#D48C2E';
-    ctx.font = '700 24px Arial';
-    ctx.fillText(fichaUrl, 398, 1818);
-
-    return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => blob ? resolve({ blob, nombre }) : reject(new Error('No se pudo generar la imagen')), 'image/png');
-    });
+    return canvasToBlob(canvas);
   };
 
   const compartirImagen = async () => {
     try {
-      const { blob, nombre } = await generar();
+      setGenerando(true);
+      const blob = await generar(true).catch(() => generar(false));
+      const nombre = persona.nombre_completo || persona.nombre_o_descripcion || 'persona';
       const file = new File([blob], `statusvzla-${nombre.toLowerCase().replace(/[^a-z0-9]+/gi, '-')}-story.png`, { type: 'image/png' });
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: `StatusVzla · ${nombre}`, text: es ? 'Comparte esta ficha para ayudar.' : 'Share this record to help.' });
+        await navigator.share({ files: [file], title: `StatusVzla · ${nombre}`, text: es ? 'Comparte esta tarjeta para ayudar.' : 'Share this card to help.' });
       } else {
         const link = document.createElement('a');
         link.download = file.name;

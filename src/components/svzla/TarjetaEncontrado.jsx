@@ -100,15 +100,15 @@ export default function TarjetaEncontrado({ persona, onClose }) {
     ctx.fillText('.com', 430, 105);
     ctx.fillStyle = 'rgba(255,255,255,0.68)';
     ctx.font = '700 23px Arial';
-    ctx.fillText(es ? 'Persona encontrada · Tarjeta 9:16 para story' : 'Found person · 9:16 story card', 68, 142);
+    ctx.fillText(es ? 'Tarjeta para redes · comparte para ayudar' : 'Social card · share to help', 68, 142);
 
-    ctx.fillStyle = cond.bg;
+    ctx.fillStyle = '#15803D';
     ctx.beginPath();
-    ctx.roundRect(68, 230, 944, 92, 26);
+    ctx.roundRect(68, 230, 944, 118, 30);
     ctx.fill();
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 34px Arial';
-    ctx.fillText(es ? cond.es : cond.en, 98, 288);
+    ctx.font = '900 56px Arial';
+    ctx.fillText(es ? 'ENCONTRADO' : 'FOUND', 98, 305);
 
     if (usarFoto && (persona.foto_url || persona.foto_url_2)) {
       try {
@@ -144,18 +144,19 @@ export default function TarjetaEncontrado({ persona, onClose }) {
     ctx.beginPath();
     ctx.roundRect(68, 1210, 944, 360, 34);
     ctx.fill();
-    ctx.fillStyle = '#111827';
-    ctx.font = '900 30px Arial';
-    ctx.fillText(es ? 'INFORMACIÓN DISPONIBLE' : 'AVAILABLE INFORMATION', 108, 1268);
-    ctx.font = '26px Arial';
+    ctx.fillStyle = '#15803D';
+    ctx.font = '900 31px Arial';
+    ctx.fillText(es ? 'LUGAR Y CONTACTO' : 'PLACE & CONTACT', 108, 1268);
+    ctx.font = '27px Arial';
     ctx.fillStyle = '#374151';
     let infoY = 1325;
     [
-      lugar && `${es ? 'Ubicación' : 'Location'}: ${lugar}`,
+      lugar && `${es ? 'Lugar' : 'Place'}: ${lugar}`,
+      persona.telefono_contacto && `${es ? 'Teléfono' : 'Phone'}: ${persona.telefono_contacto}`,
+      persona.email_contacto && `Email: ${persona.email_contacto}`,
+      `${es ? 'Condición' : 'Condition'}: ${es ? cond.es : cond.en}`,
       persona.descripcion_fisica && `${es ? 'Descripción' : 'Description'}: ${persona.descripcion_fisica}`,
       persona.notas_publicas && `${es ? 'Notas' : 'Notes'}: ${persona.notas_publicas}`,
-      persona.telefono_contacto && `${es ? 'Teléfono del lugar' : 'Place phone'}: ${persona.telefono_contacto}`,
-      persona.email_contacto && `${es ? 'Email del lugar' : 'Place email'}: ${persona.email_contacto}`,
       fecha && `${es ? 'Actualizado' : 'Updated'}: ${fecha}`,
     ].filter(Boolean).forEach((dato) => {
       if (infoY < 1545) infoY = wrapText(ctx, dato, 108, infoY, 864, 34, 2) + 8;
