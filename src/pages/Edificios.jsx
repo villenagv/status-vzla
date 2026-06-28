@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X, Eye } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X, Eye, Bell } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -137,6 +137,36 @@ export default function Edificios() {
   const [subPara, setSubPara] = useState(null);
   const [subEnviando, setSubEnviando] = useState(false);
   const [subOk, setSubOk] = useState(false);
+
+  // ── POP-UP AVÍSAME ──
+  const [avisameEdificio, setAvisameEdificio] = useState(null); // { id, nombre, direccion, ciudad }
+  const [avisameEmail, setAvisameEmail] = useState('');
+  const [avisameNombre, setAvisameNombre] = useState('');
+  const [avisameEnviando, setAvisameEnviando] = useState(false);
+  const [avisameOk, setAvisameOk] = useState(false);
+
+  const handleAvisame = async () => {
+    if (!avisameEmail.trim() || !avisameEdificio) return;
+    setAvisameEnviando(true);
+    try {
+      await base44.functions.invoke('registrarSuscripcionEdificio', {
+        edificio_id: avisameEdificio.id,
+        email: avisameEmail.trim(),
+        nombre: avisameNombre.trim(),
+        lang,
+      });
+      setAvisameOk(true);
+    } catch {}
+    setAvisameEnviando(false);
+  };
+
+  const cerrarAvisame = () => {
+    setAvisameEdificio(null);
+    setAvisameEmail('');
+    setAvisameNombre('');
+    setAvisameOk(false);
+    setAvisameEnviando(false);
+  };
 
   const suscribirse = async (reporteId) => {
     if (!subEmail.trim()) return;
@@ -536,7 +566,7 @@ export default function Edificios() {
                             <span className="text-[9px] text-teal-700 font-semibold">🛡️ {t('Verificado', 'Verified', 'Verificado')}</span>
                           )}
 
-                          {/* Fila inferior: tiempo + contactos + notificarme */}
+                          {/* Fila inferior: tiempo + contactos + botones */}
                           <div className="flex items-center justify-between mt-1 pt-1 border-t border-gray-100">
                             <span className="text-[9px] text-gray-400">
                               🕐 {tiempoRelativo(r.updated_date || r.created_date)}
@@ -547,12 +577,20 @@ export default function Edificios() {
                                   📞 {r.contactos_acceso.length}
                                 </span>
                               )}
+                              {/* Botón Avísame */}
+                              <button
+                                onClick={e => { e.preventDefault(); e.stopPropagation(); setAvisameEdificio({ id: r.id, nombre: r.nombre_lugar || r.tipo_estructura?.replace(/_/g, ' ') || '—', direccion: r.direccion, ciudad: r.ciudad }); }}
+                                className="text-[9px] font-bold text-green-700 bg-green-50 border border-green-300 px-1.5 py-0.5 rounded-full hover:bg-green-100 flex items-center gap-0.5 cursor-pointer"
+                              >
+                                🔔 {t('Avísame', 'Notify me', 'Me avise')}
+                              </button>
+                              {/* Botón Actualizar */}
                               <Link
                                 to={`/edificio?id=${r.id}`}
                                 onClick={e => e.stopPropagation()}
                                 className="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full no-underline hover:bg-blue-100 flex items-center gap-0.5"
                               >
-                                🔔 {t('Avisar', 'Alert', 'Avisar')}
+                                ✏️ {t('Actualizar', 'Update', 'Atualizar')}
                               </Link>
                             </div>
                           </div>
@@ -1317,6 +1355,98 @@ export default function Edificios() {
         )}
       </div>
       <Footer />
+
+      {/* ── POP-UP AVÍSAME ── */}
+      {avisameEdificio && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          style={{ background: 'rgba(0,0,0,0.55)' }}
+          onClick={cerrarAvisame}
+        >
+          <div
+            className="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {avisameOk ? (
+              <div className="text-center py-4 space-y-3">
+                <p className="text-4xl">✅</p>
+                <p className="text-base font-black text-gray-900">
+                  {t('¡Listo! Te avisaremos por email.', "Done! We'll notify you by email.", 'Pronto! Avisaremos por email.')}
+                </p>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  {t(
+                    'Recibirás un correo cada vez que haya una actualización de este edificio: cambio de estado, nuevas fotos o reportes de personas.',
+                    'You will receive an email every time there is an update for this building: status change, new photos or person reports.',
+                    'Você receberá um e-mail cada vez que houver uma atualização deste edifício: mudança de status, novas fotos ou relatórios de pessoas.'
+                  )}
+                </p>
+                <button onClick={cerrarAvisame} className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl cursor-pointer mt-2">
+                  {t('Cerrar', 'Close', 'Fechar')}
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Bell size={18} className="text-green-600 flex-shrink-0" />
+                    <h2 className="text-base font-black text-gray-900">{t('Recibir actualizaciones', 'Get updates', 'Receber atualizações')}</h2>
+                  </div>
+                  <button onClick={cerrarAvisame} className="text-gray-400 hover:text-gray-600 cursor-pointer text-lg leading-none">✕</button>
+                </div>
+
+                {/* Edificio */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 mb-4">
+                  <p className="text-xs font-bold text-gray-800 truncate">🏗️ {avisameEdificio.nombre}</p>
+                  {(avisameEdificio.direccion || avisameEdificio.ciudad) && (
+                    <p className="text-[11px] text-gray-500 truncate mt-0.5">📍 {[avisameEdificio.direccion, avisameEdificio.ciudad].filter(Boolean).join(' · ')}</p>
+                  )}
+                </div>
+
+                {/* Descripción del valor */}
+                <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                  {t(
+                    'Ingresa tu email y te avisaremos cada vez que haya una actualización: cambio de estado, nuevas fotos, personas reportadas o riesgos nuevos.',
+                    'Enter your email and we will notify you every time there is an update: status change, new photos, reported people, or new risks.',
+                    'Digite seu e-mail e avisaremos cada vez que houver uma atualização: mudança de status, novas fotos, pessoas relatadas ou novos riscos.'
+                  )}
+                </p>
+
+                {/* Formulario */}
+                <div className="space-y-2 mb-4">
+                  <input
+                    value={avisameNombre}
+                    onChange={e => setAvisameNombre(e.target.value)}
+                    placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-green-500 placeholder-gray-400"
+                  />
+                  <input
+                    value={avisameEmail}
+                    onChange={e => setAvisameEmail(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAvisame()}
+                    type="email"
+                    placeholder={t('Tu email *', 'Your email *', 'Seu email *')}
+                    className="w-full border-2 border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-green-500 placeholder-gray-400"
+                  />
+                </div>
+
+                <button
+                  onClick={handleAvisame}
+                  disabled={avisameEnviando || !avisameEmail.trim()}
+                  className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3.5 rounded-xl text-sm disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2 transition-colors"
+                >
+                  {avisameEnviando ? <Loader2 size={15} className="animate-spin" /> : <Bell size={15} />}
+                  {avisameEnviando ? t('Registrando...', 'Registering...', 'Registrando...') : t('Avísame por email', 'Notify me by email', 'Me avise por email')}
+                </button>
+
+                <p className="text-[10px] text-gray-400 text-center mt-3 leading-relaxed">
+                  🔒 {t('Tu email no se muestra públicamente. Sin spam. Puedes cancelar en cualquier momento.', 'Your email is not shown publicly. No spam. You can unsubscribe anytime.', 'Seu e-mail não é exibido publicamente. Sem spam. Você pode cancelar a qualquer momento.')}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
