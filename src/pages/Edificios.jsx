@@ -7,6 +7,7 @@ import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import OfflineBanner from '@/components/svzla/OfflineBanner';
 import LazyImage from '@/components/svzla/LazyImage';
+import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useDraft } from '@/lib/useDraft';
 import { useOffline } from '@/lib/useOffline';
 
@@ -586,24 +587,15 @@ export default function Edificios() {
                       <Link key={r.id} to={`/edificio?id=${r.id}`}
                         className="bg-white rounded-xl overflow-hidden no-underline hover:shadow-md transition-shadow flex flex-col"
                         style={{ border: `2px solid ${esCrit ? c.cardBorder : '#E5E7EB'}` }}>
-                        {/* Foto o placeholder de color */}
-                        {r.foto_urls?.length > 0 ? (
-                          <div className="relative">
-                            <LazyImage src={r.foto_urls[0]} alt="" style={{ height: 112 }} />
-                            {r.foto_urls.length > 1 && (
-                              <span className="absolute bottom-1 right-1 text-[9px] bg-black/60 text-white px-1.5 py-0.5 rounded-full">
-                                +{r.foto_urls.length - 1}📷
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="w-full h-28 flex flex-col items-center justify-center gap-1" style={{ background: c.bg }}>
-                            <span className="text-3xl">{c.icon}</span>
-                            <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: c.color }}>
-                              {t(c.label.es, c.label.en, c.label.es)}
-                            </span>
-                          </div>
-                        )}
+                        {/* Foto o placeholder visual por tipo de estructura */}
+                        <EdificioImagen
+                          fotoUrls={r.foto_urls}
+                          tipoEstructura={r.tipo_estructura}
+                          nivelDano={r.nivel_dano}
+                          height={112}
+                          lang={lang}
+                          sinFotoNudge
+                        />
 
                         <div className="p-3 flex-1 flex flex-col gap-1">
                           {/* Badge NO ENTRAR */}

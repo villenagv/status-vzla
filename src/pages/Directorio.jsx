@@ -6,6 +6,7 @@ import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import FichaAccionesModal from '@/components/svzla/FichaAccionesModal';
+import EdificioImagen from '@/components/svzla/EdificioImagen';
 
 const PAGE_SIZE = 12;
 
@@ -401,61 +402,93 @@ export default function Directorio() {
             const esCritico = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano) || e.hayAtrapados;
             const abrir = (ev) => { ev.stopPropagation(); setFichaSeleccionada({ item: e, tipo: 'edificio' }); };
             const irFicha = () => { window.location.href = `/edificio?id=${e.id}`; };
+            const fotos = e.foto_urls || [];
 
+            // ── Vista lista (compact) con miniatura a la izquierda ──
             if (compact) return (
-              <div className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-500' : ''}`}>
-                <div onClick={irFicha} className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 cursor-pointer ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
-                  {e.hayAtrapados ? '🆘' : esCritico ? '🚫' : '🏗️'}
+              <div className={`flex items-stretch gap-0 hover:bg-gray-50 active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-500' : ''}`}>
+                {/* Miniatura */}
+                <div onClick={irFicha} className="cursor-pointer flex-shrink-0" style={{ width: 70 }}>
+                  <EdificioImagen
+                    fotoUrls={fotos}
+                    tipoEstructura={e.tipo_estructura}
+                    nivelDano={e.nivel_dano}
+                    height={70}
+                    lang={lang}
+                  />
                 </div>
-                <div onClick={irFicha} className="flex-1 min-w-0 cursor-pointer">
-                  <p className="font-bold text-sm text-[#1A1F2E] truncate">{e._nombre}</p>
-                  <p className="text-xs text-gray-400 truncate flex items-center gap-1">
-                    <MapPin size={9} />{[e.direccion, e.ciudad].filter(Boolean).join(' · ')}
+                {/* Info */}
+                <div onClick={irFicha} className="flex-1 min-w-0 cursor-pointer px-3 py-2.5 flex flex-col justify-center gap-0.5">
+                  <p className="font-bold text-sm text-[#1A1F2E] truncate leading-tight">{e._nombre}</p>
+                  <p className="text-[10px] text-gray-400 truncate flex items-center gap-1">
+                    <MapPin size={8} />{[e.direccion, e.ciudad].filter(Boolean).join(' · ')}
                   </p>
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${dano.cls}`}>{es ? dano.es : dano.en}</span>
+                    {e.hayAtrapados && <span className="text-[9px] font-black bg-red-600 text-white px-1.5 py-0.5 rounded-full">🆘</span>}
+                    {e.riesgo_gas && <span className="text-[9px] bg-orange-50 text-orange-700 border border-orange-200 px-1 py-0.5 rounded-full">💨</span>}
+                    {e.riesgo_electrico && <span className="text-[9px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1 py-0.5 rounded-full">⚡</span>}
+                    {e.riesgo_incendio && <span className="text-[9px] bg-red-50 text-red-700 border border-red-200 px-1 py-0.5 rounded-full">🔥</span>}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${dano.cls}`}>{es ? dano.es : dano.en}</span>
+                {/* Acciones */}
+                <div className="flex flex-col items-end justify-center gap-1.5 pr-3 flex-shrink-0">
                   <button onClick={abrir}
-                    className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1 rounded-lg cursor-pointer hover:bg-blue-100 whitespace-nowrap">
-                    🔔 {es ? 'Avisar' : 'Notify'}
+                    className="text-[9px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1 rounded-lg cursor-pointer hover:bg-blue-100 whitespace-nowrap">
+                    🔔
                   </button>
-                  <span onClick={irFicha} className="text-gray-300 text-xs cursor-pointer">›</span>
+                  <span onClick={irFicha} className="text-gray-300 text-base cursor-pointer leading-none">›</span>
                 </div>
               </div>
             );
 
+            // ── Vista grid con imagen grande arriba ──
             return (
-              <div className={`bg-white rounded-2xl border-2 p-4 space-y-2 hover:shadow-md transition-all ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
-                {e.hayAtrapados && <div className="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">🆘 {es ? 'PERSONAS ATRAPADAS' : 'TRAPPED PEOPLE'}</div>}
-                {esCritico && !e.hayAtrapados && <div className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-bold px-3 py-1.5 rounded-lg">🚫 {es ? 'NO ENTRAR — Estructura comprometida' : 'DO NOT ENTER — Compromised structure'}</div>}
-                <div onClick={irFicha} className="cursor-pointer space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-black text-sm text-[#1A1F2E] leading-tight">{e._nombre}</p>
-                      {e.tipo_estructura && <p className="text-[11px] text-gray-400 mt-0.5">{e.tipo_estructura}</p>}
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${dano.cls}`}>{es ? dano.es : dano.en}</span>
-                  </div>
-                  {(e.direccion || e.ciudad) && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                      <MapPin size={10} /> {[e.direccion, e.ciudad, e.estado_region].filter(Boolean).join(' · ')}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap gap-1.5">
-                    {e.riesgo_gas && <span className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
-                    {e.riesgo_electrico && <span className="text-[10px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1.5 py-0.5 rounded-full">⚡ Eléctrico</span>}
-                    {e.riesgo_incendio && <span className="text-[10px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded-full">🔥 Incendio</span>}
-                  </div>
+              <div className={`bg-white rounded-2xl border-2 overflow-hidden hover:shadow-md transition-all ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
+                {/* Imagen / placeholder */}
+                <div onClick={irFicha} className="cursor-pointer">
+                  <EdificioImagen
+                    fotoUrls={fotos}
+                    tipoEstructura={e.tipo_estructura}
+                    nivelDano={e.nivel_dano}
+                    height={140}
+                    lang={lang}
+                    sinFotoNudge
+                  />
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-gray-100 gap-2">
-                  <button onClick={abrir}
-                    className="flex items-center gap-1 text-[11px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-blue-100">
-                    🔔 {es ? 'Avisar cambios' : 'Notify me'}
-                  </button>
-                  <button onClick={irFicha}
-                    className="flex items-center gap-1 text-[11px] font-semibold bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-gray-100">
-                    {es ? 'Ver ficha →' : 'View record →'}
-                  </button>
+
+                <div className="p-3 space-y-2">
+                  {e.hayAtrapados && <div className="bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-lg">🆘 {es ? 'PERSONAS ATRAPADAS' : 'TRAPPED PEOPLE'}</div>}
+                  {esCritico && !e.hayAtrapados && <div className="bg-red-50 border border-red-200 text-red-700 text-[10px] font-bold px-2 py-1 rounded-lg">🚫 {es ? 'NO ENTRAR' : 'DO NOT ENTER'}</div>}
+
+                  <div onClick={irFicha} className="cursor-pointer space-y-1">
+                    <div className="flex items-start justify-between gap-1">
+                      <p className="font-black text-sm text-[#1A1F2E] leading-tight flex-1 min-w-0">{e._nombre}</p>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border flex-shrink-0 ${dano.cls}`}>{es ? dano.es : dano.en}</span>
+                    </div>
+                    {e.tipo_estructura && <p className="text-[10px] text-gray-400 capitalize">{e.tipo_estructura.replace(/_/g, ' ')}</p>}
+                    {(e.direccion || e.ciudad) && (
+                      <p className="text-[10px] text-gray-500 flex items-center gap-1">
+                        <MapPin size={8} /> {[e.direccion, e.ciudad].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-1">
+                      {e.riesgo_gas && <span className="text-[9px] bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
+                      {e.riesgo_electrico && <span className="text-[9px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1.5 py-0.5 rounded-full">⚡</span>}
+                      {e.riesgo_incendio && <span className="text-[9px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded-full">🔥</span>}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-100 gap-1">
+                    <button onClick={abrir}
+                      className="flex items-center gap-1 text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1.5 rounded-xl cursor-pointer hover:bg-blue-100">
+                      🔔 {es ? 'Avisar' : 'Notify'}
+                    </button>
+                    <button onClick={irFicha}
+                      className="flex items-center gap-1 text-[10px] font-semibold bg-gray-50 border border-gray-200 text-gray-700 px-2 py-1.5 rounded-xl cursor-pointer hover:bg-gray-100">
+                      {es ? 'Ver →' : 'View →'}
+                    </button>
+                  </div>
                 </div>
               </div>
             );
