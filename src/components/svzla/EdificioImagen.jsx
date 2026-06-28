@@ -37,8 +37,10 @@ const DANO_OVERLAY = {
  *  - height: number (px, default 120)
  *  - lang: 'es'|'en'|'pt'
  *  - sinFotoNudge: bool — muestra aviso de "subir fachada" si true y no hay fotos
+ *  - mostrarMiniaturasExtra: bool — muestra miniaturas de fotos 2+ debajo (solo en vista grid)
+ *  - fotoUrlsExtra: string[] — fotos adicionales para miniaturas (si se pasa, se usa en vez de fotoUrls[1:])
  */
-export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDano, height = 120, lang = 'es', sinFotoNudge = false }) {
+export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDano, height = 120, lang = 'es', sinFotoNudge = false, mostrarMiniaturasExtra = false, fotoUrlsExtra }) {
   const { lowBw } = useLowBw();
   const [idx, setIdx] = useState(0);
   const [cargada, setCargada] = useState(false);
@@ -90,77 +92,92 @@ export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDan
   const prev = (ev) => { ev.stopPropagation(); setIdx(i => Math.max(0, i - 1)); setError(false); setCargada(false); };
   const next = (ev) => { ev.stopPropagation(); setIdx(i => Math.min(fotos.length - 1, i + 1)); setError(false); setCargada(false); };
 
+  const fotosExtra = fotoUrlsExtra || fotos.slice(1);
+
   return (
-    <div style={{ height, position: 'relative', overflow: 'hidden', flexShrink: 0, background: visual.bg }} className="w-full">
-      {/* Imagen */}
-      {!error ? (
-        <img
-          src={fotos[idx]}
-          alt=""
-          onLoad={() => setCargada(true)}
-          onError={() => setError(true)}
-          style={{
-            width: '100%', height: '100%', objectFit: 'cover',
-            opacity: cargada ? 1 : 0, transition: 'opacity 200ms',
-          }}
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <span style={{ fontSize: 28 }}>{visual.icon}</span>
+    <>
+      <div style={{ height, position: 'relative', overflow: 'hidden', flexShrink: 0, background: visual.bg }} className="w-full">
+        {/* Imagen */}
+        {!error ? (
+          <img
+            src={fotos[idx]}
+            alt=""
+            onLoad={() => setCargada(true)}
+            onError={() => setError(true)}
+            style={{
+              width: '100%', height: '100%', objectFit: 'cover',
+              opacity: cargada ? 1 : 0, transition: 'opacity 200ms',
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span style={{ fontSize: 28 }}>{visual.icon}</span>
+          </div>
+        )}
+
+        {/* Skeleton mientras carga */}
+        {!cargada && !error && (
+          <div style={{ position: 'absolute', inset: 0, background: visual.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: 28, opacity: 0.4 }}>{visual.icon}</span>
+          </div>
+        )}
+
+        {/* Overlay nivel daño */}
+        {overlay && (
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0,
+            background: overlay.bg, padding: '3px 8px',
+          }}>
+            <span style={{ fontSize: 9, fontWeight: 800, color: '#fff', letterSpacing: '0.04em' }}>
+              {es ? overlay.text : overlay.en}
+            </span>
+          </div>
+        )}
+
+        {/* Contador de fotos */}
+        {fotos.length > 1 && (
+          <div style={{
+            position: 'absolute', top: 5, right: 5,
+            background: 'rgba(0,0,0,0.55)', borderRadius: 10,
+            padding: '2px 6px', display: 'flex', alignItems: 'center', gap: 4,
+          }}>
+            <span style={{ fontSize: 9, color: '#fff', fontWeight: 700 }}>📷 {idx + 1}/{fotos.length}</span>
+          </div>
+        )}
+
+        {/* Botones prev/next — solo si hay más de 1 foto */}
+        {fotos.length > 1 && (
+          <>
+            {idx > 0 && (
+              <button onClick={prev} style={{
+                position: 'absolute', left: 4, top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(0,0,0,0.50)', border: 'none', borderRadius: '50%',
+                width: 22, height: 22, color: '#fff', fontSize: 11, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>‹</button>
+            )}
+            {idx < fotos.length - 1 && (
+              <button onClick={next} style={{
+                position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(0,0,0,0.50)', border: 'none', borderRadius: '50%',
+                width: 22, height: 22, color: '#fff', fontSize: 11, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>›</button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Miniaturas extra debajo de la foto principal */}
+      {mostrarMiniaturasExtra && fotosExtra.length > 0 && (
+        <div className="flex gap-1.5 p-2 bg-gray-50 border-t border-gray-100 overflow-x-auto">
+          {fotosExtra.map((url, i) => (
+            <div key={i} className="w-12 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-200">
+              <img src={url} alt="" className="w-full h-full object-cover" />
+            </div>
+          ))}
         </div>
       )}
-
-      {/* Skeleton mientras carga */}
-      {!cargada && !error && (
-        <div style={{ position: 'absolute', inset: 0, background: visual.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 28, opacity: 0.4 }}>{visual.icon}</span>
-        </div>
-      )}
-
-      {/* Overlay nivel daño */}
-      {overlay && (
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          background: overlay.bg, padding: '3px 8px',
-        }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: '#fff', letterSpacing: '0.04em' }}>
-            {es ? overlay.text : overlay.en}
-          </span>
-        </div>
-      )}
-
-      {/* Contador de fotos */}
-      {fotos.length > 1 && (
-        <div style={{
-          position: 'absolute', top: 5, right: 5,
-          background: 'rgba(0,0,0,0.55)', borderRadius: 10,
-          padding: '2px 6px', display: 'flex', alignItems: 'center', gap: 4,
-        }}>
-          <span style={{ fontSize: 9, color: '#fff', fontWeight: 700 }}>📷 {idx + 1}/{fotos.length}</span>
-        </div>
-      )}
-
-      {/* Botones prev/next — solo si hay más de 1 foto */}
-      {fotos.length > 1 && (
-        <>
-          {idx > 0 && (
-            <button onClick={prev} style={{
-              position: 'absolute', left: 4, top: '50%', transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.50)', border: 'none', borderRadius: '50%',
-              width: 22, height: 22, color: '#fff', fontSize: 11, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>‹</button>
-          )}
-          {idx < fotos.length - 1 && (
-            <button onClick={next} style={{
-              position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.50)', border: 'none', borderRadius: '50%',
-              width: 22, height: 22, color: '#fff', fontSize: 11, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>›</button>
-          )}
-        </>
-      )}
-    </div>
+    </>
   );
 }

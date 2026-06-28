@@ -451,9 +451,10 @@ export default function Directorio() {
                     fotoUrls={fotos}
                     tipoEstructura={e.tipo_estructura}
                     nivelDano={e.nivel_dano}
-                    height={140}
+                    height={200}
                     lang={lang}
                     sinFotoNudge
+                    mostrarMiniaturasExtra
                   />
                 </div>
 
