@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLowBw } from '@/lib/LowBwContext';
+import ImagenProxy from '@/components/svzla/ImagenProxy';
 
 // Iconos y colores por tipo de estructura cuando no hay foto
 const TIPO_VISUAL = {
@@ -99,7 +100,7 @@ export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDan
       <div style={{ height, position: 'relative', overflow: 'hidden', flexShrink: 0, background: visual.bg }} className="w-full">
         {/* Imagen */}
         {!error ? (
-          <img
+          <ImagenProxy
             src={fotos[idx]}
             alt=""
             onLoad={() => setCargada(true)}
@@ -173,7 +174,7 @@ export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDan
         <div className="flex gap-1.5 p-2 bg-gray-50 border-t border-gray-100 overflow-x-auto">
           {fotosExtra.map((url, i) => (
             <div key={i} className="w-12 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-200">
-              <img src={url} alt="" className="w-full h-full object-cover" />
+              <ImagenProxy src={url} alt="" className="w-full h-full object-cover" />
             </div>
           ))}
         </div>

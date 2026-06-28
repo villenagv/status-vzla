@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import ImagenProxy from '@/components/svzla/ImagenProxy';
 
 export default function GaleriaFotos({ urls }) {
   const [abierta, setAbierta] = useState(false);
@@ -16,7 +17,7 @@ export default function GaleriaFotos({ urls }) {
         {urls.slice(0, 3).map((url, i) => (
           <button key={i} onClick={(e) => { e.stopPropagation(); abrir(i); }}
             className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 cursor-pointer hover:opacity-80 p-0">
-            <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+            <ImagenProxy src={url} alt="" className="w-full h-full object-cover" />
           </button>
         ))}
         {urls.length > 3 && (
@@ -47,7 +48,7 @@ export default function GaleriaFotos({ urls }) {
             </>
           )}
           <div className="max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <img src={urls[idx]} alt="" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
+            <ImagenProxy src={urls[idx]} alt="" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
           </div>
           {urls.length > 1 && (
             <p className="absolute bottom-6 text-white/60 text-xs font-medium">{idx + 1} / {urls.length}</p>
