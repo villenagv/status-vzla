@@ -1412,7 +1412,36 @@ export default function Edificios() {
                   )}
                 </p>
 
-                {/* Formulario */}
+                {/* Opciones: cuenta o email directo */}
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <Link
+                    to={`/register?next=${encodeURIComponent(window.location.pathname + window.location.search)}`}
+                    onClick={cerrarAvisame}
+                    className="flex flex-col items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-2 rounded-xl text-xs text-center no-underline transition-colors"
+                  >
+                    <span className="text-lg">👤</span>
+                    {t('Crear cuenta', 'Create account', 'Criar conta')}
+                    <span className="font-normal text-blue-200 text-[10px] leading-tight">{t('Sigue múltiples edificios', 'Follow multiple buildings', 'Siga vários edifícios')}</span>
+                  </Link>
+                  <Link
+                    to={`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`}
+                    onClick={cerrarAvisame}
+                    className="flex flex-col items-center gap-1 bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-2 rounded-xl text-xs text-center no-underline transition-colors"
+                  >
+                    <span className="text-lg">🔑</span>
+                    {t('Ya tengo cuenta', 'Sign in', 'Já tenho conta')}
+                    <span className="font-normal text-gray-400 text-[10px] leading-tight">{t('Iniciar sesión', 'Log in', 'Entrar')}  </span>
+                  </Link>
+                </div>
+
+                {/* Separador */}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-[11px] text-gray-400 font-medium">{t('o sin cuenta', 'or without account', 'ou sem conta')}</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+
+                {/* Formulario email directo */}
                 <div className="space-y-2 mb-4">
                   <input
                     value={avisameNombre}
@@ -1436,7 +1465,7 @@ export default function Edificios() {
                   className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3.5 rounded-xl text-sm disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2 transition-colors"
                 >
                   {avisameEnviando ? <Loader2 size={15} className="animate-spin" /> : <Bell size={15} />}
-                  {avisameEnviando ? t('Registrando...', 'Registering...', 'Registrando...') : t('Avísame por email', 'Notify me by email', 'Me avise por email')}
+                  {avisameEnviando ? t('Registrando...', 'Registering...', 'Registrando...') : t('Avísame solo por email', 'Notify me by email only', 'Me avise só por email')}
                 </button>
 
                 <p className="text-[10px] text-gray-400 text-center mt-3 leading-relaxed">
