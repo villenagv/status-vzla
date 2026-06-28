@@ -12,6 +12,7 @@ import SubidaMasivaEdificios from '@/components/admin/SubidaMasivaEdificios';
 import GestionUsuarios from '@/components/admin/GestionUsuarios';
 import VoluntariosDetalle from '@/components/admin/VoluntariosDetalle';
 import GeocodificarPanel from '@/components/admin/GeocodificarPanel';
+import ImportacionVzla from '@/components/admin/ImportacionVzla';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
@@ -62,6 +63,7 @@ const AdminDashboard = () => {
       { key: 'centros',     label: '🏥 Centros'             },
       { key: 'manage',      label: '⚙️ Datos'               },
       { key: 'edificios_masivo', label: '🏗️ Edificios'     },
+      { key: 'importar_vzla', label: '🇻🇪 Importar VZ'       },
       { key: 'dossier',    label: '📋 Dossier'              },
   ];
 
@@ -106,6 +108,11 @@ const AdminDashboard = () => {
               <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <SubidaMasivaEdificios />
                 <GeocodificarPanel />
+              </div>
+            )}
+            {tab === 'importar_vzla' && (
+              <div style={{ maxWidth: 720, margin: '0 auto', background: '#0D1117', borderRadius: 18, padding: 24 }}>
+                <ImportacionVzla />
               </div>
             )}
             {tab === 'dossier' && (
