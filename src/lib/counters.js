@@ -9,7 +9,7 @@ export async function getContadores() {
   if (cached) return cached;
 
   const [reportes, puntos, personasBuscadas, personasEncontradas, personasRegistradas] = await Promise.all([
-    base44.entities.InfraestructuraSos.list('-created_date', 2000).catch(() => []),
+    base44.entities.ReportesDano.list('-created_date', 2000).catch(() => []),
     base44.entities.PuntosAyuda.list('-updated_date', 2000).catch(() => []),
     base44.entities.PersonasBuscadas.list('-updated_date', 2000).catch(() => []),
     base44.entities.PersonasEncontradas.list('-updated_date', 3000).catch(() => []),
