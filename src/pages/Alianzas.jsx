@@ -139,7 +139,7 @@ export default function Alianzas() {
             </button>
           </div>
 
-          <div className="mx-5 mb-5 rounded-lg px-4 py-3" style={{ background: 'rgba(111,207,151,0.07)', border: '1px solid rgba(111,207,151,0.20)' }}>
+          <div className="mx-5 mb-3 rounded-lg px-4 py-3" style={{ background: 'rgba(111,207,151,0.07)', border: '1px solid rgba(111,207,151,0.20)' }}>
             <p style={{ fontSize: 11, color: '#6FCF97', margin: 0, lineHeight: 1.55 }}>
               📌 <strong>{t('Atribución requerida:', 'Attribution required:')}</strong>{' '}
               {t(
@@ -147,6 +147,36 @@ export default function Alianzas() {
                 'When using this code you must keep "Powered by StatusVzla.com" visible. It\'s already included in the code.'
               )}
             </p>
+          </div>
+
+          {/* CTA — Reportar o actualizar edificio */}
+          <div className="mx-5 mb-5 rounded-xl px-4 py-4" style={{ background: 'rgba(36,113,163,0.10)', border: '1px solid rgba(59,130,246,0.25)' }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#F0F6FC', margin: '0 0 4px' }}>
+              🏗️ {t('¿Sabes de un edificio dañado?', 'Do you know of a damaged building?')}
+            </p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.60)', lineHeight: 1.55, margin: '0 0 12px' }}>
+              {t(
+                'Si tienes información sobre daños, personas atrapadas o el estado de acceso de un edificio, repórtalo o actualiza la información existente.',
+                'If you have information about damage, trapped people, or access status of a building, report it or update the existing record.'
+              )}
+            </p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <Link to="/reportar-dano" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '9px 16px', background: '#C0392B', color: '#fff',
+                borderRadius: 10, textDecoration: 'none', fontSize: 12, fontWeight: 700,
+              }}>
+                📍 {t('Reportar edificio', 'Report a building')}
+              </Link>
+              <Link to="/edificios" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '9px 16px', background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                color: '#F0F6FC', borderRadius: 10, textDecoration: 'none', fontSize: 12, fontWeight: 600,
+              }}>
+                🔄 {t('Actualizar uno existente', 'Update an existing one')}
+              </Link>
+            </div>
           </div>
         </div>
 
