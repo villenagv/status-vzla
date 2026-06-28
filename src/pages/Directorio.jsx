@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, ChevronLeft, Loader2, LayoutGrid, List } from 'lucide-react';
+import { Search, MapPin, ChevronLeft, Loader2, LayoutGrid, List, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -22,13 +22,13 @@ const PERSONA_ESTADO = {
 };
 
 const DANO_CONFIG = {
-  leve:        { es: '🟡 Daño leve',  en: '🟡 Minor',    cls: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-  moderado:    { es: '🟠 Moderado',   en: '🟠 Moderate', cls: 'bg-orange-100 text-orange-700 border-orange-200' },
-  grave:       { es: '🔴 GRAVE',      en: '🔴 SEVERE',   cls: 'bg-red-100 text-red-800 border-red-200' },
-  critico:     { es: '🔴 CRÍTICO',    en: '🔴 CRITICAL', cls: 'bg-red-200 text-red-900 border-red-400' },
-  colapsado:   { es: '💥 COLAPSADO',  en: '💥 COLLAPSED',cls: 'bg-gray-800 text-white border-gray-700' },
-  no_evaluado: { es: '⚪ Sin evaluar',en: '⚪ Unknown',   cls: 'bg-gray-100 text-gray-600 border-gray-200' },
-  no_sabe:     { es: '⚪ Sin datos',  en: '⚪ No data',   cls: 'bg-gray-100 text-gray-600 border-gray-200' },
+  leve:        { color: '#B7950B', bg: '#FEF9E7', border: '#F9E79F', cardBorder: '#D4AC0D', label: { es: '🟡 Daño leve',  en: '🟡 Minor damage'   }, icon: '🟡', acceso: { es: 'Entrada con precaución', en: 'Enter with caution' } },
+  moderado:    { color: '#CA6F1E', bg: '#FEF5E7', border: '#FDEBD0', cardBorder: '#E67E22', label: { es: '🟠 Moderado',   en: '🟠 Moderate'       }, icon: '🟠', acceso: { es: 'Entrada limitada',       en: 'Limited entry'      } },
+  grave:       { color: '#C0392B', bg: '#FDEDEC', border: '#F5B7B1', cardBorder: '#E74C3C', label: { es: '🔴 GRAVE',      en: '🔴 SEVERE'         }, icon: '🔴', acceso: { es: 'NO ENTRAR',              en: 'DO NOT ENTER'       } },
+  critico:     { color: '#922B21', bg: '#FDEDEC', border: '#E74C3C', cardBorder: '#922B21', label: { es: '🚨 CRÍTICO',    en: '🚨 CRITICAL'       }, icon: '🚨', acceso: { es: 'NO ENTRAR — PELIGRO',    en: 'DO NOT ENTER'       } },
+  colapsado:   { color: '#4A0E0E', bg: '#FCECEC', border: '#DC3545', cardBorder: '#4A0E0E', label: { es: '💥 COLAPSADO',  en: '💥 COLLAPSED'      }, icon: '💥', acceso: { es: 'NO ENTRAR — COLAPSADO',  en: 'DO NOT ENTER'       } },
+  no_evaluado: { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', cardBorder: '#BFC9CA', label: { es: '⚪ Sin evaluar',en: '⚪ Not evaluated'   }, icon: '⚪', acceso: { es: 'Sin verificar',          en: 'Unverified'         } },
+  no_sabe:     { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', cardBorder: '#BFC9CA', label: { es: '⚪ Sin datos',  en: '⚪ No data'         }, icon: '⚪', acceso: { es: 'Sin información',        en: 'No information'     } },
 };
 
 // ── Categorías de personas ──────────────────────────────────────────────────
@@ -67,11 +67,12 @@ export default function Directorio() {
 
   // UI
   const [categoriaPersona, setCategoriaPersona] = useState('desaparecidos');
-  const [categoriaEdificio, setCategoriaEdificio] = useState('criticos');
+  const [categoriaEdificio, setCategoriaEdificio] = useState('moderados');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [vistaPersonas, setVistaPersonas] = useState('grid'); // 'grid' | 'lista'
   const [vistaEdificios, setVistaEdificios] = useState('lista'); // 'grid' | 'lista'
+  const [ordenEdificios, setOrdenEdificios] = useState('recientes'); // 'recientes' | 'prioridad' | 'alfabetico'
   const [fichaSeleccionada, setFichaSeleccionada] = useState(null); // { item, tipo }
 
 
@@ -146,6 +147,9 @@ export default function Directorio() {
     });
   };
 
+  // ── Orden de prioridad para sorting ──
+  const PRIORIDAD_SORT = { critico: 0, colapsado: 1, grave: 2, moderado: 3, leve: 4, no_evaluado: 5, no_sabe: 6 };
+
   // ── Filtrar edificios por categoría ────────────────────────────────────────
   const filtrarEdificios = (cat) => {
     const catCfg = CATEGORIAS_EDIFICIOS.find(c => c.id === cat);
@@ -157,6 +161,11 @@ export default function Directorio() {
         (e.ciudad || '').toLowerCase().includes(query.toLowerCase()) ||
         (e.direccion || '').toLowerCase().includes(query.toLowerCase());
       return matchNivel && matchQuery;
+    }).sort((a, b) => {
+      if (ordenEdificios === 'alfabetico') return (a._nombre || '').localeCompare(b._nombre || '');
+      if (ordenEdificios === 'prioridad') return (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5);
+      // recientes por defecto
+      return new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date);
     });
   };
 
@@ -251,7 +260,7 @@ export default function Directorio() {
         {tab === 'edificios' && (
           <>
             <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1.5 font-bold">{es ? 'Filtrar por nivel de daño' : 'Filter by damage level'}</p>
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+            <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
               {CATEGORIAS_EDIFICIOS.map(c => (
                 <button key={c.id} onClick={() => { setCategoriaEdificio(c.id); setPage(1); }}
                   className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border-2 cursor-pointer ${categoriaEdificio === c.id
@@ -263,6 +272,22 @@ export default function Directorio() {
                   </span>
                 </button>
               ))}
+            </div>
+            {/* Ordenamiento */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-[10px] text-gray-400 font-semibold whitespace-nowrap">{es ? 'Orden:' : 'Sort:'}</span>
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden bg-white">
+                {[
+                  { key: 'recientes', es: '🕐 Recientes', en: '🕐 Recent' },
+                  { key: 'prioridad', es: '🚨 Prioridad', en: '🚨 Priority' },
+                  { key: 'alfabetico', es: 'A–Z', en: 'A–Z' },
+                ].map(o => (
+                  <button key={o.key} onClick={() => { setOrdenEdificios(o.key); setPage(1); }}
+                    className={`px-3 py-1.5 text-[10px] font-semibold cursor-pointer transition-colors border-l border-gray-200 first:border-l-0 ${ordenEdificios === o.key ? 'bg-[#1A1F2E] text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                    {es ? o.es : o.en}
+                  </button>
+                ))}
+              </div>
             </div>
           </>
         )}
@@ -397,101 +422,93 @@ export default function Directorio() {
 
         {/* ── EDIFICIOS ── */}
         {tab === 'edificios' && !cargando && (() => {
-          const EdificioCard = ({ e, compact }) => {
-            const dano = DANO_CONFIG[e.nivel_dano] || DANO_CONFIG.no_evaluado;
-            const esCritico = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano) || e.hayAtrapados;
-            const abrir = (ev) => { ev.stopPropagation(); setFichaSeleccionada({ item: e, tipo: 'edificio' }); };
-            const irFicha = () => { window.location.href = `/edificio?id=${e.id}`; };
-            const fotos = e.foto_urls || [];
+          const tiempoRelativo = (fecha) => {
+            if (!fecha) return '';
+            const diff = Date.now() - new Date(fecha).getTime();
+            const m = Math.floor(diff / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+            if (d > 0) return es ? `hace ${d}d` : `${d}d ago`;
+            if (h > 0) return es ? `hace ${h}h` : `${h}h ago`;
+            if (m < 1) return es ? 'ahora' : 'now';
+            return es ? `hace ${m}m` : `${m}m ago`;
+          };
 
-            // ── Vista lista (compact) con miniatura a la izquierda ──
+          const EdificioCard = ({ e, compact }) => {
+            const c = DANO_CONFIG[e.nivel_dano] || DANO_CONFIG.no_evaluado;
+            const noEntrar = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano) || e.hayAtrapados;
+            const fotos = e.foto_urls || [];
+            const irFicha = () => { window.location.href = `/edificio?id=${e.id}`; };
+            const abrir = (ev) => { ev.stopPropagation(); setFichaSeleccionada({ item: e, tipo: 'edificio' }); };
+
+            // ── Vista lista con miniatura ──
             if (compact) return (
-              <div className={`flex items-stretch gap-0 hover:bg-gray-50 active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-500' : ''}`}>
-                {/* Miniatura */}
-                <div onClick={irFicha} className="cursor-pointer flex-shrink-0" style={{ width: 70 }}>
-                  <EdificioImagen
-                    fotoUrls={fotos}
-                    tipoEstructura={e.tipo_estructura}
-                    nivelDano={e.nivel_dano}
-                    height={70}
-                    lang={lang}
-                  />
+              <div className={`flex items-stretch hover:bg-gray-50 ${noEntrar ? 'border-l-4 border-l-red-500' : ''}`}
+                style={{ borderLeft: noEntrar ? `4px solid ${c.cardBorder}` : undefined }}>
+                <div onClick={irFicha} className="cursor-pointer flex-shrink-0" style={{ width: 72 }}>
+                  <EdificioImagen fotoUrls={fotos} tipoEstructura={e.tipo_estructura} nivelDano={e.nivel_dano} height={72} lang={lang} />
                 </div>
-                {/* Info */}
                 <div onClick={irFicha} className="flex-1 min-w-0 cursor-pointer px-3 py-2.5 flex flex-col justify-center gap-0.5">
                   <p className="font-bold text-sm text-[#1A1F2E] truncate leading-tight">{e._nombre}</p>
+                  {e.tipo_estructura && <p className="text-[10px] text-gray-400 truncate capitalize">{e.tipo_estructura.replace(/_/g, ' ')}</p>}
                   <p className="text-[10px] text-gray-400 truncate flex items-center gap-1">
                     <MapPin size={8} />{[e.direccion, e.ciudad].filter(Boolean).join(' · ')}
                   </p>
-                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${dano.cls}`}>{es ? dano.es : dano.en}</span>
+                  <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full border"
+                      style={{ color: c.color, background: c.bg, borderColor: c.border }}>
+                      {c.icon} {es ? c.label.es : c.label.en}
+                    </span>
                     {e.hayAtrapados && <span className="text-[9px] font-black bg-red-600 text-white px-1.5 py-0.5 rounded-full">🆘</span>}
                     {e.riesgo_gas && <span className="text-[9px] bg-orange-50 text-orange-700 border border-orange-200 px-1 py-0.5 rounded-full">💨</span>}
                     {e.riesgo_electrico && <span className="text-[9px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1 py-0.5 rounded-full">⚡</span>}
                     {e.riesgo_incendio && <span className="text-[9px] bg-red-50 text-red-700 border border-red-200 px-1 py-0.5 rounded-full">🔥</span>}
                   </div>
                 </div>
-                {/* Acciones */}
-                <div className="flex flex-col items-end justify-center gap-1.5 pr-3 flex-shrink-0">
-                  <button onClick={abrir}
-                    className="text-[9px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1 rounded-lg cursor-pointer hover:bg-blue-100 whitespace-nowrap">
-                    🔔
+                <div className="flex flex-col items-end justify-center gap-2 pr-3 flex-shrink-0">
+                  <span className="text-[9px] text-gray-400">{tiempoRelativo(e.updated_date || e.created_date)}</span>
+                  <button onClick={abrir} className="text-[9px] font-semibold bg-green-50 border border-green-300 text-green-700 px-2 py-1 rounded-lg cursor-pointer hover:bg-green-100 whitespace-nowrap">
+                    🔔 {es ? 'Avísame' : 'Notify'}
                   </button>
                   <span onClick={irFicha} className="text-gray-300 text-base cursor-pointer leading-none">›</span>
                 </div>
               </div>
             );
 
-            // ── Vista grid con imagen grande arriba ──
+            // ── Vista grid — idéntica a pages/Edificios ──
             return (
-              <div className={`bg-white rounded-2xl border-2 overflow-hidden hover:shadow-md transition-all ${esCritico ? 'border-red-300' : 'border-gray-100'}`}>
-                {/* Imagen / placeholder */}
-                <div onClick={irFicha} className="cursor-pointer">
-                  <EdificioImagen
-                    fotoUrls={fotos}
-                    tipoEstructura={e.tipo_estructura}
-                    nivelDano={e.nivel_dano}
-                    height={200}
-                    lang={lang}
-                    sinFotoNudge
-                    mostrarMiniaturasExtra
-                  />
-                </div>
-
-                <div className="p-3 space-y-2">
-                  {e.hayAtrapados && <div className="bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-lg">🆘 {es ? 'PERSONAS ATRAPADAS' : 'TRAPPED PEOPLE'}</div>}
-                  {esCritico && !e.hayAtrapados && <div className="bg-red-50 border border-red-200 text-red-700 text-[10px] font-bold px-2 py-1 rounded-lg">🚫 {es ? 'NO ENTRAR' : 'DO NOT ENTER'}</div>}
-
-                  <div onClick={irFicha} className="cursor-pointer space-y-1">
-                    <div className="flex items-start justify-between gap-1">
-                      <p className="font-black text-sm text-[#1A1F2E] leading-tight flex-1 min-w-0">{e._nombre}</p>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border flex-shrink-0 ${dano.cls}`}>{es ? dano.es : dano.en}</span>
+              <Link to={`/edificio?id=${e.id}`}
+                className="bg-white rounded-xl overflow-hidden no-underline hover:shadow-md transition-shadow flex flex-col"
+                style={{ border: `2px solid ${noEntrar ? c.cardBorder : '#E5E7EB'}` }}>
+                <EdificioImagen fotoUrls={fotos} tipoEstructura={e.tipo_estructura} nivelDano={e.nivel_dano} height={112} lang={lang} sinFotoNudge />
+                <div className="p-3 flex-1 flex flex-col gap-1">
+                  {noEntrar && (
+                    <span className="self-start text-[9px] font-black text-white bg-red-600 px-1.5 py-0.5 rounded">
+                      🚫 {es ? 'NO ENTRAR' : 'DO NOT ENTER'}
+                    </span>
+                  )}
+                  <p className="text-xs font-bold text-gray-900 leading-tight line-clamp-2">{e._nombre}</p>
+                  {e.tipo_estructura && <p className="text-[10px] text-gray-400 truncate capitalize">{e.tipo_estructura.replace(/_/g, ' ')}</p>}
+                  <p className="text-[10px] text-gray-400 truncate">📍 {[e.direccion, e.ciudad].filter(Boolean).join(' · ') || '—'}</p>
+                  <span className="self-start text-[10px] font-semibold px-2 py-0.5 rounded-full border mt-auto"
+                    style={{ color: c.color, borderColor: c.border, background: c.bg }}>
+                    {c.icon} {es ? c.label.es : c.label.en}
+                  </span>
+                  {(e.hayAtrapados || e.riesgo_gas || e.riesgo_electrico || e.riesgo_incendio) && (
+                    <div className="flex flex-wrap gap-0.5 mt-0.5">
+                      {e.hayAtrapados && <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full font-bold">🆘</span>}
+                      {e.riesgo_gas && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full">💨</span>}
+                      {e.riesgo_electrico && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded-full">⚡</span>}
+                      {e.riesgo_incendio && <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full">🔥</span>}
                     </div>
-                    {e.tipo_estructura && <p className="text-[10px] text-gray-400 capitalize">{e.tipo_estructura.replace(/_/g, ' ')}</p>}
-                    {(e.direccion || e.ciudad) && (
-                      <p className="text-[10px] text-gray-500 flex items-center gap-1">
-                        <MapPin size={8} /> {[e.direccion, e.ciudad].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-1">
-                      {e.riesgo_gas && <span className="text-[9px] bg-orange-50 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded-full">💨 Gas</span>}
-                      {e.riesgo_electrico && <span className="text-[9px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1.5 py-0.5 rounded-full">⚡</span>}
-                      {e.riesgo_incendio && <span className="text-[9px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded-full">🔥</span>}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1 border-t border-gray-100 gap-1">
-                    <button onClick={abrir}
-                      className="flex items-center gap-1 text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1.5 rounded-xl cursor-pointer hover:bg-blue-100">
-                      🔔 {es ? 'Avisar' : 'Notify'}
-                    </button>
-                    <button onClick={irFicha}
-                      className="flex items-center gap-1 text-[10px] font-semibold bg-gray-50 border border-gray-200 text-gray-700 px-2 py-1.5 rounded-xl cursor-pointer hover:bg-gray-100">
-                      {es ? 'Ver →' : 'View →'}
+                  )}
+                  <div className="flex items-center justify-between mt-1 pt-1 border-t border-gray-100">
+                    <span className="text-[9px] text-gray-400">🕐 {tiempoRelativo(e.updated_date || e.created_date)}</span>
+                    <button onClick={ev => { ev.preventDefault(); abrir(ev); }}
+                      className="text-[9px] font-bold text-green-700 bg-green-50 border border-green-300 px-1.5 py-0.5 rounded-full hover:bg-green-100 cursor-pointer">
+                      🔔 {es ? 'Avísame' : 'Notify'}
                     </button>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           };
 
@@ -501,7 +518,7 @@ export default function Directorio() {
             </div>
           );
           return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {visibles.map(e => <EdificioCard key={e.id} e={e} />)}
             </div>
           );
