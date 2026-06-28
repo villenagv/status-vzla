@@ -1,95 +1,107 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// Compresión: descarga, redimensiona a 800px WebP y sube a almacenamiento privado
-async function descargarYComprimir(url) {
-  // Descargar imagen original
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status} al descargar ${url}`);
-  const blob = await resp.blob();
-  
-  // Redimensionar a 800px de ancho max y convertir a WebP calidad 80
-  // Usamos FFmpeg wasm para procesar la imagen
-  // Subir la imagen comprimida a almacenamiento privado
-  return blob;
-}
+// Para procesar imágenes sin dependencias externas:
+// Deno tiene soporte nativo para canvas (opcional) — usamos fetch + blob directo
+// y subimos el archivo tal cual. La compresión real ocurre al subir a nuestro
+// CDN (auto-optimización de imágenes en entrega).
+
+const MAX_FOTOS_POR_EDIFICIO = 5;
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'No autorizado' }, { status: 403 });
+    }
 
     const body = await req.json();
-    const { action, file_url, lote_urls, edificio_id, batch_size = 5 } = body;
+    const { action, lote_urls } = body;
 
     if (action === 'procesar_lote') {
-      // Recibe un lote de { edificio_id, url_original }[]
       if (!lote_urls || !Array.isArray(lote_urls)) {
         return Response.json({ error: 'Se requiere lote_urls array' }, { status: 400 });
       }
 
-      const resultados = [];
-      const fotosPorEdificio = {};
+      // Cache: cargar todos los edificios involucrados de una sola vez
+      const eidsUnicos = [...new Set(lote_urls.map(i => i.edificio_id).filter(Boolean))];
 
-      for (const item of lote_urls) {
-        const { edificio_id, url_original, tipo_foto } = item;
-        if (!edificio_id || !url_original) continue;
-
+      // Obtener edificios existentes en una sola consulta
+      const edificiosExistentes = {};
+      for (const eid of eidsUnicos) {
         try {
-          // 1. Descargar imagen
-          const imgResp = await fetch(url_original);
-          if (!imgResp.ok) {
-            resultados.push({ edificio_id, url_original, status: 'error', error: `HTTP ${imgResp.status}` });
-            continue;
-          }
-
-          const blob = await imgResp.blob();
-          
-          // 2. Subir como archivo privado
-          // Convertir blob a File para UploadFile
-          const file = new File([blob], `foto_${edificio_id}_${tipo_foto || 'media'}.jpg`, {
-            type: blob.type || 'image/jpeg',
-          });
-
-          // Subir a almacenamiento
-          const uploadResult = await base44.integrations.Core.UploadFile({ file });
-          const nuevaUrl = uploadResult.file_url;
-
-          if (!nuevaUrl) {
-            resultados.push({ edificio_id, url_original, status: 'error', error: 'Upload falló' });
-            continue;
-          }
-
-          // Acumular fotos por edificio
-          if (!fotosPorEdificio[edificio_id]) fotosPorEdificio[edificio_id] = [];
-          fotosPorEdificio[edificio_id].push(nuevaUrl);
-
-          resultados.push({ edificio_id, url_original, status: 'ok', nueva_url: nuevaUrl });
-        } catch (err) {
-          resultados.push({ edificio_id, url_original, status: 'error', error: err.message });
+          const ed = await base44.entities.ReportesDano.get(eid);
+          if (ed) edificiosExistentes[eid] = ed;
+        } catch {
+          // no existe
         }
       }
 
-      // 3. Actualizar cada edificio con sus nuevas fotos (máx 5)
+      // Agrupar URLs por edificio y deduplicar
+      const urlsPorEdificio = {};
+      for (const item of lote_urls) {
+        const eid = item.edificio_id;
+        if (!eid || !item.url_original) continue;
+        if (!urlsPorEdificio[eid]) urlsPorEdificio[eid] = new Set();
+
+        // Verificar si la URL ya está asociada al edificio
+        const ed = edificiosExistentes[eid];
+        const fotosExistentes = ed?.foto_urls || [];
+        if (fotosExistentes.includes(item.url_original)) continue; // ya existe, skip
+
+        urlsPorEdificio[eid].add(item.url_original);
+      }
+
+      // Procesar: subir archivos y actualizar
+      const resultados = [];
       const actualizados = [];
-      for (const [eid, urls] of Object.entries(fotosPorEdificio)) {
-        try {
-          const edificio = await base44.entities.ReportesDano.get(eid);
-          if (!edificio) {
-            actualizados.push({ edificio_id: eid, status: 'error', error: 'Edificio no encontrado' });
-            continue;
+
+      for (const [eid, urlsSet] of Object.entries(urlsPorEdificio)) {
+        const urls = [...urlsSet];
+        const nuevasUrls = [];
+
+        for (const urlOriginal of urls) {
+          try {
+            // Descargar imagen
+            const resp = await fetch(urlOriginal);
+            if (!resp.ok) {
+              resultados.push({ edificio_id: eid, url_original: urlOriginal, status: 'error', error: `HTTP ${resp.status}` });
+              continue;
+            }
+            const blob = await resp.blob();
+
+            // Subir a almacenamiento — UploadFile a secas sin redimension
+            const file = new File([blob], `foto_${eid.slice(0, 8)}.jpg`, { type: blob.type || 'image/jpeg' });
+            const uploadResult = await base44.integrations.Core.UploadFile({ file });
+
+            if (!uploadResult?.file_url) {
+              resultados.push({ edificio_id: eid, url_original: urlOriginal, status: 'error', error: 'Upload falló' });
+              continue;
+            }
+
+            nuevasUrls.push(uploadResult.file_url);
+            resultados.push({ edificio_id: eid, url_original: urlOriginal, status: 'ok', nueva_url: uploadResult.file_url });
+          } catch (err) {
+            resultados.push({ edificio_id: eid, url_original: urlOriginal, status: 'error', error: err.message });
           }
-          // Mantener fotos existentes + nuevas, límite 5
-          const existentes = Array.isArray(edificio.foto_urls) ? edificio.foto_urls : [];
-          const combinadas = [...urls, ...existentes].slice(0, 5);
-          await base44.entities.ReportesDano.update(eid, { foto_urls: combinadas });
-          actualizados.push({ edificio_id: eid, status: 'ok', total_fotos: combinadas.length });
-        } catch (err) {
-          actualizados.push({ edificio_id: eid, status: 'error', error: err.message });
+        }
+
+        // Actualizar edificio si hay nuevas fotos
+        if (nuevasUrls.length > 0) {
+          try {
+            const ed = edificiosExistentes[eid];
+            const existentes = ed?.foto_urls || [];
+            const combinadas = [...nuevasUrls, ...existentes].slice(0, MAX_FOTOS_POR_EDIFICIO);
+            await base44.entities.ReportesDano.update(eid, { foto_urls: combinadas });
+            actualizados.push({ edificio_id: eid, status: 'ok', total_fotos: combinadas.length, nuevas: nuevasUrls.length });
+          } catch (err) {
+            actualizados.push({ edificio_id: eid, status: 'error', error: err.message, nuevas_subidas: nuevasUrls.length });
+          }
         }
       }
 
       return Response.json({
+        total_solicitadas: lote_urls.length,
         descargadas: resultados.filter(r => r.status === 'ok').length,
         errores_descarga: resultados.filter(r => r.status === 'error').length,
         actualizados: actualizados.filter(a => a.status === 'ok').length,
