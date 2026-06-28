@@ -297,6 +297,19 @@ export default function EdificioDetalle() {
                   {[edificio.direccion, edificio.ciudad, edificio.estado_region].filter(Boolean).join(' · ')}
                 </p>
               )}
+              {/* Acceso vial */}
+              {edificio.acceso_calle && edificio.acceso_calle !== 'no_verificado' && (
+                <p className="text-xs mt-1 flex items-center gap-1">
+                  {{
+                    normal:        <span className="font-semibold text-green-700">✅ {t('Calle libre', 'Street clear', 'Rua livre')}</span>,
+                    dificultad:    <span className="font-semibold text-yellow-700">⚠️ {t('Acceso con dificultad', 'Access with difficulty', 'Acesso com dificuldade')}</span>,
+                    solo_peatonal: <span className="font-semibold text-orange-700">🚶 {t('Solo a pie', 'On foot only', 'Somente a pé')}</span>,
+                    bloqueada:     <span className="font-semibold text-red-700">🚫 {t('Calle bloqueada', 'Street blocked', 'Rua bloqueada')}</span>,
+                    insegura:      <span className="font-semibold text-red-900">☠️ {t('Vía insegura', 'Dangerous road', 'Via perigosa')}</span>,
+                    no_sabe:       <span className="font-semibold text-gray-500">❓ {t('Acceso no confirmado', 'Access unknown', 'Acesso desconhecido')}</span>,
+                  }[edificio.acceso_calle] || null}
+                </p>
+              )}
             </div>
             {/* Métricas rápidas */}
             <div className="flex flex-col items-end gap-1 flex-shrink-0 text-right">

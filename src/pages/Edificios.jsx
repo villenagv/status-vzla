@@ -84,7 +84,7 @@ export default function Edificios() {
   const [cargandoDir, setCargandoDir] = useState(true);
   const [filtroDir, setFiltroDir] = useState('');
   const [filtroRapido, setFiltroRapido] = useState('todos'); // 'todos' | 'criticos' | 'atrapados' | 'sin_verificar' | 'con_contactos'
-  const [ordenDir, setOrdenDir] = useState('prioridad'); // 'prioridad' | 'recientes'
+  const [ordenDir, setOrdenDir] = useState('recientes'); // 'prioridad' | 'recientes'
   const [pageDir, setPageDir] = useState(12);
 
   // ── PERSONAS ──
@@ -536,16 +536,25 @@ export default function Edificios() {
                             <span className="text-[9px] text-teal-700 font-semibold">🛡️ {t('Verificado', 'Verified', 'Verificado')}</span>
                           )}
 
-                          {/* Fila inferior: tiempo + contactos */}
+                          {/* Fila inferior: tiempo + contactos + notificarme */}
                           <div className="flex items-center justify-between mt-1 pt-1 border-t border-gray-100">
                             <span className="text-[9px] text-gray-400">
                               🕐 {tiempoRelativo(r.updated_date || r.created_date)}
                             </span>
-                            {r.contactos_acceso?.length > 0 && (
-                              <span className="text-[9px] text-teal-600 font-semibold">
-                                📞 {r.contactos_acceso.length}
-                              </span>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {r.contactos_acceso?.length > 0 && (
+                                <span className="text-[9px] text-teal-600 font-semibold">
+                                  📞 {r.contactos_acceso.length}
+                                </span>
+                              )}
+                              <Link
+                                to={`/edificio?id=${r.id}`}
+                                onClick={e => e.stopPropagation()}
+                                className="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full no-underline hover:bg-blue-100 flex items-center gap-0.5"
+                              >
+                                🔔 {t('Avisar', 'Alert', 'Avisar')}
+                              </Link>
+                            </div>
                           </div>
                         </div>
                       </Link>
