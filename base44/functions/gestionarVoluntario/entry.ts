@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
 
     // ── REGISTRAR solicitud de voluntario (post OTP) ──
     if (accion === 'registrar_solicitud') {
-      const { token_invitacion, institucion_nombre, foto_id_url } = body;
+      const { token_invitacion, institucion_nombre, foto_id_url, tipo_perfil, especialidad, numero_colegio } = body;
 
       const existentes = await base44.asServiceRole.entities.SolicitudVoluntario.filter({ user_id: user.id });
       if (existentes?.length > 0) {
@@ -147,30 +147,53 @@ Deno.serve(async (req) => {
         }
       }
 
+      const perfilTipo = tipo_perfil || 'voluntario';
+      const esEspecialista = perfilTipo === 'ingeniero' || perfilTipo === 'arquitecto';
+
       const sol = await base44.asServiceRole.entities.SolicitudVoluntario.create({
         user_id: user.id,
         user_email: user.email,
         user_nombre: user.full_name || '',
-        estado: pre_aprobado ? 'aprobado' : 'pendiente',
-        rol_solicitado: 'voluntario',
+        estado: (pre_aprobado && !esEspecialista) ? 'aprobado' : 'pendiente',
+        rol_solicitado: perfilTipo,
         institucion_nombre: inst_nombre,
         institucion_tipo: inst_tipo,
         foto_id_url: foto_id_url || '',
         token_invitacion: token_invitacion || '',
-        pre_aprobado,
+        pre_aprobado: pre_aprobado && !esEspecialista,
       });
 
-      // Notificar admin de nueva solicitud pendiente
-      if (!pre_aprobado) {
+      // Crear/actualizar PerfilProfesional
+      const perfilesExistentes = await base44.asServiceRole.entities.PerfilProfesional.filter({ user_id: user.id });
+      const perfilData = {
+        user_id: user.id,
+        user_email: user.email,
+        user_nombre: user.full_name || '',
+        tipo_perfil: perfilTipo,
+        especialidad: especialidad || '',
+        numero_colegio: numero_colegio || '',
+        institucion: inst_nombre || '',
+        estado_aprobacion: esEspecialista ? 'pendiente' : 'aprobado',
+        completado: true,
+      };
+      if (perfilesExistentes?.length > 0) {
+        await base44.asServiceRole.entities.PerfilProfesional.update(perfilesExistentes[0].id, perfilData);
+      } else {
+        await base44.asServiceRole.entities.PerfilProfesional.create(perfilData);
+      }
+
+      // Notificar admin
+      if (esEspecialista || !pre_aprobado) {
+        const tipoLabel = perfilTipo === 'ingeniero' ? '⚙️ Ingeniero' : perfilTipo === 'arquitecto' ? '📐 Arquitecto' : '🤝 Voluntario';
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: 'villenagv@gmail.com',
-          subject: `🔔 Nueva solicitud de voluntario — ${user.email}`,
+          subject: `🔔 Nueva solicitud: ${tipoLabel} — ${user.email}`,
           from_name: 'CRIS Admin',
-          body: `Nueva solicitud de voluntario pendiente.\n\nEmail: ${user.email}\nNombre: ${user.full_name || '—'}\nInstitución: ${inst_nombre || '—'}\n\nVer en: ${APP_URL}/admin`,
+          body: `Nueva solicitud pendiente.\n\nTipo: ${tipoLabel}\nEmail: ${user.email}\nNombre: ${user.full_name || '—'}\nEspecialidad: ${especialidad || '—'}\nN° Colegio: ${numero_colegio || '—'}\nInstitución: ${inst_nombre || '—'}\n\nVer en: ${APP_URL}/admin`,
         }).catch(() => {});
       }
 
-      return Response.json({ ok: true, estado: sol.estado, pre_aprobado });
+      return Response.json({ ok: true, estado: sol.estado, pre_aprobado: pre_aprobado && !esEspecialista, tipo_perfil: perfilTipo });
     }
 
     return Response.json({ error: 'Acción no reconocida' }, { status: 400 });

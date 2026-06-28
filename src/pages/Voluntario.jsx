@@ -20,6 +20,9 @@ export default function Voluntario() {
   const [tokenCargando, setTokenCargando] = useState(false);
 
   // Form state
+  const [tipoPerfil, setTipoPerfil] = useState('voluntario');
+  const [especialidad, setEspecialidad] = useState('');
+  const [numeroColegio, setNumeroColegio] = useState('');
   const [institucion, setInstitucion] = useState('');
   const [fotoId, setFotoId] = useState(null);
   const [fotoIdUrl, setFotoIdUrl] = useState('');
@@ -75,6 +78,9 @@ export default function Voluntario() {
         token_invitacion: tokenUrl || '',
         institucion_nombre: institucion,
         foto_id_url: fotoIdUrl,
+        tipo_perfil: tipoPerfil,
+        especialidad,
+        numero_colegio: numeroColegio,
       });
       setSolicitud({ estado: result.data?.estado || 'pendiente' });
       setEnviado(true);
@@ -208,6 +214,60 @@ export default function Voluntario() {
             <p className="text-sm font-bold text-gray-900 mt-0.5">{user?.full_name || user?.email}</p>
             <p className="text-xs text-gray-400">{user?.email}</p>
           </div>
+
+          {/* Categoría */}
+          <div>
+            <label className="block text-xs font-bold text-gray-700 mb-2">
+              {t('¿Cuál es tu perfil? *', 'What is your profile? *')}
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { val: 'voluntario',  icon: '🤝', es: 'Voluntario',  en: 'Volunteer',  desc: { es: 'Apoyo general', en: 'General support' } },
+                { val: 'ingeniero',   icon: '⚙️', es: 'Ingeniero',   en: 'Engineer',   desc: { es: 'Ing. Civil / Estructural', en: 'Civil / Structural Eng.' } },
+                { val: 'arquitecto',  icon: '📐', es: 'Arquitecto',  en: 'Architect',  desc: { es: 'Arquitectura', en: 'Architecture' } },
+              ].map(op => (
+                <button key={op.val} onClick={() => setTipoPerfil(op.val)}
+                  className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 cursor-pointer text-center transition-colors ${tipoPerfil === op.val ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-400'}`}>
+                  <span className="text-2xl">{op.icon}</span>
+                  <span className={`text-xs font-bold ${tipoPerfil === op.val ? 'text-blue-700' : 'text-gray-700'}`}>{es ? op.es : op.en}</span>
+                  <span className="text-[9px] text-gray-400 leading-tight">{es ? op.desc.es : op.desc.en}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Campos extra para especialistas */}
+          {(tipoPerfil === 'ingeniero' || tipoPerfil === 'arquitecto') && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+              <p className="text-xs font-bold text-blue-800">
+                {tipoPerfil === 'ingeniero' ? '⚙️' : '📐'} {t('Datos profesionales (para verificación)', 'Professional data (for verification)')}
+              </p>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  {t('Especialidad', 'Specialty')}
+                </label>
+                <input value={especialidad} onChange={e => setEspecialidad(e.target.value)}
+                  placeholder={tipoPerfil === 'ingeniero'
+                    ? t('Ej: Ing. Civil, Estructural, Geotecnia...', 'E.g: Civil Eng., Structural, Geotechnics...')
+                    : t('Ej: Arquitectura urbana, restauración...', 'E.g: Urban architecture, restoration...')}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-gray-400" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  {t('N° de colegio profesional (opcional)', 'Professional registration # (optional)')}
+                </label>
+                <input value={numeroColegio} onChange={e => setNumeroColegio(e.target.value)}
+                  placeholder={t('Ej: CIV-12345', 'E.g: CIV-12345')}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-gray-400" />
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  ⏳ {t('Los perfiles de ingeniero y arquitecto requieren aprobación del administrador. Mientras tanto, tendrás acceso al portal como voluntario.',
+                         'Engineer and architect profiles require admin approval. In the meantime, you will have portal access as a volunteer.')}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1.5">
