@@ -126,6 +126,7 @@ export default function EdificioDetalle() {
   const [conozco, setConozco] = useState(null);
   const [respConozco, setRespConozco] = useState({ nombre: '', desc: '' });
   const [enviandoResp, setEnviandoResp] = useState(false);
+  const [totalSuscriptores, setTotalSuscriptores] = useState(null);
 
   useEffect(() => {
     if (!id) { setCargando(false); setErrorId(true); return; }
@@ -135,9 +136,11 @@ export default function EdificioDetalle() {
       return Promise.all([
         base44.entities.ActualizacionesSitios.filter({ sitio_id: id }, '-created_date', 50),
         base44.entities.SolicitudesInfoEdificio.filter({ ciudad: e.ciudad, estado_solicitud: 'pendiente' }, '-created_date', 10),
-      ]).then(([ups, ss]) => {
+        base44.entities.SuscriptoresSeguimiento.filter({ reporte_id: id, activo: true }, '-created_date', 200),
+      ]).then(([ups, ss, subs]) => {
         if (ups) setActualizaciones(ups);
         if (ss) setSolicitudes(ss.filter(s => s.nombre_lugar && !s.reporte_encontrado_id));
+        if (subs) setTotalSuscriptores(subs.length);
       });
     }).catch(() => setErrorId(true)).finally(() => setCargando(false));
   }, [id]);
@@ -291,7 +294,12 @@ export default function EdificioDetalle() {
               <div className="flex items-center gap-1 text-xs font-semibold text-gray-500">
                 <BarChart2 size={12} />{totalReportes} {t('reportes', 'reports', 'relatórios')}
               </div>
-              <p className="text-[10px] text-gray-400">{tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
+              {totalSuscriptores !== null && totalSuscriptores > 0 && (
+                <div className="flex items-center gap-1 text-[10px] font-semibold text-blue-600">
+                  <Bell size={10} />{totalSuscriptores} {t('siguiendo', 'following', 'seguindo')}
+                </div>
+              )}
+              <p className="text-[10px] text-gray-400">🕐 {tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
               {edificio.nivel_verificacion === 'institucional' && (
                 <span className="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Shield size={8} /> {t('Verificado', 'Verified', 'Verificado')}

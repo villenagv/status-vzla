@@ -83,7 +83,8 @@ export default function Edificios() {
   const [todos, setTodos] = useState([]);
   const [cargandoDir, setCargandoDir] = useState(true);
   const [filtroDir, setFiltroDir] = useState('');
-  const [filtroRapido, setFiltroRapido] = useState('todos'); // 'todos' | 'criticos' | 'atrapados' | 'sin_verificar'
+  const [filtroRapido, setFiltroRapido] = useState('todos'); // 'todos' | 'criticos' | 'atrapados' | 'sin_verificar' | 'con_contactos'
+  const [ordenDir, setOrdenDir] = useState('prioridad'); // 'prioridad' | 'recientes'
   const [pageDir, setPageDir] = useState(12);
 
   // ── PERSONAS ──
@@ -97,8 +98,19 @@ export default function Edificios() {
   const [solicitudes, setSolicitudes] = useState([]);
   const [cargandoSols, setCargandoSols] = useState(true);
 
+  // ── Utilidad tiempo relativo ──
+  const tiempoRelativo = (fecha) => {
+    if (!fecha) return '';
+    const diff = Date.now() - new Date(fecha).getTime();
+    const m = Math.floor(diff / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+    if (d > 0) return es ? `hace ${d}d` : `${d}d ago`;
+    if (h > 0) return es ? `hace ${h}h` : `${h}h ago`;
+    if (m < 1) return es ? 'ahora' : 'now';
+    return es ? `hace ${m}m` : `${m}m ago`;
+  };
+
   useEffect(() => {
-    base44.entities.ReportesDano.list('-created_date', 200)
+    base44.entities.ReportesDano.list('-updated_date', 300)
       .then(d => setTodos(d || []))
       .catch(() => {})
       .finally(() => setCargandoDir(false));
@@ -293,6 +305,7 @@ export default function Edificios() {
   const criticos = todos.filter(r => ['critico', 'colapsado', 'grave'].includes(r.nivel_dano));
   const conAtrapados = todos.filter(r => ['si', 'voces'].includes(r.personas_atrapadas));
   const sinVerificar = todos.filter(r => r.nivel_verificacion === 'sin_verificar' || !r.nivel_verificacion);
+  const conContactos = todos.filter(r => r.contactos_acceso?.length > 0);
 
   const dirBase = todos.filter(r => {
     if (!filtroDir.trim()) return true;
@@ -303,8 +316,14 @@ export default function Edificios() {
     if (filtroRapido === 'criticos') return ['critico', 'colapsado', 'grave'].includes(r.nivel_dano);
     if (filtroRapido === 'atrapados') return ['si', 'voces'].includes(r.personas_atrapadas);
     if (filtroRapido === 'sin_verificar') return r.nivel_verificacion === 'sin_verificar' || !r.nivel_verificacion;
+    if (filtroRapido === 'con_contactos') return r.contactos_acceso?.length > 0;
     return true;
-  }).sort((a, b) => (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5));
+  }).sort((a, b) => {
+    if (ordenDir === 'recientes') {
+      return new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date);
+    }
+    return (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5);
+  });
 
   const perFiltradas = [...personas, ...encontrados].filter(p => {
     if (!filtroPer.trim()) return true;
@@ -372,7 +391,7 @@ export default function Edificios() {
         {tab === 'directorio' && (
           <div>
             {/* Barra búsqueda + botón reportar */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row gap-3 mb-3">
               <input value={filtroDir} onChange={e => { setFiltroDir(e.target.value); setPageDir(12); }}
                 placeholder={t('Buscar por nombre, dirección, ciudad...', 'Search by name, address, city...', 'Buscar por nome, endereço, cidade...')}
                 className="flex-1 border-2 border-gray-300 rounded-xl px-4 py-3 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 placeholder-gray-400" />
@@ -381,18 +400,35 @@ export default function Edificios() {
               </button>
             </div>
 
+            {/* Ordenamiento */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs text-gray-400 font-medium whitespace-nowrap">{t('Ordenar:', 'Sort:', 'Ordenar:')}</span>
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden bg-white">
+                <button onClick={() => { setOrdenDir('prioridad'); setPageDir(12); }}
+                  className={`px-3 py-1.5 text-xs font-semibold cursor-pointer transition-colors ${ordenDir === 'prioridad' ? 'bg-gray-800 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                  🚨 {t('Prioridad', 'Priority', 'Prioridade')}
+                </button>
+                <button onClick={() => { setOrdenDir('recientes'); setPageDir(12); }}
+                  className={`px-3 py-1.5 text-xs font-semibold cursor-pointer transition-colors border-l border-gray-200 ${ordenDir === 'recientes' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                  🕐 {t('Recientes', 'Recent', 'Recentes')}
+                </button>
+              </div>
+            </div>
+
             {/* Chips de filtro rápido con contadores */}
-            <div className="flex gap-2 flex-wrap mb-4">
+            <div className="flex gap-2 flex-wrap mb-4 overflow-x-auto pb-1">
               {[
-                { key: 'todos',        label: t(`Todos (${todos.length})`, `All (${todos.length})`, `Todos (${todos.length})`), color: 'gray' },
-                { key: 'criticos',     label: t(`🚨 Críticos (${criticos.length})`, `🚨 Critical (${criticos.length})`, `🚨 Críticos (${criticos.length})`), color: 'red' },
-                { key: 'atrapados',    label: t(`🆘 Atrapados (${conAtrapados.length})`, `🆘 Trapped (${conAtrapados.length})`, `🆘 Presos (${conAtrapados.length})`), color: 'orange' },
-                { key: 'sin_verificar',label: t(`⚪ Sin verificar (${sinVerificar.length})`, `⚪ Unverified (${sinVerificar.length})`, `⚪ Sem verificar (${sinVerificar.length})`), color: 'gray' },
+                { key: 'todos',         label: t(`Todos (${todos.length})`, `All (${todos.length})`, `Todos (${todos.length})`), color: 'gray' },
+                { key: 'criticos',      label: t(`🚨 Críticos (${criticos.length})`, `🚨 Critical (${criticos.length})`, `🚨 Críticos (${criticos.length})`), color: 'red' },
+                { key: 'atrapados',     label: t(`🆘 Atrapados (${conAtrapados.length})`, `🆘 Trapped (${conAtrapados.length})`, `🆘 Presos (${conAtrapados.length})`), color: 'orange' },
+                { key: 'con_contactos', label: t(`📞 Con contactos (${conContactos.length})`, `📞 With contacts (${conContactos.length})`, `📞 Com contatos (${conContactos.length})`), color: 'teal' },
+                { key: 'sin_verificar', label: t(`⚪ Sin verificar (${sinVerificar.length})`, `⚪ Unverified (${sinVerificar.length})`, `⚪ Sem verificar (${sinVerificar.length})`), color: 'gray' },
               ].map(chip => {
                 const active = filtroRapido === chip.key;
                 const colorMap = {
                   red:    active ? 'bg-red-600 text-white border-red-600'         : 'bg-white text-red-600 border-red-300',
                   orange: active ? 'bg-orange-600 text-white border-orange-600'   : 'bg-white text-orange-700 border-orange-300',
+                  teal:   active ? 'bg-teal-700 text-white border-teal-700'       : 'bg-white text-teal-700 border-teal-300',
                   gray:   active ? 'bg-gray-800 text-white border-gray-800'       : 'bg-white text-gray-600 border-gray-300',
                 };
                 return (
@@ -420,7 +456,11 @@ export default function Edificios() {
             ) : (
               <>
                 <p className="text-xs text-gray-400 mb-3">
-                  {dirFiltrados.length} {t('edificio(s) · ordenados por prioridad', 'building(s) · sorted by priority', 'edifício(s) · ordenados por prioridade')}
+                  {dirFiltrados.length} {t(
+                    `edificio(s) · ${ordenDir === 'recientes' ? 'más recientes primero' : 'ordenados por prioridad'}`,
+                    `building(s) · ${ordenDir === 'recientes' ? 'most recent first' : 'sorted by priority'}`,
+                    `edifício(s) · ${ordenDir === 'recientes' ? 'mais recentes primeiro' : 'ordenados por prioridade'}`
+                  )}
                 </p>
 
                 {/* Grid con borde de color por nivel de daño */}
@@ -495,6 +535,18 @@ export default function Edificios() {
                           {r.nivel_verificacion === 'institucional' && (
                             <span className="text-[9px] text-teal-700 font-semibold">🛡️ {t('Verificado', 'Verified', 'Verificado')}</span>
                           )}
+
+                          {/* Fila inferior: tiempo + contactos */}
+                          <div className="flex items-center justify-between mt-1 pt-1 border-t border-gray-100">
+                            <span className="text-[9px] text-gray-400">
+                              🕐 {tiempoRelativo(r.updated_date || r.created_date)}
+                            </span>
+                            {r.contactos_acceso?.length > 0 && (
+                              <span className="text-[9px] text-teal-600 font-semibold">
+                                📞 {r.contactos_acceso.length}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </Link>
                     );
