@@ -78,20 +78,6 @@ Prioritize areas with the highest needs, detect likely duplicates, flag incomple
           </p>
         </section>
 
-        <section className="bg-white border border-[#EDEBE8] rounded-2xl p-4 mb-4">
-          <h2 className="text-base font-black text-[#1A1F2E] mb-1">
-            {es ? 'Dossier visual para auditoría' : 'Visual audit dossier'}
-          </h2>
-          <p className="text-xs text-gray-500 leading-relaxed mb-3">
-            {es
-              ? 'Archivo navegable con páginas, subpáginas, procesos, módulos, archivos principales, capturas visuales bajo demanda, checklist y notas para el auditor.'
-              : 'Navigable file with pages, subpages, processes, modules, main files, on-demand visual captures, checklist, and auditor notes.'}
-          </p>
-          <a href="/auditoria_cris_visual.html" target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-[#2471A3] text-white text-sm font-black py-3 rounded-xl no-underline">
-            {es ? 'Abrir dossier de auditoría' : 'Open audit dossier'}
-          </a>
-        </section>
-
         <section className="bg-white border border-[#EDEBE8] rounded-2xl p-4">
           {cargando ? (
             <div className="flex items-center justify-center gap-2 py-6 text-sm text-gray-500">
