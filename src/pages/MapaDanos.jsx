@@ -661,40 +661,38 @@ export default function MapaDanos() {
               )}
             </>
           )}
+          {/* Botones siempre visibles sobre el mapa/lista */}
+          <div style={{
+            position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', gap: 8, zIndex: 30, pointerEvents: 'none',
+          }}>
+            <a href="/reportar-dano" style={{
+              pointerEvents: 'all',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '10px 16px', background: '#C0392B', color: '#fff',
+              borderRadius: 999, textDecoration: 'none', fontSize: 12, fontWeight: 700,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.15)',
+              whiteSpace: 'nowrap',
+            }}>
+              📍 {t('Reportar edificio', 'Report building')}
+            </a>
+            <a href="/edificios" style={{
+              pointerEvents: 'all',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '10px 16px', background: 'rgba(13,17,23,0.95)', color: '#F0F6FC',
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 999, textDecoration: 'none', fontSize: 12, fontWeight: 600,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.55)',
+              whiteSpace: 'nowrap',
+            }}>
+              🔄 {t('Actualizar info', 'Update info')}
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* Botones flotantes fijos — siempre visibles en el mapa */}
-      <div style={{
-        position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-        display: 'flex', gap: 8, zIndex: 50, flexWrap: 'wrap', justifyContent: 'center',
-        pointerEvents: 'none',
-      }}>
-        <a href="/reportar-dano" style={{
-          pointerEvents: 'all',
-          display: 'inline-flex', alignItems: 'center', gap: 7,
-          padding: '11px 18px', background: '#C0392B', color: '#fff',
-          borderRadius: 999, textDecoration: 'none', fontSize: 13, fontWeight: 700,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.12)',
-          whiteSpace: 'nowrap',
-        }}>
-          📍 {t('Reportar edificio', 'Report building')}
-        </a>
-        <a href="/edificios" style={{
-          pointerEvents: 'all',
-          display: 'inline-flex', alignItems: 'center', gap: 7,
-          padding: '11px 18px', background: 'rgba(22,27,34,0.97)', color: '#F0F6FC',
-          border: '1px solid rgba(255,255,255,0.20)',
-          borderRadius: 999, textDecoration: 'none', fontSize: 13, fontWeight: 600,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.45)',
-          whiteSpace: 'nowrap',
-        }}>
-          🔄 {t('Actualizar info', 'Update info')}
-        </a>
-      </div>
-
       {cargando && (
-        <div style={{ position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)', background: '#161B22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, zIndex: 50 }}>
+        <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#161B22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, zIndex: 50 }}>
           <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: '#4A9EDB' }} />
           <span style={{ fontSize: 11, color: '#9BA5B0' }}>{t('Cargando reportes...', 'Loading reports...')}</span>
         </div>
