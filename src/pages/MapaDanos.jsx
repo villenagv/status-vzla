@@ -29,8 +29,9 @@ const TIPO_ICONO = {
   servicio_publico: '🔌', refugio: '🏕️', otro: '🏗️',
 };
 
-// ── Capas de servicio ──
-const CAPAS = [
+// ── Filtros paralelos ──
+const FILTROS_DANO = ['todos', 'colapsado', 'critico', 'grave', 'moderado', 'leve', 'no_evaluado'];
+const CAPAS_SERVICIO = [
   { key: 'dano',       icon: '🏚️', es: 'Daños',            en: 'Damage' },
   { key: 'acceso',     icon: '🚧', es: 'Acceso vial',       en: 'Road access' },
   { key: 'electricidad', icon: '💡', es: 'Electricidad',    en: 'Electricity' },
@@ -121,6 +122,7 @@ export default function MapaDanos() {
   const [estadosOp, setEstadosOp] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [capaActiva, setCapaActiva] = useState('dano');
+  const [filtroDano, setFiltroDano] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   const [reporteSeleccionado, setReporteSeleccionado] = useState(null);
   const [panelAbierto, setPanelAbierto] = useState(true);
@@ -152,7 +154,8 @@ export default function MapaDanos() {
       .finally(() => setCargando(false));
   }, []);
 
-  // ── Filtrar ──
+  // ── Filtros paralelos ──
+  // Filtro 1: búsqueda textual
   const reportesFiltrados = reportes.filter(r => {
     const q = busqueda.toLowerCase().trim();
     return !q || (r.ciudad || '').toLowerCase().includes(q)
@@ -160,34 +163,17 @@ export default function MapaDanos() {
       || (r.direccion || '').toLowerCase().includes(q)
       || (r.estado_region || '').toLowerCase().includes(q);
   });
+  // Filtro 2: categoría de daño (paralelo, no cambia el mapa base)
+  const reportesPorDano = reportesFiltrados.filter(r =>
+    filtroDano === 'todos' || r.nivel_dano === filtroDano
+  );
+  // Base: siempre los que tienen coordenadas
+  const reportesConCoords = reportesPorDano.filter(r => getCoords(r));
 
-  const reportesConCoords = reportesFiltrados.filter(r => getCoords(r));
-
-  // ── Según capa activa, filtrar qué reportes tienen datos relevantes ──
+  // ── Capa de servicio: solo cambia color/popup, no oculta edificios ──
   const reportesCapa = useCallback(() => {
-    if (capaActiva === 'dano') return reportesConCoords;
-
-    return reportesConCoords.filter(r => {
-      const eo = estadoOpIndexRef.current[r.id];
-      if (!eo) return false;
-      switch (capaActiva) {
-        case 'acceso':
-          return accesoVal(eo) !== 'no_confirmado';
-        case 'electricidad':
-          return eo.electricidad && eo.electricidad !== 'no_confirmado';
-        case 'agua':
-          return eo.agua && eo.agua !== 'no_confirmado';
-        case 'gas':
-          return eo.gas && eo.gas !== 'no_confirmado' && eo.gas !== 'disponible';
-        case 'sin_novedad':
-          // Edificios donde el daño es leve/sin_danos y todos los servicios disponibles
-          return (r.nivel_dano === 'leve' || !r.nivel_dano || r.nivel_dano === 'no_evaluado') &&
-            (!eo || (eo.electricidad === 'disponible' && eo.agua === 'disponible'));
-        default:
-          return true;
-      }
-    });
-  }, [capaActiva, reportesConCoords]);
+    return reportesConCoords;
+  }, [reportesConCoords]);
 
   // ── Obtener color/peso según capa para un reporte ──
   function getCapaData(r) {
@@ -266,7 +252,7 @@ export default function MapaDanos() {
     if (mapaIniciar && !lowBw) inicializarMapa();
   }, [mapaIniciar, lowBw, inicializarMapa]);
 
-  // ── Renderizar capas según capaActiva ──
+  // ── Renderizar mapa base (siempre edificios, capa solo cambia color/popup) ──
   useEffect(() => {
     if (!mapaListo || !mapInstanceRef.current || !window.L) return;
     const L = window.L;
@@ -277,9 +263,9 @@ export default function MapaDanos() {
     layersRef.current = {};
 
     const datos = reportesCapa();
-
-    // Heatmap (siempre en zoom bajo)
     const zoom = map.getZoom();
+
+    // Heatmap (zoom bajo, solo cuando la capa no es sin_novedad)
     if (zoom < 8 && window.L.heatLayer && capaActiva !== 'sin_novedad') {
       const heatData = datos.map(r => {
         const { peso } = getCapaData(r);
@@ -296,8 +282,8 @@ export default function MapaDanos() {
       }
     }
 
-    // Cluster (zoom medio)
-    if (zoom >= 8 && zoom <= 12 && window.L.markerClusterGroup) {
+    // Siempre: clusters o marcadores según zoom
+    if (zoom <= 12 && window.L.markerClusterGroup) {
       const clusterGroup = L.markerClusterGroup({
         iconCreateFunction: (cluster) => {
           const children = cluster.getAllChildMarkers();
@@ -344,7 +330,6 @@ export default function MapaDanos() {
         const icono = TIPO_ICONO[r.tipo_estructura] || '🏗️';
         const atrapado = ATRAPADOS_ALERTA.includes(r.personas_atrapadas);
 
-        // Usar divIcon con emoji para identificación rápida
         const marker = L.marker(c, {
           icon: L.divIcon({
             html: `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
@@ -468,13 +453,32 @@ export default function MapaDanos() {
               🗺️ {t('Mapa de Daños · Status Vzla', 'Damage Map · Status Vzla')}
             </h1>
             <span style={{ fontSize: 11, color: '#9BA5B0', background: 'rgba(255,255,255,0.06)', padding: '3px 10px', borderRadius: 20 }}>
-              {cargando ? '...' : totalCapa} {t('puntos en esta capa', 'points in this layer')}
+              {cargando ? '...' : reportesConCoords.length} {t('edificios en mapa', 'buildings on map')}
             </span>
           </div>
 
-          {/* ── Barra de capas (tipo semáforo) ── */}
+          {/* ── Filtro paralelo 1: categoría de daño (no modifica el mapa base) ── */}
+          <div style={{ display: 'flex', gap: 4, marginBottom: 6, flexWrap: 'wrap' }}>
+            {FILTROS_DANO.map(f => {
+              const active = filtroDano === f;
+              const color = f === 'todos' ? '#9BA5B0' : DANO_COLOR[f];
+              return (
+                <button key={f} onClick={() => setFiltroDano(f)} style={{
+                  padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, cursor: 'pointer',
+                  background: active ? color : 'rgba(255,255,255,0.05)',
+                  color: active ? '#fff' : (color || '#9BA5B0'),
+                  border: `1px solid ${active ? color : 'rgba(255,255,255,0.1)'}`,
+                  textTransform: 'capitalize',
+                }}>
+                  {f === 'todos' ? t('Todos', 'All') : (DANO_LABEL[f]?.[lang === 'es' ? 'es' : 'en'] || f)}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ── Filtro paralelo 2: capa de servicio (solo cambia color/popup) ── */}
           <div style={{ display: 'flex', gap: 4, marginBottom: 8, flexWrap: 'wrap' }}>
-            {CAPAS.map(c => {
+            {CAPAS_SERVICIO.map(c => {
               const active = capaActiva === c.key;
               return (
                 <button key={c.key} onClick={() => setCapaActiva(c.key)}
