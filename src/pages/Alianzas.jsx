@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Copy, Check, Globe, Database, Mail, Map } from 'lucide-react';
+import { ChevronLeft, Copy, Check, Globe, Database, Mail } from 'lucide-react';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+
 
 const IFRAME_CODE = `<div style="position:relative;width:100%;height:500px;border-radius:12px;overflow:hidden;">
   <iframe
@@ -24,7 +25,6 @@ export default function Alianzas() {
   const { lang } = useLang();
   const es = lang !== 'en';
   const [copiado, setCopiado] = useState(false);
-  const [mapaVisible, setMapaVisible] = useState(false);
 
   const copiar = () => {
     navigator.clipboard.writeText(IFRAME_CODE);
@@ -86,48 +86,30 @@ export default function Alianzas() {
             </p>
           </div>
 
-          {/* Vista previa activable */}
+          {/* Vista previa — botón que abre el mapa en nueva pestaña */}
           <div className="mx-5 mt-4">
-            {!mapaVisible ? (
-              <button
-                onClick={() => setMapaVisible(true)}
-                className="w-full flex flex-col items-center justify-center gap-3 rounded-xl cursor-pointer"
-                style={{
-                  height: 200, border: '2px dashed rgba(111,207,151,0.30)',
-                  background: 'rgba(111,207,151,0.04)',
-                }}
-              >
-                <Map size={32} style={{ color: '#6FCF97', opacity: 0.6 }} />
-                <div className="text-center">
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#6FCF97', margin: 0 }}>
-                    {t('▶ Ver vista previa del mapa', '▶ Preview the map')}
-                  </p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.40)', margin: '4px 0 0' }}>
-                    {t('Clic para cargar (consume datos)', 'Click to load (uses data)')}
-                  </p>
-                </div>
-              </button>
-            ) : (
-              <div style={{ position: 'relative', height: 380, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.10)' }}>
-                <iframe
-                  src="/mapa-danos"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  title="Mapa de daños StatusVzla"
-                  style={{ display: 'block', border: 'none' }}
-                />
-                <div style={{
-                  position: 'absolute', bottom: 10, right: 10,
-                  background: 'rgba(13,17,23,0.90)', border: '1px solid rgba(245,197,24,0.40)',
-                  padding: '4px 10px', borderRadius: 8,
-                  fontSize: 10, fontWeight: 800, color: '#F5C518',
-                  pointerEvents: 'none',
-                }}>
-                  Powered by StatusVzla.com
-                </div>
+            <a
+              href="/mapa-danos"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                gap: 10, height: 160, borderRadius: 12, textDecoration: 'none',
+                border: '2px dashed rgba(111,207,151,0.35)',
+                background: 'rgba(111,207,151,0.05)',
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ fontSize: 36 }}>🗺️</span>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#6FCF97', margin: 0 }}>
+                  {t('Ver mapa en vivo →', 'View live map →')}
+                </p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: '4px 0 0' }}>
+                  statusvzla.com/mapa-danos
+                </p>
               </div>
-            )}
+            </a>
           </div>
 
           {/* Código copiable */}
