@@ -1044,7 +1044,16 @@ export default function Edificios() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Ciudad', 'City', 'Cidade')} <span className="text-red-600">*</span></label>
-                          <input value={ciudad} onChange={e => setCiudad(e.target.value)} placeholder="La Guaira" className={inputCls} />
+                          <input
+                            list="ciudades-lista"
+                            value={ciudad}
+                            onChange={e => setCiudad(e.target.value)}
+                            placeholder="La Guaira"
+                            className={inputCls}
+                          />
+                          <datalist id="ciudades-lista">
+                            {ciudadesDisponibles.map(c => <option key={c} value={c} />)}
+                          </datalist>
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Estado', 'State', 'Estado')} <span className="text-red-600">*</span></label>
