@@ -17,6 +17,7 @@ const LINKS = [
   { to: '/directorio',      es: 'Directorio',         en: 'Directory'       },
   { to: '/guia-plataforma', es: 'Guía de uso',        en: 'User guide'      },
   { to: '/contactanos',     es: 'Contáctanos',        en: 'Contact us'      },
+  { to: '/sobre',           es: 'Sobre nosotros',     en: 'About us'        },
   { to: '/aliados',         es: 'Aliados',            en: 'Partners'        },
 ];
 

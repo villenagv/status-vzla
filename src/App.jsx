@@ -47,6 +47,7 @@ import Directorio from './pages/Directorio';
 import GuiaEdificios from './pages/GuiaEdificios';
 import GuiaPlataforma from './pages/GuiaPlataforma';
 import IdentificacionProfesional from './pages/IdentificacionProfesional.jsx';
+import Sobre from './pages/Sobre.jsx';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -88,6 +89,7 @@ const PublicApp = () => (
     <Route path="/guia-edificios" element={<GuiaEdificios />} />
     <Route path="/guia-plataforma" element={<GuiaPlataforma />} />
     <Route path="/identificacion-profesional" element={<IdentificacionProfesional />} />
+    <Route path="/sobre" element={<Sobre />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
