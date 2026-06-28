@@ -139,6 +139,15 @@
     "estado_region": {
       "type": "string"
     },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "geo_fuente": {
+      "type": "string"
+    },
     "foto_urls": {
       "type": "array",
       "items": {

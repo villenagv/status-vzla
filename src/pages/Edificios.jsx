@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X, Eye, Bell } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -260,6 +260,51 @@ export default function Edificios() {
   const [enviando, setEnviando] = useState(false);
   const [exito, setExito] = useState(null);
 
+  // ── GEOCODIFICACIÓN AUTOMÁTICA ──
+  const [geoCoords, setGeoCoords] = useState(null); // { lat, lng, label }
+  const [geoEstado, setGeoEstado] = useState('idle'); // idle | buscando | ok | error
+  const geoTimerRef = useRef(null);
+
+  const geocodificarDireccion = useCallback(async (direccion, ciudadVal, estadoVal) => {
+    const query = [direccion, ciudadVal, estadoVal, 'Venezuela'].filter(Boolean).join(', ');
+    if (query.replace(/,\s*/g, '').length < 5) return;
+    setGeoEstado('buscando');
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=ve&format=json&limit=1`;
+      const res = await fetch(url, { headers: { 'User-Agent': 'CRIS-Venezuela-Emergency/1.0' } });
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setGeoCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), label: data[0].display_name?.split(',').slice(0, 2).join(',') });
+        setGeoEstado('ok');
+        return;
+      }
+    } catch {}
+    // Fallback: IA si Nominatim falla
+    try {
+      const r = await base44.integrations.Core.InvokeLLM({
+        prompt: `Dame las coordenadas GPS de este lugar en Venezuela: "${[direccion, ciudadVal, estadoVal].filter(Boolean).join(', ')}". Responde SOLO con JSON: {"lat": 10.1234, "lng": -66.5678}. Si no sabes, responde {"lat": null, "lng": null}.`,
+        response_json_schema: { type: 'object', properties: { lat: { type: 'number' }, lng: { type: 'number' } } }
+      });
+      if (r?.lat && r?.lng) {
+        setGeoCoords({ lat: r.lat, lng: r.lng, label: `${ciudadVal || ''} (IA)` });
+        setGeoEstado('ok');
+        return;
+      }
+    } catch {}
+    setGeoEstado('error');
+  }, []);
+
+  // Debounce: geocodificar cuando cambien ciudad o dirección
+  useEffect(() => {
+    if (etapa !== 'formulario') return;
+    clearTimeout(geoTimerRef.current);
+    if (!ciudad && !valDireccion) return;
+    geoTimerRef.current = setTimeout(() => {
+      geocodificarDireccion(valDireccion, ciudad, estado);
+    }, 900);
+    return () => clearTimeout(geoTimerRef.current);
+  }, [ciudad, valDireccion, estado, etapa, geocodificarDireccion]);
+
   const esCritico = nivel === 'critico' || nivel === 'grave' || nivel === 'colapsado' || atrapados === 'si' || atrapados === 'voces';
 
   // ── ETAPA 1: Validación de duplicados ──
@@ -330,6 +375,7 @@ export default function Edificios() {
         agua: agua || 'no_confirmado',
         gas: gas || 'no_confirmado',
         direccion: valDireccion, ciudad, estado_region: estado, descripcion, foto_urls, prioridad,
+        ...(geoCoords ? { lat: geoCoords.lat, lng: geoCoords.lng, geo_fuente: 'nominatim_form' } : {}),
         reportante_nombre: repNombre, reportante_telefono: repTelefono, reportante_email: repEmail,
         contactos_acceso: contactosFiltrados,
         estado_verificacion: 'recibido', nivel_verificacion: 'sin_verificar', fuente: 'ciudadano',
@@ -1083,6 +1129,28 @@ export default function Edificios() {
                           <input value={estado} onChange={e => setEstado(e.target.value)} placeholder="Vargas" className={inputCls} />
                         </div>
                       </div>
+                      {/* Indicador geocodificación automática */}
+                      {geoEstado === 'buscando' && (
+                        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                          <Loader2 size={11} className="animate-spin text-blue-500" />
+                          <span className="text-xs text-blue-700">{t('Buscando coordenadas automáticamente...', 'Finding coordinates automatically...')}</span>
+                        </div>
+                      )}
+                      {geoEstado === 'ok' && geoCoords && (
+                        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                          <MapPin size={11} className="text-green-600" />
+                          <span className="text-xs text-green-700 font-medium">
+                            📍 {t('Coordenadas detectadas', 'Coordinates detected')}: {geoCoords.lat.toFixed(4)}, {geoCoords.lng.toFixed(4)}
+                            {geoCoords.label && <span className="text-green-600"> · {geoCoords.label}</span>}
+                          </span>
+                          <button onClick={() => { setGeoCoords(null); setGeoEstado('idle'); }} className="ml-auto text-gray-400 text-xs cursor-pointer">✕</button>
+                        </div>
+                      )}
+                      {geoEstado === 'error' && (
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                          <span className="text-xs text-gray-500">⚠️ {t('No se encontraron coordenadas. El reporte se guardará sin ubicación en mapa.', 'No coordinates found. Report will be saved without map location.')}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* 3. Nivel */}

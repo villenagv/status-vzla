@@ -11,6 +11,7 @@ import GestionVoluntarios from '@/components/admin/GestionVoluntarios';
 import SubidaMasivaEdificios from '@/components/admin/SubidaMasivaEdificios';
 import GestionUsuarios from '@/components/admin/GestionUsuarios';
 import VoluntariosDetalle from '@/components/admin/VoluntariosDetalle';
+import GeocodificarPanel from '@/components/admin/GeocodificarPanel';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
@@ -102,8 +103,9 @@ const AdminDashboard = () => {
             {tab === 'centros' && <CentrosOperativosPanel />}
             {tab === 'manage' && <AdminDataPanel />}
             {tab === 'edificios_masivo' && (
-              <div style={{ maxWidth: 680, margin: '0 auto' }}>
+              <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <SubidaMasivaEdificios />
+                <GeocodificarPanel />
               </div>
             )}
             {tab === 'dossier' && (

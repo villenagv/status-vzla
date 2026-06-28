@@ -1,500 +1,613 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Map, List, Filter, X, Loader2, AlertTriangle } from 'lucide-react';
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import { Loader2, Map, List, Search, RotateCcw, X, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
-import 'leaflet/dist/leaflet.css';
 
-const DANO_CONFIG = {
-  leve:        { color: '#D97706', bg: '#FEF3C7', label: { es: 'Leve',        en: 'Minor'     }, pill: 'bg-amber-500'   },
-  moderado:    { color: '#EA580C', bg: '#FFEDD5', label: { es: 'Moderado',    en: 'Moderate'  }, pill: 'bg-orange-600'  },
-  grave:       { color: '#DC2626', bg: '#FEE2E2', label: { es: 'Grave',       en: 'Severe'    }, pill: 'bg-red-600'     },
-  critico:     { color: '#7F1D1D', bg: '#FEE2E2', label: { es: 'Crítico',     en: 'Critical'  }, pill: 'bg-red-900'     },
-  colapsado:   { color: '#1F2937', bg: '#F3F4F6', label: { es: 'Colapsado',   en: 'Collapsed' }, pill: 'bg-gray-800'    },
-  no_evaluado: { color: '#6B7280', bg: '#F9FAFB', label: { es: 'Sin evaluar', en: 'Unknown'   }, pill: 'bg-gray-500'    },
+// ── Configuración de colores por nivel de daño ──
+const DANO_COLOR = {
+  colapsado:   '#dc2626',
+  critico:     '#ef4444',
+  grave:       '#d97706',
+  moderado:    '#f59e0b',
+  leve:        '#16a34a',
+  no_evaluado: '#9ca3af',
+};
+const DANO_LABEL = {
+  colapsado:   { es: 'Colapsado',   en: 'Collapsed'   },
+  critico:     { es: 'Crítico',     en: 'Critical'     },
+  grave:       { es: 'Grave',       en: 'Severe'       },
+  moderado:    { es: 'Moderado',    en: 'Moderate'     },
+  leve:        { es: 'Leve',        en: 'Minor'        },
+  no_evaluado: { es: 'Sin evaluar', en: 'Not evaluated'},
+};
+const DANO_PESO = {
+  colapsado: 1.0, critico: 0.8, grave: 0.6,
+  moderado: 0.4, leve: 0.2, no_evaluado: 0.1,
+};
+const ATRAPADOS_ALERTA = ['si', 'voces', 'posible'];
+const FILTROS = ['todos', 'colapsado', 'critico', 'grave', 'moderado', 'leve', 'no_evaluado'];
+
+// ── Coordenadas por ciudad para fallback ──
+const CIUDAD_COORDS = {
+  'caracas': [10.4806, -66.9036], 'maracaibo': [10.6317, -71.6408],
+  'valencia': [10.1621, -68.0077], 'barquisimeto': [10.0678, -69.3127],
+  'maracay': [10.2469, -67.5958], 'barcelona': [10.1167, -64.7000],
+  'puerto la cruz': [10.2153, -64.6387], 'maturin': [9.7453, -63.1804],
+  'ciudad bolivar': [8.1226, -63.5497], 'san cristobal': [7.7662, -72.2252],
+  'merida': [8.6320, -71.1375], 'guanare': [9.0427, -69.7484],
+  'barinas': [8.6222, -70.2083], 'cumana': [10.4631, -63.8533],
+  'punto fijo': [11.7066, -70.1990], 'coro': [11.4040, -69.6735],
+  'la guaira': [10.6028, -66.9351], 'vargas': [10.6028, -66.9351],
+  'catia la mar': [10.5906, -66.9561], 'guarenas': [10.4728, -66.5369],
+  'guatire': [10.4728, -66.5369], 'los teques': [10.3458, -67.0392],
+  'turmero': [10.2284, -67.4797], 'cagua': [10.1916, -67.4604],
+  'villa de cura': [10.0276, -67.4930], 'san juan de los morros': [9.9067, -67.3557],
+  'el tigre': [8.8860, -64.2531], 'mene grande': [9.8167, -70.9333],
+  'cabimas': [10.3975, -71.4558], 'lagunillas': [10.1325, -71.2597],
 };
 
-// Coordenadas aproximadas de ciudades venezolanas para geocodificación básica
-const COORDS_CIUDAD = {
-  'caracas':          [10.4806, -66.9036],
-  'la guaira':        [10.6008, -66.9329],
-  'vargas':           [10.6008, -66.9329],
-  'maracaibo':        [10.6315, -71.6361],
-  'valencia':         [10.1620, -68.0070],
-  'barquisimeto':     [10.0647, -69.3571],
-  'maracay':          [10.2469, -67.5962],
-  'maturín':          [9.7458,  -63.1819],
-  'ciudad bolívar':   [8.1224,  -63.5497],
-  'barcelona':        [10.1243, -64.6894],
-  'cumana':           [10.4630, -64.1660],
-  'mérida':           [8.5982,  -71.1441],
-  'san cristóbal':    [7.7680,  -72.2250],
-  'puerto ordaz':     [8.3001,  -62.7253],
-  'barinas':          [8.6207,  -70.2070],
-  'guanare':          [9.0441,  -69.7467],
-  'acarigua':         [9.5601,  -69.1997],
-  'punto fijo':       [11.7010, -70.2170],
-  'coro':             [11.4049, -69.6682],
-  'los teques':       [10.3499, -67.0440],
-  'turmero':          [10.2237, -67.4697],
-  'cabimas':          [10.3900, -71.4564],
-  'carabobo':         [10.1620, -68.0070],
-};
-
-function getCoords(reporte) {
-  if (reporte.lat && reporte.lng) return [reporte.lat, reporte.lng];
-  const ciudad = (reporte.ciudad || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  for (const [key, coords] of Object.entries(COORDS_CIUDAD)) {
-    const keyNorm = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    if (ciudad.includes(keyNorm) || keyNorm.includes(ciudad)) return coords;
-  }
-  return null;
+function getCoordsFromRecord(r) {
+  if (r.lat && r.lng) return [r.lat, r.lng];
+  const ciudad = (r.ciudad || '').toLowerCase().trim();
+  return CIUDAD_COORDS[ciudad] || null;
 }
 
-const FILTROS_DANO = ['todos', 'critico', 'colapsado', 'grave', 'moderado', 'leve', 'no_evaluado'];
+// ── Resumen por estado ──
+function calcResumenEstados(reportes) {
+  const map = {};
+  for (const r of reportes) {
+    const e = r.estado_region || 'Sin estado';
+    if (!map[e]) map[e] = { total: 0, colapsado: 0, critico: 0, grave: 0, moderado: 0, leve: 0, no_evaluado: 0 };
+    map[e].total++;
+    map[e][r.nivel_dano || 'no_evaluado'] = (map[e][r.nivel_dano || 'no_evaluado'] || 0) + 1;
+  }
+  return Object.entries(map).sort((a, b) => b[1].total - a[1].total);
+}
+
+function calcResumenCiudades(reportes) {
+  const map = {};
+  for (const r of reportes) {
+    const c = r.ciudad || 'Sin ciudad';
+    if (!map[c]) map[c] = { total: 0, maxDano: 'no_evaluado', lat: null, lng: null };
+    map[c].total++;
+    const pesoActual = DANO_PESO[map[c].maxDano] || 0;
+    if ((DANO_PESO[r.nivel_dano] || 0) > pesoActual) map[c].maxDano = r.nivel_dano;
+    if (!map[c].lat) {
+      const coords = getCoordsFromRecord(r);
+      if (coords) { map[c].lat = coords[0]; map[c].lng = coords[1]; }
+    }
+  }
+  return Object.entries(map).sort((a, b) => b[1].total - a[1].total);
+}
 
 export default function MapaDanos() {
   const { lang } = useLang();
   const { lowBw } = useLowBw();
   const es = lang === 'es';
+  const t = (esStr, enStr) => es ? esStr : enStr;
 
   const [reportes, setReportes] = useState([]);
-  const [cargando, setCargando] = useState(false);
-  const [mapaCargado, setMapaCargado] = useState(false);
-  const [vistaLista, setVistaLista] = useState(false);
-  const [filtroDano, setFiltroDano] = useState('todos');
-  const [ciudadSeleccionada, setCiudadSeleccionada] = useState('');
-  const [panelAbierto, setPanelAbierto] = useState(false);
-  const [error, setError] = useState(false);
+  const [cargando, setCargando] = useState(true);
+  const [filtroNivel, setFiltroNivel] = useState('todos');
+  const [busqueda, setBusqueda] = useState('');
+  const [vistaActiva, setVistaActiva] = useState('calor'); // calor | zonas | edificios
+  const [reporteSeleccionado, setReporteSeleccionado] = useState(null);
+  const [panelAbierto, setPanelAbierto] = useState(true);
+  const [mapaListo, setMapaListo] = useState(false);
+  const [mapaIniciar, setMapaIniciar] = useState(!lowBw);
 
-  const t = (e, en) => es ? e : en;
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const layersRef = useRef({ heat: null, cluster: null, markers: null });
+  const scriptsRef = useRef({ leaflet: false, heat: false, cluster: false });
 
-  const cargarDatos = async () => {
-    setCargando(true);
-    setError(false);
-    try {
-      const data = await base44.entities.ReportesDano.list('-updated_date', 500);
-      setReportes(data || []);
-    } catch {
-      setError(true);
+  // ── Cargar datos ──
+  useEffect(() => {
+    base44.entities.ReportesDano.list('-updated_date', 500)
+      .then(d => setReportes(d || []))
+      .catch(() => {})
+      .finally(() => setCargando(false));
+  }, []);
+
+  // ── Reportes filtrados ──
+  const reportesFiltrados = reportes.filter(r => {
+    const passNivel = filtroNivel === 'todos' || r.nivel_dano === filtroNivel;
+    const q = busqueda.toLowerCase().trim();
+    const passQ = !q || (r.ciudad || '').toLowerCase().includes(q)
+      || (r.nombre_lugar || '').toLowerCase().includes(q)
+      || (r.direccion || '').toLowerCase().includes(q);
+    return passNivel && passQ;
+  });
+
+  const reportesConCoords = reportesFiltrados.filter(r => getCoordsFromRecord(r));
+
+  // ── Cargar scripts de Leaflet ──
+  const cargarScripts = useCallback(() => {
+    return new Promise((resolve) => {
+      if (window.L) { resolve(); return; }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+
+      const s1 = document.createElement('script');
+      s1.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      s1.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js';
+        s2.onload = () => {
+          const link2 = document.createElement('link');
+          link2.rel = 'stylesheet';
+          link2.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
+          document.head.appendChild(link2);
+          const link3 = document.createElement('link');
+          link3.rel = 'stylesheet';
+          link3.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css';
+          document.head.appendChild(link3);
+          const s3 = document.createElement('script');
+          s3.src = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+          s3.onload = () => resolve();
+          document.head.appendChild(s3);
+        };
+        document.head.appendChild(s2);
+      };
+      document.head.appendChild(s1);
+    });
+  }, []);
+
+  // ── Inicializar mapa ──
+  const inicializarMapa = useCallback(async () => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+    await cargarScripts();
+    const L = window.L;
+    const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: true })
+      .setView([10.3, -66.9], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      maxZoom: 18,
+    }).addTo(map);
+    mapInstanceRef.current = map;
+    map.on('zoomend', () => actualizarVistaPorZoom(map.getZoom()));
+    setMapaListo(true);
+  }, [cargarScripts]);
+
+  useEffect(() => {
+    if (mapaIniciar && !lowBw) inicializarMapa();
+  }, [mapaIniciar, lowBw, inicializarMapa]);
+
+  // ── Actualizar vista según zoom ──
+  const actualizarVistaPorZoom = useCallback((zoom) => {
+    if (zoom < 8) setVistaActiva('calor');
+    else if (zoom <= 11) setVistaActiva('zonas');
+    else setVistaActiva('edificios');
+  }, []);
+
+  // ── Renderizar capas ──
+  useEffect(() => {
+    if (!mapaListo || !mapInstanceRef.current || !window.L) return;
+    const L = window.L;
+    const map = mapInstanceRef.current;
+
+    // Limpiar capas anteriores
+    if (layersRef.current.heat) { map.removeLayer(layersRef.current.heat); layersRef.current.heat = null; }
+    if (layersRef.current.cluster) { map.removeLayer(layersRef.current.cluster); layersRef.current.cluster = null; }
+    if (layersRef.current.markers) { map.removeLayer(layersRef.current.markers); layersRef.current.markers = null; }
+
+    const puntos = reportesConCoords.map(r => getCoordsFromRecord(r) ? { r, coords: getCoordsFromRecord(r) } : null).filter(Boolean);
+
+    if (vistaActiva === 'calor' && window.L.heatLayer) {
+      const heatData = puntos.map(({ r, coords }) => [...coords, DANO_PESO[r.nivel_dano] || 0.1]);
+      const heat = L.heatLayer(heatData, { radius: 35, blur: 20, maxZoom: 17, gradient: { 0.1: '#9ca3af', 0.3: '#16a34a', 0.5: '#f59e0b', 0.7: '#d97706', 0.9: '#ef4444', 1.0: '#dc2626' } });
+      heat.addTo(map);
+      layersRef.current.heat = heat;
+    } else if (vistaActiva === 'zonas' && window.L.markerClusterGroup) {
+      const clusterGroup = L.markerClusterGroup({
+        iconCreateFunction: (cluster) => {
+          const children = cluster.getAllChildMarkers();
+          let maxPeso = 0;
+          let maxNivel = 'no_evaluado';
+          children.forEach(m => {
+            const p = DANO_PESO[m.options.nivel] || 0;
+            if (p > maxPeso) { maxPeso = p; maxNivel = m.options.nivel; }
+          });
+          const color = DANO_COLOR[maxNivel] || '#9ca3af';
+          return L.divIcon({
+            html: `<div style="background:${color};color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid rgba(255,255,255,0.6);box-shadow:0 2px 6px rgba(0,0,0,0.3)">${cluster.getChildCount()}</div>`,
+            className: '', iconSize: [36, 36],
+          });
+        }
+      });
+      puntos.forEach(({ r, coords }) => {
+        const color = DANO_COLOR[r.nivel_dano] || '#9ca3af';
+        const marker = L.circleMarker(coords, {
+          radius: 8, fillColor: color, color: '#fff',
+          weight: 1.5, opacity: 1, fillOpacity: 0.9,
+          nivel: r.nivel_dano,
+        });
+        marker.bindPopup(buildPopup(r, es));
+        marker.on('click', () => setReporteSeleccionado(r));
+        clusterGroup.addLayer(marker);
+      });
+      clusterGroup.addTo(map);
+      layersRef.current.cluster = clusterGroup;
+    } else if (vistaActiva === 'edificios') {
+      const bounds = map.getBounds();
+      const visibles = puntos.filter(({ coords }) =>
+        coords[0] >= bounds.getSouth() && coords[0] <= bounds.getNorth() &&
+        coords[1] >= bounds.getWest() && coords[1] <= bounds.getEast()
+      ).slice(0, 150);
+
+      const markersLayer = L.layerGroup();
+      visibles.forEach(({ r, coords }) => {
+        const color = DANO_COLOR[r.nivel_dano] || '#9ca3af';
+        const atrapado = ATRAPADOS_ALERTA.includes(r.personas_atrapadas);
+        const marker = L.circleMarker(coords, {
+          radius: 9,
+          fillColor: color,
+          color: atrapado ? '#7c3aed' : '#fff',
+          weight: atrapado ? 3 : 1.5,
+          opacity: 1, fillOpacity: 0.95,
+        });
+        marker.bindPopup(buildPopup(r, es));
+        marker.on('click', () => setReporteSeleccionado(r));
+        markersLayer.addLayer(marker);
+      });
+      markersLayer.addTo(map);
+      layersRef.current.markers = markersLayer;
     }
-    setCargando(false);
+  }, [mapaListo, vistaActiva, reportesConCoords, es]);
+
+  // Recargar edificios al mover mapa
+  useEffect(() => {
+    if (!mapaListo || !mapInstanceRef.current || vistaActiva !== 'edificios') return;
+    const map = mapInstanceRef.current;
+    const handler = () => {
+      // Trigger re-render de capa
+      if (layersRef.current.markers) {
+        map.removeLayer(layersRef.current.markers);
+        layersRef.current.markers = null;
+      }
+      // El siguiente useEffect lo reconstruirá
+      setVistaActiva(v => v); // forzar re-render
+    };
+    map.on('moveend', handler);
+    return () => map.off('moveend', handler);
+  }, [mapaListo, vistaActiva]);
+
+  const resetZoom = () => {
+    if (mapInstanceRef.current) mapInstanceRef.current.setView([10.3, -66.9], 7);
   };
 
-  const cargarMapa = async () => {
-    if (mapaCargado) return;
-    await cargarDatos();
-    setMapaCargado(true);
-  };
-
-  // Reportes con coordenadas
-  const reportesConCoords = useMemo(() =>
-    reportes.map(r => ({ ...r, _coords: getCoords(r) })).filter(r => r._coords),
-  [reportes]);
-
-  // Ciudades únicas
-  const ciudades = useMemo(() => {
-    const mapa = {};
-    reportes.forEach(r => {
-      const c = r.ciudad || t('Sin ciudad', 'No city');
-      if (!mapa[c]) mapa[c] = { total: 0, critico: 0, grave: 0, moderado: 0, leve: 0 };
-      mapa[c].total++;
-      if (['critico', 'colapsado'].includes(r.nivel_dano)) mapa[c].critico++;
-      else if (r.nivel_dano === 'grave') mapa[c].grave++;
-      else if (r.nivel_dano === 'moderado') mapa[c].moderado++;
-      else if (r.nivel_dano === 'leve') mapa[c].leve++;
-    });
-    return Object.entries(mapa).sort((a, b) => b[1].total - a[1].total);
-  }, [reportes]);
-
-  // Filtrado
-  const reportesFiltrados = useMemo(() => {
-    return reportesConCoords.filter(r => {
-      const passDano = filtroDano === 'todos' || r.nivel_dano === filtroDano;
-      const passCiudad = !ciudadSeleccionada || (r.ciudad || '') === ciudadSeleccionada;
-      return passDano && passCiudad;
-    });
-  }, [reportesConCoords, filtroDano, ciudadSeleccionada]);
-
-  // Centro del mapa: si hay ciudad seleccionada, centrar ahí; si no, Venezuela
-  const centroMapa = useMemo(() => {
-    if (ciudadSeleccionada && reportesFiltrados.length > 0) {
-      return reportesFiltrados[0]._coords;
-    }
-    return [8.0, -66.5];
-  }, [ciudadSeleccionada, reportesFiltrados]);
-
-  const zoomMapa = ciudadSeleccionada ? 12 : 6;
-
-  if (lowBw) {
-    return (
-      <div className="min-h-screen flex flex-col" style={{ background: '#0D1117' }}>
-        <TopBar />
-        <div className="flex-1 max-w-lg mx-auto px-4 py-6 w-full">
-          <Link to="/edificios" className="flex items-center gap-1 text-sm mb-4" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            <ChevronLeft size={15} /> {t('Edificios', 'Buildings')}
-          </Link>
-          <div className="cris-card text-center py-8">
-            <Map size={32} className="mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.4)' }} />
-            <p className="text-sm font-bold" style={{ color: '#F0F6FC' }}>{t('Mapa desactivado en modo bajo consumo', 'Map disabled in low-bandwidth mode')}</p>
-            <p className="text-xs mt-2 mb-4" style={{ color: 'rgba(255,255,255,0.55)' }}>
-              {t('Para cuidar tus datos. Usa el directorio de edificios.', 'To save your data. Use the buildings directory.')}
-            </p>
-            <Link to="/edificios" className="inline-flex items-center gap-2 text-sm font-bold px-5 py-3 rounded-xl no-underline" style={{ background: '#2471A3', color: '#fff' }}>
-              <List size={15} /> {t('Ver directorio de edificios', 'View buildings directory')}
-            </Link>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+  const resumenEstados = calcResumenEstados(reportesFiltrados);
+  const resumenCiudades = calcResumenCiudades(reportesFiltrados);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0D1117' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#0D1117' }}>
       <TopBar />
 
-      <div className="flex-1 flex flex-col" style={{ maxWidth: 1200, margin: '0 auto', width: '100%', padding: '0 0 0 0' }}>
+      {/* ── HEADER ── */}
+      <div style={{ background: '#111318', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '10px 16px', position: 'sticky', top: 54, zIndex: 30 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          {/* Título + contador */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+            <h1 style={{ fontSize: 15, fontWeight: 800, color: '#F0F6FC', margin: 0 }}>
+              🗺️ {t('Mapa de Daños · CRIS Venezuela 2026', 'Damage Map · CRIS Venezuela 2026')}
+            </h1>
+            <span style={{ fontSize: 11, color: '#9BA5B0', background: 'rgba(255,255,255,0.06)', padding: '3px 10px', borderRadius: 20 }}>
+              {cargando ? '...' : reportesConCoords.length} {t('reportes visibles', 'visible reports')}
+            </span>
+          </div>
 
-        {/* Header */}
-        <div className="px-4 pt-4 pb-3">
-          <Link to="/edificios" className="inline-flex items-center gap-1 text-sm mb-3" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            <ChevronLeft size={15} /> {t('Edificios', 'Buildings')}
-          </Link>
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h1 className="text-lg font-black" style={{ color: '#F0F6FC' }}>
-                🗺️ {t('Mapa de daños', 'Damage map')}
-              </h1>
-              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.50)' }}>
-                {t('Edificios reportados en Venezuela · Datos de la comunidad', 'Reported buildings in Venezuela · Community data')}
-              </p>
+          {/* Selector de vista */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+            {[
+              { key: 'calor',     label: t('🔥 Calor', '🔥 Heat')         },
+              { key: 'zonas',     label: t('🔵 Zonas', '🔵 Zones')        },
+              { key: 'edificios', label: t('📍 Edificios', '📍 Buildings') },
+            ].map(v => (
+              <button key={v.key} onClick={() => {
+                setVistaActiva(v.key);
+                if (mapInstanceRef.current) {
+                  const z = v.key === 'calor' ? 7 : v.key === 'zonas' ? 9 : 13;
+                  mapInstanceRef.current.setZoom(z);
+                }
+              }} style={{
+                padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                background: vistaActiva === v.key ? '#F0F6FC' : 'rgba(255,255,255,0.06)',
+                color: vistaActiva === v.key ? '#0D1117' : '#9BA5B0',
+                border: `1px solid ${vistaActiva === v.key ? '#F0F6FC' : 'rgba(255,255,255,0.1)'}`,
+              }}>{v.label}</button>
+            ))}
+          </div>
+
+          {/* Filtros de nivel + búsqueda */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {FILTROS.map(f => {
+                const active = filtroNivel === f;
+                const color = f === 'todos' ? '#9BA5B0' : DANO_COLOR[f];
+                return (
+                  <button key={f} onClick={() => setFiltroNivel(f)} style={{
+                    padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, cursor: 'pointer',
+                    background: active ? color : 'rgba(255,255,255,0.05)',
+                    color: active ? '#fff' : (color || '#9BA5B0'),
+                    border: `1px solid ${active ? color : 'rgba(255,255,255,0.1)'}`,
+                    textTransform: 'capitalize',
+                  }}>
+                    {f === 'todos' ? t('Todos', 'All') : (DANO_LABEL[f]?.[lang === 'es' ? 'es' : 'en'] || f)}
+                  </button>
+                );
+              })}
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setVistaLista(v => !v)}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer"
-                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}
-              >
-                {vistaLista ? <><Map size={13} /> {t('Mapa', 'Map')}</> : <><List size={13} /> {t('Lista', 'List')}</>}
-              </button>
-              {/* Botón panel en móvil */}
-              <button
-                onClick={() => setPanelAbierto(v => !v)}
-                className="md:hidden flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer"
-                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}
-              >
-                <Filter size={13} /> {t('Filtros', 'Filters')}
-                {(filtroDano !== 'todos' || ciudadSeleccionada) && (
-                  <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center">!</span>
-                )}
-              </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: '4px 12px', flex: 1, minWidth: 140, maxWidth: 260 }}>
+              <Search size={12} color="#9BA5B0" />
+              <input value={busqueda} onChange={e => setBusqueda(e.target.value)}
+                placeholder={t('Ciudad o dirección...', 'City or address...')}
+                style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 11, color: '#F0F6FC', width: '100%' }} />
+              {busqueda && <button onClick={() => setBusqueda('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9BA5B0', padding: 0 }}><X size={10} /></button>}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Filtros de daño (pills) — siempre visibles */}
-        <div className="px-4 pb-3 flex flex-wrap gap-1.5">
-          {FILTROS_DANO.map(f => {
-            const cfg = DANO_CONFIG[f];
-            const active = filtroDano === f;
-            const label = f === 'todos' ? t('Todos', 'All') : (cfg ? t(cfg.label.es, cfg.label.en) : f);
-            return (
-              <button
-                key={f}
-                onClick={() => setFiltroDano(f)}
-                className="rounded-full text-xs font-semibold px-3 py-1.5 cursor-pointer transition-colors border"
-                style={active
-                  ? { background: cfg ? cfg.color : '#374151', color: '#fff', borderColor: 'transparent' }
-                  : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.65)', borderColor: 'rgba(255,255,255,0.12)' }
-                }
-              >
-                {f !== 'todos' && cfg && <span className="mr-1">{
-                  f === 'critico' ? '🚨' : f === 'colapsado' ? '💥' : f === 'grave' ? '🔴' : f === 'moderado' ? '🟠' : f === 'leve' ? '🟡' : '⚪'
-                }</span>}
-                {label}
-              </button>
-            );
-          })}
-          {(filtroDano !== 'todos' || ciudadSeleccionada) && (
-            <button
-              onClick={() => { setFiltroDano('todos'); setCiudadSeleccionada(''); }}
-              className="rounded-full text-xs font-semibold px-3 py-1.5 cursor-pointer flex items-center gap-1"
-              style={{ background: 'rgba(239,68,68,0.15)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,0.25)' }}
-            >
-              <X size={10} /> {t('Limpiar', 'Clear')}
-            </button>
+      {/* ── CUERPO: Panel + Mapa ── */}
+      <div style={{ display: 'flex', flex: 1, position: 'relative', minHeight: 'calc(100vh - 180px)' }}>
+
+        {/* ── PANEL LATERAL ── */}
+        <div style={{
+          width: panelAbierto ? 220 : 0,
+          minWidth: panelAbierto ? 220 : 0,
+          overflow: 'hidden',
+          background: '#111318',
+          borderRight: '1px solid rgba(255,255,255,0.07)',
+          transition: 'width 200ms ease',
+          display: 'flex', flexDirection: 'column',
+          overflowY: 'auto',
+          maxHeight: 'calc(100vh - 180px)',
+          position: 'sticky', top: 180,
+          flexShrink: 0,
+        }}>
+          {panelAbierto && (
+            <div style={{ padding: 12, minWidth: 220 }}>
+              {/* Vista Calor → por estado */}
+              {vistaActiva === 'calor' && (
+                <>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#9BA5B0', textTransform: 'uppercase', marginBottom: 8 }}>
+                    {t('Por estado / región', 'By state / region')}
+                  </p>
+                  {resumenEstados.slice(0, 15).map(([estado, data]) => {
+                    const maxNivel = ['colapsado','critico','grave','moderado','leve'].find(n => data[n] > 0) || 'no_evaluado';
+                    const color = DANO_COLOR[maxNivel];
+                    const pct = Math.round((data.total / Math.max(1, resumenEstados[0][1].total)) * 100);
+                    return (
+                      <div key={estado} style={{ marginBottom: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                          <span style={{ fontSize: 10, color: '#C0C8D2', fontWeight: 500 }}>{estado}</span>
+                          <span style={{ fontSize: 10, color: color, fontWeight: 700 }}>{data.total}</span>
+                        </div>
+                        <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 4 }}>
+                          <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 4 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Vista Zonas → ranking ciudades */}
+              {vistaActiva === 'zonas' && (
+                <>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#9BA5B0', textTransform: 'uppercase', marginBottom: 8 }}>
+                    {t('Ciudades afectadas', 'Affected cities')}
+                  </p>
+                  {resumenCiudades.slice(0, 20).map(([ciudad, data]) => {
+                    const color = DANO_COLOR[data.maxDano] || '#9ca3af';
+                    return (
+                      <button key={ciudad} onClick={() => {
+                        if (mapInstanceRef.current && data.lat) {
+                          mapInstanceRef.current.setView([data.lat, data.lng], 12);
+                        }
+                      }} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        width: '100%', background: 'transparent', border: 'none',
+                        padding: '5px 0', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                          <span style={{ fontSize: 11, color: '#C0C8D2', textAlign: 'left' }}>{ciudad}</span>
+                        </div>
+                        <span style={{ fontSize: 10, color: color, fontWeight: 700 }}>{data.total}</span>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Vista Edificios → ficha seleccionada */}
+              {vistaActiva === 'edificios' && (
+                <>
+                  {reporteSeleccionado ? (
+                    <>
+                      <button onClick={() => setReporteSeleccionado(null)} style={{ background: 'none', border: 'none', color: '#9BA5B0', fontSize: 10, cursor: 'pointer', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        ← {t('Todos', 'All')}
+                      </button>
+                      {reporteSeleccionado.foto_urls?.[0] && (
+                        <img src={reporteSeleccionado.foto_urls[0]} alt="" style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 8, marginBottom: 8 }} />
+                      )}
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#F0F6FC', marginBottom: 4 }}>
+                        {reporteSeleccionado.nombre_lugar || reporteSeleccionado.tipo_estructura?.replace(/_/g, ' ') || '—'}
+                      </p>
+                      <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: DANO_COLOR[reporteSeleccionado.nivel_dano] || '#9ca3af', color: '#fff', marginBottom: 6 }}>
+                        {DANO_LABEL[reporteSeleccionado.nivel_dano]?.[es ? 'es' : 'en'] || reporteSeleccionado.nivel_dano}
+                      </span>
+                      {ATRAPADOS_ALERTA.includes(reporteSeleccionado.personas_atrapadas) && (
+                        <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: '#7c3aed', color: '#fff', marginBottom: 6, marginLeft: 4 }}>
+                          🆘 {t('Atrapados', 'Trapped')}
+                        </span>
+                      )}
+                      <p style={{ fontSize: 11, color: '#9BA5B0', marginBottom: 2 }}>📍 {reporteSeleccionado.ciudad}, {reporteSeleccionado.estado_region}</p>
+                      {reporteSeleccionado.direccion && <p style={{ fontSize: 10, color: '#9BA5B0' }}>{reporteSeleccionado.direccion}</p>}
+                      <Link to={`/edificio?id=${reporteSeleccionado.id}`} style={{ display: 'block', marginTop: 10, fontSize: 11, color: '#4A9EDB', textDecoration: 'none', textAlign: 'center', background: 'rgba(74,158,219,0.1)', borderRadius: 8, padding: '6px 0', border: '1px solid rgba(74,158,219,0.2)' }}>
+                        {t('Ver ficha completa →', 'Full details →')}
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ fontSize: 10, fontWeight: 700, color: '#9BA5B0', textTransform: 'uppercase', marginBottom: 8 }}>
+                        {t('Edificios en vista', 'Buildings in view')}
+                      </p>
+                      <p style={{ fontSize: 11, color: '#9BA5B0' }}>
+                        {t('Haz clic en un marcador del mapa para ver la ficha.', 'Click a marker on the map to see details.')}
+                      </p>
+                      <div style={{ marginTop: 8 }}>
+                        {reportesConCoords.slice(0, 8).map(r => (
+                          <button key={r.id} onClick={() => setReporteSeleccionado(r)} style={{
+                            display: 'flex', width: '100%', background: 'none', border: 'none',
+                            borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '6px 0', cursor: 'pointer', gap: 6, alignItems: 'center',
+                          }}>
+                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: DANO_COLOR[r.nivel_dano] || '#9ca3af', flexShrink: 0 }} />
+                            <span style={{ fontSize: 10, color: '#C0C8D2', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {r.nombre_lugar || r.ciudad || '—'}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Cuerpo: panel + mapa */}
-        <div className="flex flex-1 relative" style={{ minHeight: 500 }}>
+        {/* Toggle panel en mobile */}
+        <button onClick={() => setPanelAbierto(v => !v)} style={{
+          position: 'absolute', left: panelAbierto ? 220 : 0, top: 12, zIndex: 20,
+          background: '#161B22', border: '1px solid rgba(255,255,255,0.1)', borderLeft: 'none',
+          color: '#9BA5B0', padding: '6px 4px', cursor: 'pointer', borderRadius: '0 6px 6px 0',
+          transition: 'left 200ms ease',
+        }}>
+          <ChevronRight size={12} style={{ transform: panelAbierto ? 'rotate(180deg)' : 'none' }} />
+        </button>
 
-          {/* Panel lateral — desktop siempre visible, mobile drawer */}
-          <aside
-            className={`
-              md:flex flex-col
-              ${panelAbierto ? 'flex' : 'hidden'}
-              md:relative absolute inset-y-0 left-0 z-30
-            `}
-            style={{
-              width: 200,
-              background: '#fff',
-              borderRight: '1px solid rgba(0,0,0,0.08)',
-              overflowY: 'auto',
-              flexShrink: 0,
-            }}
-          >
-            {/* Header panel */}
-            <div className="flex items-center justify-between px-3 py-2.5 sticky top-0 bg-white border-b border-gray-100 z-10">
-              <span className="text-xs font-black text-gray-700 uppercase tracking-wide">📍 {t('Ciudades', 'Cities')}</span>
-              <button onClick={() => setPanelAbierto(false)} className="md:hidden text-gray-400 hover:text-gray-700 cursor-pointer">
-                <X size={14} />
+        {/* ── CONTENEDOR DEL MAPA ── */}
+        <div style={{ flex: 1, position: 'relative' }}>
+          {!mapaIniciar && lowBw ? (
+            // Modo bajo consumo → vista lista
+            <div style={{ padding: 20 }}>
+              <div style={{ background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, display: 'flex', gap: 10 }}>
+                <span style={{ fontSize: 16 }}>⚡</span>
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#FCD34D', margin: 0 }}>{t('Modo bajo consumo activo', 'Low-bandwidth mode active')}</p>
+                  <p style={{ fontSize: 11, color: '#9BA5B0', margin: 0 }}>{t('El mapa está desactivado para ahorrar datos.', 'Map is disabled to save data.')}</p>
+                </div>
+              </div>
+              <button onClick={() => setMapaIniciar(true)} style={{ background: '#2471A3', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 16 }}>
+                🗺️ {t('Cargar mapa de todas formas', 'Load map anyway')}
               </button>
-            </div>
-
-            {/* Opción "Todas" */}
-            <button
-              onClick={() => { setCiudadSeleccionada(''); setPanelAbierto(false); }}
-              className="w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-colors"
-              style={{
-                background: !ciudadSeleccionada ? '#1E3A5F' : 'transparent',
-                color: !ciudadSeleccionada ? '#fff' : '#374151',
-              }}
-            >
-              🇻🇪 {t('Toda Venezuela', 'All Venezuela')}
-              <span className="ml-1 text-[10px] opacity-60">({reportes.length})</span>
-            </button>
-
-            {/* Lista de ciudades */}
-            {ciudades.map(([ciudad, stats]) => {
-              const active = ciudadSeleccionada === ciudad;
-              const pct_critico = stats.total > 0 ? Math.round((stats.critico / stats.total) * 100) : 0;
-              const pct_grave   = stats.total > 0 ? Math.round((stats.grave   / stats.total) * 100) : 0;
-              const pct_mod     = stats.total > 0 ? Math.round((stats.moderado/ stats.total) * 100) : 0;
-              const pct_leve    = stats.total > 0 ? Math.round((stats.leve    / stats.total) * 100) : 0;
-              return (
-                <button
-                  key={ciudad}
-                  onClick={() => { setCiudadSeleccionada(ciudad); setPanelAbierto(false); }}
-                  className="w-full text-left px-3 py-2.5 cursor-pointer transition-colors border-b"
-                  style={{
-                    background: active ? '#EFF6FF' : 'transparent',
-                    borderColor: '#F3F4F6',
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-gray-800 truncate pr-1">{ciudad}</span>
-                    <span className="text-[10px] text-gray-400 flex-shrink-0">{stats.total}</span>
-                  </div>
-                  {/* Barra de color proporcional */}
-                  <div className="flex h-1.5 rounded-full overflow-hidden gap-px">
-                    {pct_critico > 0 && <div style={{ width: `${pct_critico}%`, background: DANO_CONFIG.critico.color }} />}
-                    {pct_grave   > 0 && <div style={{ width: `${pct_grave}%`,   background: DANO_CONFIG.grave.color   }} />}
-                    {pct_mod     > 0 && <div style={{ width: `${pct_mod}%`,     background: DANO_CONFIG.moderado.color}} />}
-                    {pct_leve    > 0 && <div style={{ width: `${pct_leve}%`,    background: DANO_CONFIG.leve.color    }} />}
-                    <div style={{ flex: 1, background: '#E5E7EB' }} />
-                  </div>
-                </button>
-              );
-            })}
-
-            {!mapaCargado && ciudades.length === 0 && (
-              <p className="text-xs text-gray-400 px-3 py-4 text-center">{t('Carga el mapa para ver ciudades', 'Load the map to see cities')}</p>
-            )}
-          </aside>
-
-          {/* Contenido principal: mapa o lista */}
-          <div className="flex-1 relative" style={{ minHeight: 500 }}>
-
-            {!mapaCargado ? (
-              /* Pantalla de carga inicial */
-              <div className="flex flex-col items-center justify-center h-full gap-4 px-4 py-12">
-                <div className="text-center">
-                  <p className="text-5xl mb-3">🗺️</p>
-                  <h2 className="text-base font-black mb-1" style={{ color: '#F0F6FC' }}>
-                    {t('Mapa de daños estructurales', 'Structural damage map')}
-                  </h2>
-                  <p className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                    {t('Datos en tiempo real de la comunidad. Se alimenta del directorio de edificios.', 'Real-time community data. Feeds from the buildings directory.')}
-                  </p>
-                  <p className="text-xs mb-5" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                    ⚠️ {t('Cargar el mapa consume datos móviles.', 'Loading the map uses mobile data.')}
-                  </p>
-                  <button
-                    onClick={cargarMapa}
-                    disabled={cargando}
-                    className="flex items-center gap-2 mx-auto text-sm font-black px-8 py-4 rounded-2xl cursor-pointer disabled:opacity-50"
-                    style={{ background: '#2471A3', color: '#fff' }}
-                  >
-                    {cargando ? <Loader2 size={16} className="animate-spin" /> : <Map size={16} />}
-                    {cargando ? t('Cargando...', 'Loading...') : t('Cargar mapa', 'Load map')}
-                  </button>
-                  <Link to="/edificios" className="block text-xs mt-3 no-underline" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    {t('Ver directorio sin mapa →', 'View directory without map →')}
+              {/* Lista de reportes en modo texto */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 8 }}>
+                {reportesFiltrados.slice(0, 30).map(r => (
+                  <Link key={r.id} to={`/edificio?id=${r.id}`} style={{ textDecoration: 'none', display: 'block', background: '#161B22', border: `1px solid ${DANO_COLOR[r.nivel_dano] || '#9ca3af'}40`, borderRadius: 10, padding: '10px 12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: DANO_COLOR[r.nivel_dano] || '#9ca3af', flexShrink: 0 }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#F0F6FC' }}>{r.nombre_lugar || r.tipo_estructura?.replace(/_/g, ' ') || '—'}</span>
+                    </div>
+                    <p style={{ fontSize: 10, color: '#9BA5B0', margin: 0 }}>📍 {[r.direccion, r.ciudad].filter(Boolean).join(' · ')}</p>
+                    {ATRAPADOS_ALERTA.includes(r.personas_atrapadas) && (
+                      <span style={{ fontSize: 9, background: '#7c3aed', color: '#fff', padding: '1px 6px', borderRadius: 10, fontWeight: 700, marginTop: 4, display: 'inline-block' }}>🆘 {t('Atrapados', 'Trapped')}</span>
+                    )}
                   </Link>
-                </div>
+                ))}
               </div>
+            </div>
+          ) : (
+            <>
+              {/* Mapa */}
+              <div ref={mapRef} style={{ width: '100%', height: '100%', minHeight: 'calc(100vh - 220px)' }} />
 
-            ) : error ? (
-              <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-                <AlertTriangle size={28} style={{ color: '#FCA5A5' }} />
-                <p className="text-sm font-bold text-center" style={{ color: '#F0F6FC' }}>{t('Error cargando datos', 'Error loading data')}</p>
-                <button onClick={cargarDatos} className="text-xs px-4 py-2 rounded-lg cursor-pointer" style={{ background: '#2471A3', color: '#fff' }}>
-                  {t('Reintentar', 'Retry')}
+              {/* Spinner mientras carga */}
+              {!mapaListo && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0D1117' }}>
+                  <div style={{ textAlign: 'center', color: '#9BA5B0' }}>
+                    <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', marginBottom: 8, display: 'block', margin: '0 auto 8px' }} />
+                    <p style={{ fontSize: 12 }}>{t('Cargando mapa...', 'Loading map...')}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Botón reset zoom */}
+              {mapaListo && (
+                <button onClick={resetZoom} style={{
+                  position: 'absolute', bottom: 80, right: 12, zIndex: 10,
+                  background: '#161B22', border: '1px solid rgba(255,255,255,0.12)',
+                  color: '#C0C8D2', fontSize: 11, fontWeight: 600, padding: '7px 12px',
+                  borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                }}>
+                  <RotateCcw size={12} /> {t('Venezuela completa', 'Full Venezuela')}
                 </button>
-              </div>
+              )}
 
-            ) : vistaLista ? (
-              /* Vista lista */
-              <div className="overflow-y-auto h-full" style={{ background: '#0D1117' }}>
-                <div className="px-4 py-3">
-                  <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    {reportesFiltrados.length} {t('edificio(s) con ubicación', 'building(s) with location')}
-                    {ciudadSeleccionada && ` · ${ciudadSeleccionada}`}
+              {/* ── LEYENDA ── */}
+              {mapaListo && (
+                <div style={{
+                  position: 'absolute', bottom: 12, right: 12, zIndex: 10,
+                  background: 'rgba(13,17,23,0.92)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 10, padding: '10px 12px', minWidth: 130,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                }}>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: '#9BA5B0', textTransform: 'uppercase', marginBottom: 6, letterSpacing: '0.05em' }}>
+                    {t('Nivel de daño', 'Damage level')}
                   </p>
-                  <div className="space-y-2">
-                    {reportesFiltrados.map(r => {
-                      const cfg = DANO_CONFIG[r.nivel_dano] || DANO_CONFIG.no_evaluado;
-                      return (
-                        <Link
-                          key={r.id}
-                          to={`/edificio?id=${r.id}`}
-                          className="flex items-center gap-3 p-3 rounded-xl no-underline"
-                          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-                        >
-                          <span className="text-lg flex-shrink-0">
-                            {r.nivel_dano === 'critico' ? '🚨' : r.nivel_dano === 'colapsado' ? '💥' : r.nivel_dano === 'grave' ? '🔴' : r.nivel_dano === 'moderado' ? '🟠' : r.nivel_dano === 'leve' ? '🟡' : '⚪'}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold truncate" style={{ color: '#F0F6FC' }}>
-                              {r.nombre_lugar || r.tipo_estructura?.replace(/_/g, ' ') || t('Sin nombre', 'Unnamed')}
-                            </p>
-                            <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                              📍 {[r.direccion, r.ciudad].filter(Boolean).join(' · ') || '—'}
-                            </p>
-                          </div>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-                            style={{ background: cfg.color, color: '#fff' }}>
-                            {t(cfg.label.es, cfg.label.en)}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                    {reportesFiltrados.length === 0 && (
-                      <p className="text-center text-sm py-8" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                        {t('Sin resultados para este filtro.', 'No results for this filter.')}
-                      </p>
-                    )}
+                  {Object.entries(DANO_LABEL).map(([key, label]) => (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: DANO_COLOR[key], flexShrink: 0 }} />
+                      <span style={{ fontSize: 10, color: '#C0C8D2' }}>{label[es ? 'es' : 'en']}</span>
+                    </div>
+                  ))}
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 6, paddingTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444', border: '2px solid #7c3aed', flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, color: '#C0C8D2' }}>{t('Atrapados', 'Trapped')}</span>
                   </div>
                 </div>
-              </div>
-
-            ) : (
-              /* Vista mapa */
-              <div className="relative h-full" style={{ minHeight: 500 }}>
-                <MapContainer
-                  key={`${centroMapa[0]}-${centroMapa[1]}-${zoomMapa}`}
-                  center={centroMapa}
-                  zoom={zoomMapa}
-                  style={{ height: '100%', minHeight: 500, width: '100%' }}
-                  scrollWheelZoom={true}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  {reportesFiltrados.map(r => {
-                    const cfg = DANO_CONFIG[r.nivel_dano] || DANO_CONFIG.no_evaluado;
-                    const noEntrar = ['grave', 'critico', 'colapsado'].includes(r.nivel_dano);
-                    return (
-                      <CircleMarker
-                        key={r.id}
-                        center={r._coords}
-                        radius={noEntrar ? 9 : 7}
-                        pathOptions={{
-                          fillColor: cfg.color,
-                          color: noEntrar ? '#fff' : cfg.color,
-                          weight: noEntrar ? 2 : 1,
-                          fillOpacity: 0.85,
-                        }}
-                      >
-                        <Popup>
-                          <div style={{ minWidth: 180 }}>
-                            <p className="font-bold text-sm text-gray-900 mb-1">
-                              {r.nombre_lugar || r.tipo_estructura?.replace(/_/g, ' ') || t('Sin nombre', 'Unnamed')}
-                            </p>
-                            <p className="text-xs text-gray-500 mb-2">📍 {[r.direccion, r.ciudad].filter(Boolean).join(' · ')}</p>
-                            <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full text-white mb-2"
-                              style={{ background: cfg.color }}>
-                              {t(cfg.label.es, cfg.label.en)}
-                            </span>
-                            {noEntrar && (
-                              <p className="text-xs font-black text-red-700">🚫 {t('NO ENTRAR', 'DO NOT ENTER')}</p>
-                            )}
-                            {r.personas_atrapadas === 'si' && (
-                              <p className="text-xs font-bold text-red-600 mt-1">🆘 {t('Personas atrapadas', 'Trapped people')}</p>
-                            )}
-                            <a href={`/edificio?id=${r.id}`} className="block text-xs text-blue-600 mt-2 font-semibold">
-                              {t('Ver ficha →', 'View record →')}
-                            </a>
-                          </div>
-                        </Popup>
-                      </CircleMarker>
-                    );
-                  })}
-                </MapContainer>
-
-                {/* Contador sobre el mapa */}
-                <div className="absolute top-3 left-3 z-20 pointer-events-none">
-                  <div className="bg-white/90 rounded-xl px-3 py-2 shadow-md">
-                    <p className="text-xs font-black text-gray-800">
-                      {reportesFiltrados.length} {t('edificio(s)', 'building(s)')}
-                    </p>
-                    {ciudadSeleccionada && (
-                      <p className="text-[10px] text-gray-500">📍 {ciudadSeleccionada}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Leyenda inferior derecha */}
-                <div className="absolute bottom-6 right-3 z-20 pointer-events-none">
-                  <div className="bg-white/92 rounded-xl px-3 py-2.5 shadow-md" style={{ minWidth: 130 }}>
-                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-wide mb-1.5">
-                      {t('Nivel de daño', 'Damage level')}
-                    </p>
-                    {(['critico', 'colapsado', 'grave', 'moderado', 'leve', 'no_evaluado']).map(d => {
-                      const cfg = DANO_CONFIG[d];
-                      return (
-                        <div key={d} className="flex items-center gap-1.5 mb-1">
-                          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: cfg.color }} />
-                          <span className="text-[10px] text-gray-700 font-medium">{t(cfg.label.es, cfg.label.en)}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Enlace al directorio */}
-        <div className="px-4 py-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-          <Link to="/edificios" className="text-xs no-underline flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.50)' }}>
-            <List size={12} /> {t('Ver directorio completo', 'View full directory')}
-          </Link>
-          <Link to="/reportar-dano" className="text-xs font-bold px-3 py-1.5 rounded-lg no-underline" style={{ background: '#C0392B', color: '#fff' }}>
-            + {t('Reportar daño', 'Report damage')}
-          </Link>
+              )}
+            </>
+          )}
         </div>
       </div>
 
+      {cargando && (
+        <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#161B22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, zIndex: 50 }}>
+          <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: '#4A9EDB' }} />
+          <span style={{ fontSize: 11, color: '#9BA5B0' }}>{t('Cargando reportes...', 'Loading reports...')}</span>
+        </div>
+      )}
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       <Footer />
     </div>
   );
+}
+
+// ── Helper: construir popup de Leaflet ──
+function buildPopup(r, es) {
+  const color = DANO_COLOR[r.nivel_dano] || '#9ca3af';
+  const atrapado = ATRAPADOS_ALERTA.includes(r.personas_atrapadas);
+  const label = DANO_LABEL[r.nivel_dano]?.[es ? 'es' : 'en'] || r.nivel_dano;
+  const foto = r.foto_urls?.[0] ? `<img src="${r.foto_urls[0]}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;margin-bottom:6px" />` : '';
+  return `<div style="min-width:160px;max-width:200px;font-family:system-ui,sans-serif">
+    ${foto}
+    <p style="font-size:12px;font-weight:700;color:#1a1a1a;margin:0 0 4px">${r.nombre_lugar || r.tipo_estructura?.replace(/_/g, ' ') || '—'}</p>
+    <span style="display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${color};color:#fff;margin-bottom:4px">${label}</span>
+    ${atrapado ? `<span style="display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#7c3aed;color:#fff;margin-left:4px">${es ? '🆘 Atrapados' : '🆘 Trapped'}</span>` : ''}
+    <p style="font-size:10px;color:#666;margin:4px 0 0">📍 ${r.ciudad || ''}, ${r.estado_region || ''}</p>
+    <a href="/edificio?id=${r.id}" style="display:block;margin-top:6px;font-size:10px;color:#2471A3;text-align:center;text-decoration:none;background:#f0f7ff;border-radius:6px;padding:4px 0;border:1px solid #bee3f8">
+      ${es ? 'Ver ficha →' : 'View details →'}
+    </a>
+  </div>`;
 }
