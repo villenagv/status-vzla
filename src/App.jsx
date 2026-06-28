@@ -48,6 +48,7 @@ import GuiaEdificios from './pages/GuiaEdificios';
 import GuiaPlataforma from './pages/GuiaPlataforma';
 import IdentificacionProfesional from './pages/IdentificacionProfesional.jsx';
 import Sobre from './pages/Sobre.jsx';
+import MapaDanos from './pages/MapaDanos.jsx';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -90,6 +91,7 @@ const PublicApp = () => (
     <Route path="/guia-plataforma" element={<GuiaPlataforma />} />
     <Route path="/identificacion-profesional" element={<IdentificacionProfesional />} />
     <Route path="/sobre" element={<Sobre />} />
+    <Route path="/mapa-danos" element={<MapaDanos />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
