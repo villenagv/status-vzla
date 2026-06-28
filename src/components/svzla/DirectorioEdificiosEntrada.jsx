@@ -1,20 +1,29 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Image } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
-import { VistaToggler } from '@/components/svzla/VistaToggler';
 
-const DANO_BADGE = {
-  leve:       { es: 'Daño leve',       en: 'Minor damage',   cls: 'bg-yellow-100 text-yellow-800' },
-  moderado:   { es: 'Daño moderado',   en: 'Moderate damage',cls: 'bg-orange-100 text-orange-700' },
-  grave:      { es: 'DAÑO GRAVE',      en: 'SEVERE DAMAGE',  cls: 'bg-red-100 text-red-700' },
-  critico:    { es: 'CRÍTICO',         en: 'CRITICAL',       cls: 'bg-red-200 text-red-800' },
-  colapsado:  { es: 'COLABSADO',       en: 'COLLAPSED',      cls: 'bg-gray-700 text-white' },
-  no_evaluado:{ es: 'Sin evaluar',     en: 'Not evaluated',  cls: 'bg-gray-100 text-gray-600' },
+const DANO_CONFIG = {
+  leve:        { color: '#B7950B', bg: '#FEF9E7', border: '#F9E79F', cardBorder: '#D4AC0D', label: { es: 'Daño leve',     en: 'Minor damage'   }, icon: '🟡' },
+  moderado:    { color: '#CA6F1E', bg: '#FEF5E7', border: '#FDEBD0', cardBorder: '#E67E22', label: { es: 'Daño moderado', en: 'Moderate damage' }, icon: '🟠' },
+  grave:       { color: '#C0392B', bg: '#FDEDEC', border: '#F5B7B1', cardBorder: '#E74C3C', label: { es: 'Daño grave',    en: 'Severe damage'  }, icon: '🔴' },
+  critico:     { color: '#922B21', bg: '#FDEDEC', border: '#E74C3C', cardBorder: '#922B21', label: { es: 'CRÍTICO',       en: 'CRITICAL'       }, icon: '🚨' },
+  no_evaluado: { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', cardBorder: '#BFC9CA', label: { es: 'Sin evaluar',   en: 'Not evaluated'  }, icon: '⚪' },
+  no_sabe:     { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', cardBorder: '#BFC9CA', label: { es: 'Sin datos',     en: 'No data'        }, icon: '⚪' },
+  colapsado:   { color: '#4A0E0E', bg: '#FCECEC', border: '#DC3545', cardBorder: '#4A0E0E', label: { es: 'COLAPSADO',     en: 'COLLAPSED'      }, icon: '💥' },
 };
 
-const PAGE = 5;
+const PAGE = 8;
+
+function tiempoRelativo(fecha, es) {
+  if (!fecha) return '';
+  const diff = Date.now() - new Date(fecha).getTime();
+  const m = Math.floor(diff / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+  if (d > 0) return es ? `hace ${d}d` : `${d}d ago`;
+  if (h > 0) return es ? `hace ${h}h` : `${h}h ago`;
+  if (m < 1) return es ? 'ahora' : 'now';
+  return es ? `hace ${m}m` : `${m}m ago`;
+}
 
 export default function DirectorioEdificiosEntrada() {
   const { lang } = useLang();
@@ -23,11 +32,10 @@ export default function DirectorioEdificiosEntrada() {
   const [cargando, setCargando] = useState(true);
   const [mostrar, setMostrar] = useState(PAGE);
   const [busqueda, setBusqueda] = useState('');
-  const [vista, setVista] = useState('lista');
 
   useEffect(() => {
-    base44.entities.ReportesDano.list('-created_date', 5)
-      .then(d => setEdificios(d))
+    base44.entities.ReportesDano.list('-updated_date', 100)
+      .then(d => setEdificios(d || []))
       .catch(() => {})
       .finally(() => setCargando(false));
   }, []);
@@ -38,8 +46,7 @@ export default function DirectorioEdificiosEntrada() {
     return (
       (e.nombre_lugar || '').toLowerCase().includes(q) ||
       (e.direccion || '').toLowerCase().includes(q) ||
-      (e.ciudad || '').toLowerCase().includes(q) ||
-      (e.estado_region || '').toLowerCase().includes(q)
+      (e.ciudad || '').toLowerCase().includes(q)
     );
   });
 
@@ -49,39 +56,31 @@ export default function DirectorioEdificiosEntrada() {
     <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
-      <div>
-        <h2 className="text-sm font-bold text-gray-800">
-          🏗️ {es ? 'Directorio de edificios' : 'Buildings directory'}
-        </h2>
-        <p className="text-xs text-gray-400 mt-0.5">
-          {es ? 'Edificios reportados más recientes' : 'Most recent building reports'}
-        </p>
-      </div>
-      <div className="flex items-center gap-2">
-        <VistaToggler vista={vista} setVista={setVista} es={es} />
+        <div>
+          <h2 className="text-sm font-bold text-gray-800">
+            🏗️ {es ? 'Edificios reportados' : 'Reported buildings'}
+          </h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            {es ? 'Más recientes primero' : 'Most recent first'}
+          </p>
+        </div>
         <Link to="/edificios"
           className="text-xs text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1.5 rounded-lg font-semibold no-underline hover:bg-blue-100">
-          {es ? 'Ver todos' : 'View all'}
+          {es ? 'Ver todos →' : 'View all →'}
         </Link>
-      </div>
       </div>
 
       {/* Buscador */}
-      <div className="px-4 pt-3 pb-2 space-y-2">
+      <div className="px-4 pt-3 pb-2">
         <input
           value={busqueda}
           onChange={e => { setBusqueda(e.target.value); setMostrar(PAGE); }}
           placeholder={es ? 'Buscar por nombre, dirección, ciudad...' : 'Search by name, address, city...'}
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 placeholder-gray-400 bg-gray-50"
         />
-        <Link to="/edificios?modo=request"
-          className="flex items-center gap-2 w-full bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-800 font-semibold no-underline hover:bg-amber-100 transition-colors">
-          <span className="text-sm">📋</span>
-          <span>{es ? 'No encuentras un edificio? Solicita información' : "Can't find a building? Request info"}</span>
-        </Link>
       </div>
 
-      {/* Vista actual */}
+      {/* Estados */}
       {cargando && (
         <div className="px-4 py-6 text-center text-sm text-gray-400">
           {es ? 'Cargando...' : 'Loading...'}
@@ -89,100 +88,82 @@ export default function DirectorioEdificiosEntrada() {
       )}
       {!cargando && visibles.length === 0 && (
         <div className="px-4 py-6 text-center">
-          <p className="text-sm text-gray-400 mb-2">
-            {es ? 'Sin resultados.' : 'No results.'}
-          </p>
+          <p className="text-sm text-gray-400 mb-2">{es ? 'Sin resultados.' : 'No results.'}</p>
           <Link to="/reportar-dano" className="text-sm text-blue-600 underline">
             {es ? '→ Reportar edificio dañado' : '→ Report damaged building'}
           </Link>
         </div>
       )}
 
-      {/* Vista Lista compacta */}
-      {vista === 'lista' && visibles.length > 0 && (
-        <div className="divide-y divide-gray-50">
-          {visibles.map(e => {
-            const st = DANO_BADGE[e.nivel_dano] || DANO_BADGE.no_evaluado;
-            const esCritico = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano);
+      {/* Grid de tarjetas — igual que en /edificios */}
+      {!cargando && visibles.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-4 py-3">
+          {visibles.map(r => {
+            const c = DANO_CONFIG[r.nivel_dano] || DANO_CONFIG.no_evaluado;
+            const noEntrar = ['grave', 'critico', 'colapsado'].includes(r.nivel_dano);
             return (
-              <Link key={e.id} to={`/edificio?id=${e.id}`} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50 no-underline">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{e.nombre_lugar || (es ? 'Edificio sin nombre' : 'Unnamed building')}</p>
-                  <p className="text-xs text-gray-400 truncate">
-                    📍 {e.direccion || ''}{e.direccion && e.ciudad ? ' · ' : ''}{e.ciudad || ''}{e.estado_region ? `, ${e.estado_region}` : ''}
-                  </p>
-                  {e.personas_atrapadas === 'si' && (
-                    <span className="inline-block mt-0.5 text-[10px] font-bold bg-[#F4D5DD] text-[#B83A52] px-1.5 py-0.5 rounded-full">🆘 {es ? 'Atrapados' : 'Trapped'}</span>
-                  )}
-                </div>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${st.cls} ${esCritico ? 'animate-pulse' : ''}`}>
-                  {esCritico && '🚫'} {es ? st.es : st.en}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Vista Tabla detalle */}
-      {vista === 'tabla' && visibles.length > 0 && (
-        <div className="px-4 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-2 pr-2 text-[10px] font-semibold text-gray-400 uppercase">{es ? 'Lugar' : 'Place'}</th>
-                <th className="text-left py-2 pr-2 text-[10px] font-semibold text-gray-400 uppercase">{es ? 'Dirección' : 'Address'}</th>
-                <th className="text-left py-2 pr-2 text-[10px] font-semibold text-gray-400 uppercase">{es ? 'Ciudad' : 'City'}</th>
-                <th className="text-left py-2 pr-2 text-[10px] font-semibold text-gray-400 uppercase">{es ? 'Daño' : 'Damage'}</th>
-                <th className="text-left py-2 text-[10px] font-semibold text-gray-400 uppercase">{es ? 'Atrapados' : 'Trapped'}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibles.map(e => {
-                const st = DANO_BADGE[e.nivel_dano] || DANO_BADGE.no_evaluado;
-                const atrap = e.personas_atrapadas;
-                return (
-                  <tr key={e.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-2 pr-2"><Link to={`/edificio?id=${e.id}`} className="text-xs font-semibold text-blue-900 no-underline hover:underline">{e.nombre_lugar || (es ? 'S/N' : 'N/A')}</Link></td>
-                    <td className="py-2 pr-2 text-xs text-gray-500">{e.direccion || '—'}</td>
-                    <td className="py-2 pr-2 text-xs text-gray-500">{e.ciudad || '—'}</td>
-                    <td className="py-2 pr-2"><span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span></td>
-                    <td className="py-2 text-xs">{atrap === 'si' ? '🚨' : atrap === 'voces' ? '👂' : atrap === 'no' ? '✅' : '—'}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Vista Grid con fotos */}
-      {vista === 'grid' && visibles.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4 py-2">
-          {visibles.map(e => {
-            const st = DANO_BADGE[e.nivel_dano] || DANO_BADGE.no_evaluado;
-            const esCritico = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano);
-            const tieneFotos = e.foto_urls?.length > 0;
-            return (
-              <Link key={e.id} to={`/edificio?id=${e.id}`} className="bg-white border border-gray-200 rounded-xl overflow-hidden no-underline hover:shadow-md transition-shadow">
+              <Link key={r.id} to={`/edificio?id=${r.id}`}
+                className="bg-white rounded-xl overflow-hidden no-underline hover:shadow-md transition-shadow flex flex-col"
+                style={{ border: `2px solid ${noEntrar ? c.cardBorder : '#E5E7EB'}` }}>
                 {/* Foto o placeholder */}
-                {tieneFotos ? (
-                  <img src={e.foto_urls[0]} alt="" className="w-full h-28 object-cover" loading="lazy" />
+                {r.foto_urls?.length > 0 ? (
+                  <div className="relative">
+                    <img src={r.foto_urls[0]} alt="" className="w-full h-24 object-cover" loading="lazy" />
+                    {r.foto_urls.length > 1 && (
+                      <span className="absolute bottom-1 right-1 text-[9px] bg-black/60 text-white px-1.5 py-0.5 rounded-full">
+                        +{r.foto_urls.length - 1}📷
+                      </span>
+                    )}
+                  </div>
                 ) : (
-                  <div className="w-full h-28 bg-gray-100 flex items-center justify-center">
-                    <Image size={28} className="text-gray-300" />
+                  <div className="w-full h-24 flex flex-col items-center justify-center gap-1" style={{ background: c.bg }}>
+                    <span className="text-2xl">{c.icon}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: c.color }}>
+                      {es ? c.label.es : c.label.en}
+                    </span>
                   </div>
                 )}
-                <div className="p-3">
-                  <p className="text-xs font-semibold text-gray-900 leading-tight mb-1 line-clamp-1">{e.nombre_lugar || (es ? 'Edificio sin nombre' : 'Unnamed building')}</p>
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-[10px] text-gray-400 truncate flex-1">{e.ciudad || ''}{e.estado_region ? `, ${e.estado_region}` : ''}</p>
-                    {esCritico && <span className="ml-1 text-[8px] font-black text-red-600">🚫</span>}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span>
-                    {e.personas_atrapadas === 'si' && <span className="text-[9px] font-bold text-red-600 px-1 py-0.5">🆘</span>}
-                  </div>
+
+                <div className="p-2.5 flex-1 flex flex-col gap-1">
+                  {/* Badge NO ENTRAR */}
+                  {noEntrar && (
+                    <span className="self-start text-[8px] font-black text-white bg-red-600 px-1.5 py-0.5 rounded">
+                      🚫 {es ? 'NO ENTRAR' : 'DO NOT ENTER'}
+                    </span>
+                  )}
+
+                  {/* Nombre */}
+                  <p className="text-xs font-bold text-gray-900 leading-tight line-clamp-2">
+                    {r.nombre_lugar || r.tipo_estructura?.replace(/_/g, ' ') || (es ? 'Sin nombre' : 'Unnamed')}
+                  </p>
+
+                  {/* Ubicación */}
+                  <p className="text-[10px] text-gray-400 truncate">
+                    📍 {[r.direccion, r.ciudad].filter(Boolean).join(' · ') || '—'}
+                  </p>
+
+                  {/* Badge nivel daño */}
+                  <span className="self-start text-[9px] font-semibold px-1.5 py-0.5 rounded-full border mt-auto"
+                    style={{ color: c.color, borderColor: c.border, background: c.bg }}>
+                    {c.icon} {es ? c.label.es : c.label.en}
+                  </span>
+
+                  {/* Íconos de riesgo */}
+                  {(r.riesgo_gas || r.riesgo_electrico || r.riesgo_incendio || r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces') && (
+                    <div className="flex flex-wrap gap-0.5 mt-0.5">
+                      {(r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces') && (
+                        <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full font-bold">🆘</span>
+                      )}
+                      {r.riesgo_gas       && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full">💨</span>}
+                      {r.riesgo_electrico && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded-full">⚡</span>}
+                      {r.riesgo_incendio  && <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full">🔥</span>}
+                    </div>
+                  )}
+
+                  {/* Tiempo */}
+                  <span className="text-[9px] text-gray-400 mt-0.5">
+                    🕐 {tiempoRelativo(r.updated_date || r.created_date, es)}
+                  </span>
                 </div>
               </Link>
             );
@@ -200,7 +181,7 @@ export default function DirectorioEdificiosEntrada() {
             </button>
           ) : (
             <span className="text-xs text-gray-400">
-              {filtradas.length} {es ? 'resultado(s)' : 'result(s)'}
+              {filtradas.length} {es ? 'edificio(s)' : 'building(s)'}
             </span>
           )}
           <Link to="/reportar-dano"
