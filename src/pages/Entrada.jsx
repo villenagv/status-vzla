@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import ContadoresEntrada from '@/components/svzla/ContadoresEntrada';
+import JsonLd, { buildSiteJsonLd } from '@/components/seo/JsonLd';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 const TELS = [
   { num: '171', op: 'CANTV' },
@@ -90,6 +92,14 @@ export default function Entrada() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F5F6F8' }}>
+      <SeoMeta
+        title={es ? 'Emergencias Venezuela — Edificios, Personas y Refugios' : 'Venezuela Emergency — Buildings, People and Shelters'}
+        description={es
+          ? 'Plataforma ciudadana para reportar daños en edificios, buscar personas desaparecidas y encontrar refugios en Venezuela. Sin cuenta. Funciona con poca señal.'
+          : 'Citizen platform to report building damage, search for missing people and find shelters in Venezuela. No account needed. Works with poor signal.'}
+        lang={lang}
+      />
+      <JsonLd data={buildSiteJsonLd()} />
       <TopBar />
 
       <main className="flex-1 w-full max-w-lg mx-auto px-4 py-5 flex flex-col gap-5">

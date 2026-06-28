@@ -9,6 +9,8 @@ import GaleriaFotos from '@/components/svzla/GaleriaFotos';
 import EstadoOperativo from '@/components/edificio/EstadoOperativo';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
+import SeoMeta from '@/components/seo/SeoMeta';
+import JsonLd, { buildEdificioJsonLd } from '@/components/seo/JsonLd';
 
 const DANO_CONFIG = {
   leve:        { color: '#B7950B', bg: '#FEF9E7', border: '#F9E79F', semaforo: '🟡', label: { es: 'Daño leve',     en: 'Minor damage'   }, acceso: { es: 'Entrada con precaución', en: 'Enter with caution'     } },
@@ -253,7 +255,6 @@ export default function EdificioDetalle() {
     </div>
   );
 
-  const cfg = DANO_CONFIG[edificio.nivel_dano] || DANO_CONFIG.no_evaluado;
   const noEntrar = ['grave', 'critico', 'colapsado'].includes(edificio.nivel_dano);
   const esCritico = noEntrar || edificio.personas_atrapadas === 'si' || edificio.prioridad === 'critica';
   const totalReportes = actualizaciones.length + 1;
@@ -269,8 +270,32 @@ export default function EdificioDetalle() {
     return new Date(b.created_date) - new Date(a.created_date);
   });
 
+  // SEO — construir datos para buscadores e IAs
+  const cfg = DANO_CONFIG[edificio.nivel_dano] || DANO_CONFIG.no_evaluado;
+  const seoTitle = [
+    edificio.nombre_lugar || (es ? 'Edificio' : 'Building'),
+    edificio.ciudad,
+    `— ${es ? cfg.label.es : cfg.label.en}`,
+  ].filter(Boolean).join(' ');
+  const seoDesc = [
+    `${es ? 'Estado:' : 'Status:'} ${es ? cfg.label.es : cfg.label.en}.`,
+    `${es ? 'Acceso:' : 'Access:'} ${es ? cfg.acceso.es : cfg.acceso.en}.`,
+    edificio.personas_atrapadas === 'si' ? (es ? '🆘 Personas atrapadas reportadas.' : '🆘 Trapped people reported.') : null,
+    edificio.direccion ? `${es ? 'Dirección:' : 'Address:'} ${edificio.direccion}, ${edificio.ciudad || ''}.` : null,
+    es ? 'Status Vzla — Plataforma ciudadana de emergencias Venezuela.' : 'Status Vzla — Citizen emergency platform Venezuela.',
+  ].filter(Boolean).join(' ');
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <SeoMeta
+        title={seoTitle}
+        description={seoDesc}
+        image={(edificio.foto_urls || [])[0] || undefined}
+        url={`https://statusvzla.com/edificio?id=${edificio.id}`}
+        type="article"
+        lang={lang}
+      />
+      <JsonLd data={buildEdificioJsonLd(edificio, lang)} />
       <TopBar />
       <div className="max-w-lg mx-auto w-full px-4 py-5">
 

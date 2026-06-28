@@ -8,6 +8,8 @@ import Footer from '@/components/svzla/Footer';
 import FichaPersonaDescargable from '@/components/svzla/FichaPersonaDescargable';
 import ActualizarPersonaPerfil from '@/components/svzla/ActualizarPersonaPerfil';
 import NotificarmeEmail from '@/components/svzla/NotificarmeEmail';
+import SeoMeta from '@/components/seo/SeoMeta';
+import JsonLd, { buildPersonaJsonLd } from '@/components/seo/JsonLd';
 
 const ESTADO_CONFIG = {
   buscando:             { es: '🔴 Sin contacto',          en: '🔴 Missing',              cls: 'bg-red-100 text-red-800 border-red-200' },
@@ -142,6 +144,16 @@ export default function PersonaDetalle() {
   );
 
   const st = ESTADO_CONFIG[persona.estado_caso] || ESTADO_CONFIG['buscando'];
+
+  // SEO — datos para buscadores e IAs
+  const seoTitle = `${persona.nombre_completo}${persona.ciudad ? ` · ${persona.ciudad}` : ''} — ${es ? st.es : st.en}`;
+  const seoDesc = [
+    `${es ? 'Estado:' : 'Status:'} ${es ? st.es : st.en}.`,
+    persona.descripcion_fisica ? `${es ? 'Descripción:' : 'Description:'} ${persona.descripcion_fisica}.` : null,
+    persona.ultima_ubicacion_conocida ? `${es ? 'Última ubicación conocida:' : 'Last known location:'} ${persona.ultima_ubicacion_conocida}, ${persona.ciudad || ''}.` : null,
+    es ? 'Status Vzla — Plataforma ciudadana de emergencias Venezuela.' : 'Status Vzla — Citizen emergency platform Venezuela.',
+  ].filter(Boolean).join(' ');
+
   const esBuscando = ['buscando', 'informacion_recibida', 'visto_no_confirmado'].includes(persona.estado_caso);
   const contactosEncontrado = reportesEncontrado.flatMap(r => [
     { nombre: r.reportado_por_nombre || (es ? 'Quien reportó' : 'Reporter'), telefono: r.reportado_por_telefono, email: r.reportado_por_email, lugar: r.nombre_lugar || r.ubicacion_actual },
@@ -150,6 +162,15 @@ export default function PersonaDetalle() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      <SeoMeta
+        title={seoTitle}
+        description={seoDesc}
+        image={persona.foto_url || undefined}
+        url={`https://statusvzla.com/persona?id=${persona.id}`}
+        type="profile"
+        lang={lang}
+      />
+      <JsonLd data={buildPersonaJsonLd(persona, lang)} />
       <TopBar />
       <div className="max-w-lg mx-auto w-full px-4 py-5">
         <Link to="/personas" className="flex items-center gap-1 text-sm text-gray-500 mb-4 hover:text-gray-800">
