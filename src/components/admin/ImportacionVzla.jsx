@@ -89,6 +89,9 @@ function normalizarEdificios(csvRows, fotosPorEdificio) {
     const lat = latStr ? parseFloat(latStr) : null;
     const lng = lngStr ? parseFloat(lngStr) : null;
 
+    // Limitar URLs de fotos a max 200 chars cada una para evitar payloads gigantes
+    const fotosLimpias = fotosFinales.map(u => u.slice(0, 250)).filter(u => u.startsWith('http'));
+
     return {
       tipo_estructura: 'edificio_residencial',
       nombre_lugar: getf(row, 'name', 'nombre', 'nombre_lugar'),
@@ -104,7 +107,7 @@ function normalizarEdificios(csvRows, fotosPorEdificio) {
       ciudad: getf(row, 'city', 'ciudad'),
       estado_region: 'La Guaira',
       ...(lat && lng && !isNaN(lat) && !isNaN(lng) ? { lat, lng, geo_fuente: 'csv_import' } : {}),
-      foto_urls: fotosFinales,
+      foto_urls: fotosLimpias,
       prioridad: esCritico ? 'critica' : (nivelDano === 'grave' ? 'alta' : 'normal'),
       estado_verificacion: 'recibido',
       nivel_verificacion: normVerif(getf(row, 'status', 'estado', 'verificacion')),
@@ -132,7 +135,7 @@ function StatPill({ icon, label, val, color }) {
   );
 }
 
-const BATCH_SIZE = 30;
+const BATCH_SIZE = 10;
 
 export default function ImportacionVzla() {
   const [csvFile, setCsvFile] = useState(null);
