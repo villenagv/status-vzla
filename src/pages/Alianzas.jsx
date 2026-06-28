@@ -6,31 +6,53 @@ import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 
 
-const IFRAME_CODE = `<div style="position:relative;width:100%;height:500px;border-radius:12px;overflow:hidden;">
-  <iframe
-    src="https://statusvzla.com/mapa-danos"
-    width="100%"
-    height="100%"
-    frameborder="0"
-    title="Mapa de daños - StatusVzla"
-    loading="lazy"
-    allowfullscreen>
-  </iframe>
-  <div style="position:absolute;bottom:10px;right:10px;background:rgba(13,17,23,0.90);padding:4px 10px;border-radius:8px;font-size:10px;font-weight:800;color:#F5C518;border:1px solid rgba(245,197,24,0.40);">
-    Powered by StatusVzla.com
+const JS_WIDGET_CODE = `<!-- Widget de Mapa StatusVzla.com -->
+<div id="svzla-mapa" style="font-family:sans-serif;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;max-width:100%;">
+  <div id="svzla-map" style="height:400px;background:#f3f4f6;"></div>
+  <div style="padding:8px 14px;background:#0D1117;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:11px;color:#9BA5B0;">Datos: StatusVzla.com API</span>
+    <a href="https://statusvzla.com" target="_blank" style="font-size:10px;font-weight:800;color:#F5C518;text-decoration:none;">Powered by StatusVzla.com ↗</a>
   </div>
-</div>`;
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+<script>
+fetch('https://statusvzla.com/functions/apiMapa?format=geojson')
+  .then(r => r.json())
+  .then(data => {
+    var map = L.map('svzla-map').setView([10.48, -66.90], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+    var colores = {leve:'#D97706',moderado:'#EA580C',grave:'#DC2626',critico:'#991B1B',colapsado:'#450A0A',no_evaluado:'#6B7280'};
+    L.geoJSON(data, {
+      pointToLayer: function(f,latlng) {
+        var c = colores[f.properties.nivel_dano] || '#6B7280';
+        return L.circleMarker(latlng,{radius:7,fillColor:c,color:'#fff',weight:1,fillOpacity:0.9});
+      },
+      onEachFeature: function(f,layer) {
+        var p = f.properties;
+        layer.bindPopup('<b>'+(p.nombre||'Sin nombre')+'<\/b><br>Daño: '+p.nivel_dano+'<br><a href="'+p.url+'" target="_blank">Ver detalle ↗<\/a>');
+      }
+    }).addTo(map);
+  });
+<\/script>`;
 
 export default function Alianzas() {
   const { lang } = useLang();
   const es = lang !== 'en';
   const [copiado, setCopiado] = useState(false);
   const [copiadoApi, setCopiadoApi] = useState('');
+  const [copiadoWidget, setCopiadoWidget] = useState(false);
 
   const copiarApi = (texto, key) => {
     navigator.clipboard.writeText(texto);
     setCopiadoApi(key);
     setTimeout(() => setCopiadoApi(''), 2000);
+  };
+
+  const copiarWidget = () => {
+    navigator.clipboard.writeText(JS_WIDGET_CODE);
+    setCopiadoWidget(true);
+    setTimeout(() => setCopiadoWidget(false), 2000);
   };
 
   const API_BASE = 'https://statusvzla.com/functions/apiMapa';
@@ -43,11 +65,7 @@ export default function Alianzas() {
     { key: 'tipo',    url: `${API_BASE}?format=list&tipo=hospital`,      desc: { es: 'Filtrar por tipo de estructura',                   en: 'Filter by structure type' } },
   ];
 
-  const copiar = () => {
-    navigator.clipboard.writeText(IFRAME_CODE);
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000);
-  };
+
 
   const t = (esStr, enStr) => es ? esStr : enStr;
 
@@ -89,70 +107,68 @@ export default function Alianzas() {
           </p>
         </div>
 
-        {/* Vista previa del mapa embebido */}
+        {/* Widget de mapa embebido via API */}
         <div className="mb-6 rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: '#111318' }}>
           <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
             <div className="flex items-center gap-2 mb-1">
               <Globe size={16} style={{ color: '#6FCF97' }} />
               <span style={{ fontSize: 14, fontWeight: 700, color: '#F0F6FC' }}>
-                {t('Mapa embebido — para tu sitio web', 'Embedded map — for your website')}
+                {t('Widget de mapa — para tu sitio web', 'Map widget — for your website')}
               </span>
             </div>
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)', margin: 0 }}>
-              {t('Copia el código y pégalo en cualquier página. Sin registro ni costo.', 'Copy the code and paste it into any page. No registration or cost.')}
+              {t('Copia el código y pégalo en cualquier página HTML. Sin registro ni costo. Usa nuestra API pública con Leaflet.', 'Copy the code and paste it into any HTML page. No registration or cost. Uses our public API with Leaflet.')}
             </p>
           </div>
 
-          {/* Vista previa — botón que abre el mapa en nueva pestaña */}
+          {/* Info técnica por qué no iframe */}
+          <div className="mx-5 mt-4 rounded-lg px-4 py-3" style={{ background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.25)' }}>
+            <p style={{ fontSize: 11, color: '#FCD34D', lineHeight: 1.55, margin: 0 }}>
+              ℹ️ <strong>{t('¿Por qué no un iframe?', 'Why not an iframe?')}</strong>{' '}
+              {t(
+                'Los navegadores modernos bloquean iframes cruzados por seguridad (X-Frame-Options). Este widget usa directamente nuestra API pública con Leaflet, lo que es más rápido, ligero y compatible con todos los navegadores.',
+                'Modern browsers block cross-origin iframes for security (X-Frame-Options). This widget uses our public API directly with Leaflet — faster, lighter, and compatible with all browsers.'
+              )}
+            </p>
+          </div>
+
+          {/* Vista previa */}
           <div className="mx-5 mt-4">
-            <a
-              href="/mapa-danos"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                gap: 10, height: 160, borderRadius: 12, textDecoration: 'none',
-                border: '2px dashed rgba(111,207,151,0.35)',
-                background: 'rgba(111,207,151,0.05)',
-                cursor: 'pointer',
-              }}
-            >
-              <span style={{ fontSize: 36 }}>🗺️</span>
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#6FCF97', margin: 0 }}>
-                  {t('Ver mapa en vivo →', 'View live map →')}
-                </p>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: '4px 0 0' }}>
-                  statusvzla.com/mapa-danos
-                </p>
-              </div>
+            <a href="/mapa-danos" target="_blank" rel="noopener noreferrer" style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              gap: 10, height: 130, borderRadius: 12, textDecoration: 'none',
+              border: '2px dashed rgba(111,207,151,0.35)', background: 'rgba(111,207,151,0.05)',
+            }}>
+              <span style={{ fontSize: 30 }}>🗺️</span>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#6FCF97', margin: 0 }}>
+                {t('Ver mapa en vivo →', 'View live map →')}
+              </p>
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', margin: 0 }}>statusvzla.com/mapa-danos</p>
             </a>
           </div>
 
           {/* Código copiable */}
           <div className="relative mx-5 my-4">
             <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-              {t('Código para tu web', 'Code for your website')}
+              {t('Código del widget para tu web', 'Widget code for your website')}
             </p>
             <pre style={{
               background: '#0D1117', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10,
-              padding: '14px 16px', fontSize: 10.5, color: '#93C5FD', overflowX: 'auto',
-              lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+              padding: '14px 16px', fontSize: 10, color: '#93C5FD', overflowX: 'auto',
+              lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 200,
             }}>
-              {IFRAME_CODE}
+              {JS_WIDGET_CODE}
             </pre>
-            <button
-              onClick={copiar}
-              style={{
-                position: 'absolute', top: 34, right: 8,
-                background: copiado ? 'rgba(111,207,151,0.15)' : 'rgba(255,255,255,0.08)',
-                border: `1px solid ${copiado ? 'rgba(111,207,151,0.40)' : 'rgba(255,255,255,0.15)'}`,
-                borderRadius: 7, padding: '5px 10px', cursor: 'pointer',
-                color: copiado ? '#6FCF97' : 'rgba(255,255,255,0.65)',
-                display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600,
-              }}>
-              {copiado ? <Check size={12} /> : <Copy size={12} />}
-              {copiado ? t('¡Copiado!', 'Copied!') : t('Copiar', 'Copy')}
+            <button onClick={copiarWidget} style={{
+              position: 'absolute', top: 34, right: 8,
+              background: copiadoWidget ? 'rgba(111,207,151,0.15)' : 'rgba(255,255,255,0.08)',
+              border: `1px solid ${copiadoWidget ? 'rgba(111,207,151,0.40)' : 'rgba(255,255,255,0.15)'}`,
+              borderRadius: 7, padding: '5px 10px', cursor: 'pointer',
+              color: copiadoWidget ? '#6FCF97' : 'rgba(255,255,255,0.65)',
+              display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600,
+            }}>
+              {copiadoWidget ? <Check size={12} /> : <Copy size={12} />}
+              {copiadoWidget ? t('¡Copiado!', 'Copied!') : t('Copiar', 'Copy')}
             </button>
           </div>
 
@@ -160,8 +176,8 @@ export default function Alianzas() {
             <p style={{ fontSize: 11, color: '#6FCF97', margin: 0, lineHeight: 1.55 }}>
               📌 <strong>{t('Atribución requerida:', 'Attribution required:')}</strong>{' '}
               {t(
-                'Al usar este código debes mantener visible el texto "Powered by StatusVzla.com". Ya está incluido en el código.',
-                'When using this code you must keep "Powered by StatusVzla.com" visible. It\'s already included in the code.'
+                'Al usar este widget debes mantener visible el texto "Powered by StatusVzla.com". Ya está incluido en el código.',
+                'When using this widget you must keep "Powered by StatusVzla.com" visible. It\'s already included in the code.'
               )}
             </p>
           </div>

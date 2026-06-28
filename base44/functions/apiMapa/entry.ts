@@ -1,18 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// ── Caché en memoria del proceso (dura mientras el worker esté vivo) ──
-// No usa ningún crédito de integración — es RAM pura del servidor
-let cache = null;
-let cacheTs = 0;
-const CACHE_TTL = 90 * 60 * 1000; // 90 minutos en ms
+// ── Caché en memoria del proceso (0 créditos BD mientras el worker esté vivo) ──
+let memCache = null;
+let memCacheTs = 0;
+const MEM_TTL = 60 * 60 * 1000; // 60 minutos
 
 Deno.serve(async (req) => {
-  // CORS — permite que sitios externos consuman la API
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'public, max-age=5400', // 90 min para CDNs/proxies externos
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Cache-Control': 'public, max-age=3600',
     'Content-Type': 'application/json; charset=utf-8',
   };
 
@@ -22,28 +20,75 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const ciudad = url.searchParams.get('ciudad') || null;
-    const nivel  = url.searchParams.get('nivel')  || null;  // leve|moderado|grave|critico|colapsado
-    const tipo   = url.searchParams.get('tipo')   || null;  // edificio_residencial|hospital|etc
-    const format = url.searchParams.get('format') || 'json'; // json | geojson | list
+    const ciudad  = url.searchParams.get('ciudad')  || null;
+    const nivel   = url.searchParams.get('nivel')   || null;
+    const tipo    = url.searchParams.get('tipo')    || null;
+    const format  = url.searchParams.get('format')  || 'json';
 
-    // ── Servir desde caché si no expiró ──────────────────────────────────
     const ahora = Date.now();
-    if (!cache || (ahora - cacheTs) > CACHE_TTL) {
-      // Solo aquí se consume 1 llamada a la BD — luego se sirve desde RAM
-      const base44 = createClientFromRequest(req);
-      const [edificios, refugios] = await Promise.all([
-        base44.asServiceRole.entities.ReportesDano.list('-updated_date', 3000),
-        base44.asServiceRole.entities.PuntosAyuda.list('-updated_date', 1000),
-      ]);
 
-      cache = { edificios, refugios, generado: new Date().toISOString() };
-      cacheTs = ahora;
+    // ── Capa 1: caché en memoria del proceso ────────────────────────────
+    if (!memCache || (ahora - memCacheTs) > MEM_TTL) {
+
+      // ── Capa 2: caché persistente en ArchivoAliados ──────────────────
+      const base44 = createClientFromRequest(req);
+      let datosCargados = false;
+
+      try {
+        const cacheRows = await base44.asServiceRole.entities.ArchivoAliados.filter({ clave: 'api_mapa_cache' }, '-created_date', 1);
+        if (cacheRows && cacheRows.length > 0) {
+          const row = cacheRows[0];
+          const generadoTs = new Date(row.generated_at).getTime();
+          if ((ahora - generadoTs) < MEM_TTL && row.summary_json) {
+            memCache = JSON.parse(row.summary_json);
+            memCacheTs = generadoTs;
+            datosCargados = true;
+          }
+        }
+      } catch (_) {
+        // Si falla lectura de caché, continúa a consultar BD
+      }
+
+      // ── Capa 3: consulta BD real (solo si ambas cachés expiraron) ────
+      if (!datosCargados) {
+        const base44fresh = createClientFromRequest(req);
+        const [edificios, refugios] = await Promise.all([
+          base44fresh.asServiceRole.entities.ReportesDano.list('-updated_date', 3000),
+          base44fresh.asServiceRole.entities.PuntosAyuda.list('-updated_date', 1000),
+        ]);
+
+        memCache = { edificios, refugios, generado: new Date().toISOString() };
+        memCacheTs = ahora;
+
+        // Persistir en ArchivoAliados para sobrevivir reinicios del worker
+        try {
+          const summary = JSON.stringify(memCache);
+          const cacheRows = await base44fresh.asServiceRole.entities.ArchivoAliados.filter({ clave: 'api_mapa_cache' }, '-created_date', 1);
+          if (cacheRows && cacheRows.length > 0) {
+            await base44fresh.asServiceRole.entities.ArchivoAliados.update(cacheRows[0].id, {
+              summary_json: summary,
+              generated_at: memCache.generado,
+              total_records: edificios.length,
+            });
+          } else {
+            await base44fresh.asServiceRole.entities.ArchivoAliados.create({
+              clave: 'api_mapa_cache',
+              file_url: 'internal://cache',
+              summary_json: summary,
+              generated_at: memCache.generado,
+              total_records: edificios.length,
+              status: 'activo',
+            });
+          }
+        } catch (_) {
+          // No bloquear la respuesta si falla persistir caché
+        }
+      }
     }
 
-    // ── Filtrar en memoria (costo 0 créditos) ────────────────────────────
-    let edificios = cache.edificios;
-    let refugios  = cache.refugios;
+    // ── Filtrar en memoria (0 créditos BD) ──────────────────────────────
+    let edificios = memCache.edificios;
+    let refugios  = memCache.refugios;
 
     if (ciudad) {
       const c = ciudad.toLowerCase();
@@ -57,8 +102,9 @@ Deno.serve(async (req) => {
       edificios = edificios.filter(e => e.tipo_estructura === tipo);
     }
 
-    // ── Mapear solo campos públicos necesarios (sin datos privados) ──────
-    const mapEdificio = (e) => ({
+    // ── Mapear solo campos públicos ───────────────────────────────────────
+    const mapEdificio = (e, i) => ({
+      numero: i + 1,
       id: e.id,
       tipo: 'edificio',
       nombre: e.nombre_lugar || null,
@@ -89,7 +135,8 @@ Deno.serve(async (req) => {
       url: `https://statusvzla.com/edificio?id=${e.id}`,
     });
 
-    const mapRefugio = (r) => ({
+    const mapRefugio = (r, i) => ({
+      numero: i + 1,
       id: r.id,
       tipo: 'refugio',
       nombre: r.nombre_lugar,
@@ -119,35 +166,25 @@ Deno.serve(async (req) => {
     const edificiosMapeados = edificios.map(mapEdificio);
     const refugiosMapeados  = refugios.map(mapRefugio);
 
-    // ── Formato LIST — listado simple de edificios (nombre, dirección, ciudad) ──
+    const metaBase = {
+      fuente: 'StatusVzla.com',
+      powered_by: 'StatusVzla.com — Plataforma ciudadana de respuesta a emergencias',
+      api_url: 'https://statusvzla.com/functions/apiMapa',
+      generado: memCache.generado,
+      cache_ttl_minutos: 60,
+      docs: '?format=list · ?format=geojson · ?ciudad=Caracas · ?nivel=grave · ?tipo=hospital',
+    };
+
+    // ── FORMAT: list ─────────────────────────────────────────────────────
     if (format === 'list') {
-      const lista = edificiosMapeados.map((e, i) => ({
-        numero: i + 1,
-        id: e.id,
-        nombre: e.nombre || '(sin nombre)',
-        tipo_estructura: e.tipo_estructura,
-        nivel_dano: e.nivel_dano,
-        direccion: e.ubicacion.direccion || null,
-        ciudad: e.ubicacion.ciudad || null,
-        estado_region: e.ubicacion.estado_region || null,
-        lat: e.ubicacion.lat || null,
-        lng: e.ubicacion.lng || null,
-        actualizado: e.actualizado,
-        url: e.url,
-      }));
       return new Response(JSON.stringify({
         ok: true,
-        metadata: {
-          fuente: 'StatusVzla.com',
-          generado: cache.generado,
-          total: lista.length,
-          docs: 'Filtra con ?ciudad=Caracas · ?nivel=grave · ?tipo=hospital',
-        },
-        edificios: lista,
+        metadata: { ...metaBase, total: edificiosMapeados.length },
+        edificios: edificiosMapeados,
       }), { status: 200, headers: corsHeaders });
     }
 
-    // ── Formato GeoJSON (compatible con Leaflet, Mapbox, QGIS) ──────────
+    // ── FORMAT: geojson ──────────────────────────────────────────────────
     if (format === 'geojson') {
       const features = [
         ...edificiosMapeados
@@ -165,39 +202,24 @@ Deno.serve(async (req) => {
             properties: { ...r, ubicacion: undefined },
           })),
       ];
-      const geojson = {
+      return new Response(JSON.stringify({
         type: 'FeatureCollection',
         features,
-        metadata: {
-          fuente: 'StatusVzla.com',
-          powered_by: 'StatusVzla.com — Plataforma ciudadana de respuesta a emergencias',
-          api_url: 'https://statusvzla.com/functions/apiMapa',
-          generado: cache.generado,
-          total: features.length,
-          cache_ttl_minutos: 90,
-        },
-      };
-      return new Response(JSON.stringify(geojson), { headers: { ...corsHeaders, 'Content-Type': 'application/geo+json; charset=utf-8' } });
+        metadata: { ...metaBase, total: features.length },
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/geo+json; charset=utf-8' } });
     }
 
-    // ── Formato JSON estándar ─────────────────────────────────────────────
-    const respuesta = {
+    // ── FORMAT: json (default) ───────────────────────────────────────────
+    return new Response(JSON.stringify({
       ok: true,
       metadata: {
-        fuente: 'StatusVzla.com',
-        powered_by: 'StatusVzla.com — Plataforma ciudadana de respuesta a emergencias',
-        api_url: 'https://statusvzla.com/functions/apiMapa',
-        docs: 'Agrega ?format=geojson para GeoJSON · ?format=list para listado simple · ?ciudad=Caracas · ?nivel=grave · ?tipo=hospital',
-        generado: cache.generado,
-        cache_ttl_minutos: 90,
+        ...metaBase,
         total_edificios: edificiosMapeados.length,
         total_refugios: refugiosMapeados.length,
       },
       edificios: edificiosMapeados,
       refugios: refugiosMapeados,
-    };
-
-    return new Response(JSON.stringify(respuesta), { status: 200, headers: corsHeaders });
+    }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
     return new Response(
