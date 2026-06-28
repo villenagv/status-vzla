@@ -7,6 +7,8 @@ import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import GaleriaFotos from '@/components/svzla/GaleriaFotos';
 import EstadoOperativo from '@/components/edificio/EstadoOperativo';
+import EdificioImagen from '@/components/svzla/EdificioImagen';
+import { useLowBw } from '@/lib/LowBwContext';
 
 const DANO_CONFIG = {
   leve:        { color: '#B7950B', bg: '#FEF9E7', border: '#F9E79F', semaforo: '🟡', label: { es: 'Daño leve',     en: 'Minor damage'   }, acceso: { es: 'Entrada con precaución', en: 'Enter with caution'     } },
@@ -98,6 +100,7 @@ export default function EdificioDetalle() {
   const [params] = useSearchParams();
   const id = params.get('id');
   const { lang } = useLang();
+  const { lowBw } = useLowBw();
   const es = lang === 'es';
   const pt = lang === 'pt';
 
@@ -436,43 +439,56 @@ export default function EdificioDetalle() {
         {/* ── 5. ESTADO OPERATIVO (servicios, acceso, racionamiento) ── */}
         <EstadoOperativo edificioId={id} es={es} />
 
-        {/* ── 6. FOTOS ── */}
-        {edificio.foto_urls?.length > 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">📷 {t('Fotos del edificio', 'Building photos', 'Fotos do edifício')} ({edificio.foto_urls.length})</p>
-              {/* Si la primera foto no parece ser una fachada (no podemos saberlo) mostramos nudge siempre que haya menos de 2 fotos */}
-              {edificio.foto_urls.length < 2 && (
-                <span className="text-[10px] text-amber-600 font-semibold">🏠 {t('¿Tienes foto de la fachada?', 'Have a front photo?', 'Tem foto da fachada?')}</span>
-              )}
-            </div>
-            <GaleriaFotos urls={edificio.foto_urls} />
-            {edificio.foto_urls.length < 2 && (
-              <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
-                <span className="text-amber-500 text-sm flex-shrink-0">📷</span>
-                <p className="text-xs text-amber-800 leading-snug">
-                  {t('Este edificio tiene pocas fotos. Agrega una foto de la fachada (desde la calle) para que todos puedan identificarlo más fácilmente.',
-                     'This building has few photos. Add a front photo (from the street) so everyone can identify it more easily.',
-                     'Este edifício tem poucas fotos. Adicione uma foto da fachada (da rua) para que todos possam identificá-lo mais facilmente.')}
+        {/* ── 6. FOTO DE PORTADA + GALERÍA ── */}
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-3">
+          {/* Foto de portada / placeholder */}
+          <EdificioImagen
+            fotoUrls={edificio.foto_urls || []}
+            tipoEstructura={edificio.tipo_estructura}
+            nivelDano={edificio.nivel_dano}
+            height={220}
+            lang={lang}
+          />
+
+          {/* Si no hay fotos: nudge prominente */}
+          {(!edificio.foto_urls || edificio.foto_urls.length === 0) && !lowBw && (
+            <div className="flex items-start gap-3 px-4 py-3 border-t border-amber-200 bg-amber-50">
+              <span className="text-lg flex-shrink-0">🔍</span>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-amber-800">
+                  {t('Estamos buscando la foto de fachada', 'We are looking for the front photo', 'Estamos buscando a foto da fachada')}
+                </p>
+                <p className="text-[11px] text-amber-700 leading-snug mt-0.5">
+                  {t('¿Conoces este edificio? Agrega una foto desde la calle usando el botón de actualización abajo.',
+                     'Do you know this building? Add a photo from the street using the update button below.',
+                     'Você conhece este edifício? Adicione uma foto da rua usando o botão de atualização abaixo.')}
                 </p>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 mb-3 flex items-start gap-3">
-            <span className="text-2xl flex-shrink-0">📷</span>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-amber-800 mb-0.5">
-                {t('Este edificio no tiene fotos todavía.', 'This building has no photos yet.', 'Este edifício ainda não tem fotos.')}
+            </div>
+          )}
+
+          {/* Galería del resto de fotos (si hay más de 1) */}
+          {edificio.foto_urls?.length > 1 && (
+            <div className="p-3 border-t border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                📷 {t('Más fotos', 'More photos', 'Mais fotos')} ({edificio.foto_urls.length})
               </p>
-              <p className="text-xs text-amber-700 leading-snug">
-                {t('¿Puedes tomar una foto de la fachada desde la calle? Ayudas a que todos lo identifiquen. Usa el botón de actualización abajo.',
-                   'Can you take a front photo from the street? It helps everyone identify the building. Use the update button below.',
-                   'Você pode tirar uma foto da fachada da rua? Ajuda todos a identificar o edifício. Use o botão de atualização abaixo.')}
+              <GaleriaFotos urls={edificio.foto_urls} />
+            </div>
+          )}
+
+          {/* Si hay solo 1 foto: aviso de que falta la fachada */}
+          {edificio.foto_urls?.length === 1 && !lowBw && (
+            <div className="flex items-start gap-2 px-4 py-2.5 border-t border-amber-100 bg-amber-50">
+              <span className="text-amber-500 text-sm flex-shrink-0">🏠</span>
+              <p className="text-[11px] text-amber-700 leading-snug">
+                {t('¿Tienes una foto de la fachada? Súbela para ayudar a identificar este edificio.',
+                   'Have a front photo? Upload it to help identify this building.',
+                   'Tem uma foto da fachada? Envie-a para ajudar a identificar este edifício.')}
               </p>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ── 7. HISTORIAL DE ACTUALIZACIONES ── */}
         {actualizaciones.length > 0 && (
