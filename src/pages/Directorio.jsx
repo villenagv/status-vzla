@@ -61,9 +61,8 @@ export default function Directorio() {
   const [personasCris, setPersonasCris] = useState([]);
   const [personasEncontradas, setPersonasEncontradas] = useState([]);
 
-  // Datos edificios
+  // Datos edificios — fuente única: ReportesDano
   const [reportesDano, setReportesDano] = useState([]);
-  const [infraSos, setInfraSos] = useState([]);
 
   // UI
   const [categoriaPersona, setCategoriaPersona] = useState('desaparecidos');
@@ -77,19 +76,17 @@ export default function Directorio() {
 
   useEffect(() => {
     Promise.all([
-      base44.entities.PersonasBuscadas.list('-updated_date', 300),
-      base44.entities.PersonaRegistrada.list('-created_date', 200),
-      base44.entities.PersonaCRIS.list('-created_date', 200),
-      base44.entities.PersonasEncontradas.list('-created_date', 200),
-      base44.entities.ReportesDano.list('-created_date', 200),
-      base44.entities.InfraestructuraSos.list('-created_date', 200),
-    ]).then(([buscadas, registradas, cris, encontradas, danos, sos]) => {
+      base44.entities.PersonasBuscadas.list('-updated_date', 2000),
+      base44.entities.PersonaRegistrada.list('-created_date', 1000),
+      base44.entities.PersonaCRIS.list('-created_date', 500),
+      base44.entities.PersonasEncontradas.list('-created_date', 1000),
+      base44.entities.ReportesDano.list('-updated_date', 2000),
+    ]).then(([buscadas, registradas, cris, encontradas, danos]) => {
       setPersonasBuscadas(buscadas);
       setPersonasRegistradas(registradas);
       setPersonasCris(cris);
       setPersonasEncontradas(encontradas);
       setReportesDano(danos);
-      setInfraSos(sos);
     }).catch(() => {}).finally(() => setCargando(false));
   }, []);
 
@@ -124,20 +121,14 @@ export default function Directorio() {
     })),
   ];
 
-  // ── Unificar edificios ──────────────────────────────────────────────────────
-  const todosEdificios = [
-    ...reportesDano.map(r => ({
-      ...r, _fuente: 'reporte_dano', _nombre: r.nombre_lugar || r.tipo_estructura || '—',
-      nivel_dano: r.nivel_dano || 'no_evaluado',
-      hayAtrapados: r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces',
-    })),
-    ...infraSos.map(r => ({
-      ...r, _fuente: 'infrasos', _nombre: r.tipo_reporte || r.categoria || '—',
-      nivel_dano: r.nivel_dano || 'no_evaluado',
-      hayAtrapados: r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces',
-      tipo_estructura: r.categoria || r.tipo_reporte,
-    })),
-  ];
+  // ── Unificar edificios — fuente única: ReportesDano ───────────────────────
+  const todosEdificios = reportesDano.map(r => ({
+    ...r,
+    _fuente: 'reporte_dano',
+    _nombre: r.nombre_lugar || r.tipo_estructura?.replace(/_/g, ' ') || '—',
+    nivel_dano: r.nivel_dano || 'no_evaluado',
+    hayAtrapados: r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces',
+  }));
 
   // ── Filtrar personas por categoría ─────────────────────────────────────────
   const filtrarPersonas = (cat) => {
