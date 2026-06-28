@@ -236,6 +236,88 @@ export default function Alianzas() {
           </div>
         </div>
 
+        {/* Mapa Embebido */}
+        <div className="mb-6 rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.10)', background: '#111318' }}>
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex items-center gap-2 mb-1">
+              <Globe size={16} style={{ color: '#6FCF97' }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#F0F6FC' }}>
+                {t('Opción rápida: mapa embebido (iframe)', 'Quick option: embedded map (iframe)')}
+              </span>
+            </div>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)', margin: 0 }}>
+              {t('Sin código, sin API. Copia y pega en tu sitio web.', 'No code, no API. Copy and paste into your website.')}
+            </p>
+          </div>
+
+          {/* Vista previa del mapa */}
+          <div className="mx-5 mt-4" style={{ position: 'relative', width: '100%', height: 380, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.10)' }}>
+            <iframe
+              src="https://statusvzla.com/mapa-danos"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              title="Mapa Status Vzla"
+              loading="lazy"
+              style={{ display: 'block' }}
+            />
+            <div style={{
+              position: 'absolute', bottom: 10, right: 10,
+              background: 'rgba(13,17,23,0.85)', border: '1px solid rgba(245,197,24,0.40)',
+              padding: '4px 10px', borderRadius: 8,
+              fontSize: 10, fontWeight: 800, color: '#F5C518',
+              letterSpacing: '0.02em',
+            }}>
+              Powered by StatusVzla.com
+            </div>
+          </div>
+
+          {/* Código del iframe */}
+          <div className="relative mx-5 my-4">
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+              {t('Código para copiar en tu web', 'Code to copy into your website')}
+            </p>
+            <pre style={{
+              background: '#0D1117', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10,
+              padding: '14px 16px', fontSize: 10.5, color: '#93C5FD', overflowX: 'auto',
+              lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+            }}>
+{`<div style="position:relative;width:100%;height:500px;border-radius:12px;overflow:hidden;">
+  <iframe
+    src="https://statusvzla.com/mapa-danos"
+    width="100%"
+    height="100%"
+    frameborder="0"
+    title="Mapa Status Vzla"
+    loading="lazy">
+  </iframe>
+  <div style="position:absolute;bottom:10px;right:10px;background:rgba(13,17,23,0.85);padding:4px 10px;border-radius:8px;font-size:10px;font-weight:800;color:#F5C518;border:1px solid rgba(245,197,24,0.40);">
+    Powered by StatusVzla.com
+  </div>
+</div>`}
+            </pre>
+            <button onClick={() => copiar(`<div style="position:relative;width:100%;height:500px;border-radius:12px;overflow:hidden;">\n  <iframe\n    src="https://statusvzla.com/mapa-danos"\n    width="100%"\n    height="100%"\n    frameborder="0"\n    title="Mapa Status Vzla"\n    loading="lazy">\n  </iframe>\n  <div style="position:absolute;bottom:10px;right:10px;background:rgba(13,17,23,0.85);padding:4px 10px;border-radius:8px;font-size:10px;font-weight:800;color:#F5C518;border:1px solid rgba(245,197,24,0.40);">\n    Powered by StatusVzla.com\n  </div>\n</div>`, 'iframe')}
+              style={{
+                position: 'absolute', top: 34, right: 8,
+                background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: 7, padding: '5px 8px', cursor: 'pointer',
+                color: copiado === 'iframe' ? '#6FCF97' : 'rgba(255,255,255,0.65)',
+              }}>
+              {copiado === 'iframe' ? <Check size={12} /> : <Copy size={12} />}
+            </button>
+          </div>
+
+          <div className="mx-5 mb-5 rounded-lg px-4 py-3" style={{ background: 'rgba(111,207,151,0.07)', border: '1px solid rgba(111,207,151,0.20)' }}>
+            <p style={{ fontSize: 11, color: '#6FCF97', margin: 0, lineHeight: 1.55 }}>
+              ✅ <strong>{t('Sin costo ni configuración.', 'No cost or setup.')}</strong>{' '}
+              {t(
+                'El mapa se carga de forma diferida (lazy) para no afectar la velocidad de tu sitio. Funciona en WordPress, Wix, HTML y cualquier framework.',
+                'The map loads lazily so it does not slow down your site. Works on WordPress, Wix, HTML, and any framework.'
+              )}
+            </p>
+          </div>
+        </div>
+
         {/* Llamado a alianzas */}
         <div className="mb-6 rounded-2xl p-5" style={{ background: 'rgba(36,113,163,0.12)', border: '1px solid rgba(59,130,246,0.25)' }}>
           <div className="flex items-center gap-2 mb-3">
