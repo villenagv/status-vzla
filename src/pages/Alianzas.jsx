@@ -213,6 +213,57 @@ export default function Alianzas() {
           </div>
         </div>
 
+        {/* Código abierto y GitHub */}
+        <div className="mb-6 rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: '#111318' }}>
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex items-center gap-2 mb-1">
+              <Code size={16} style={{ color: '#C4B5FD' }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#F0F6FC' }}>
+                {t('Código abierto · GitHub', 'Open source · GitHub')}
+              </span>
+            </div>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)', margin: 0 }}>
+              {t('El código de StatusVzla.com es público. Puedes revisarlo, mejorarlo o usarlo como base para tu propia plataforma de emergencias.', 'StatusVzla.com\'s code is public. You can review it, improve it, or use it as a base for your own emergency platform.')}
+            </p>
+          </div>
+          <div className="px-5 py-4">
+            <div className="flex flex-col gap-3">
+              <a href="https://github.com/villenagv/status-vzla" target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#0D1117', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '12px 14px', textDecoration: 'none' }}>
+                <span style={{ fontSize: 22 }}>⭐</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#F0F6FC', margin: 0 }}>villenagv/status-vzla</p>
+                  <p style={{ fontSize: 10, color: '#9BA5B0', margin: 0 }}>github.com/villenagv/status-vzla</p>
+                </div>
+                <span style={{ fontSize: 11, color: '#C4B5FD', fontWeight: 600, flexShrink: 0 }}>GitHub ↗</span>
+              </a>
+              <a href="https://github.com/villenagv/status-vzla/blob/main/README.md" target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#0D1117', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '12px 14px', textDecoration: 'none' }}>
+                <span style={{ fontSize: 22 }}>📄</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#F0F6FC', margin: 0 }}>{t('Documentación técnica (README)', 'Technical documentation (README)')}</p>
+                  <p style={{ fontSize: 10, color: '#9BA5B0', margin: 0 }}>{t('Arquitectura, endpoints y cómo contribuir', 'Architecture, endpoints and how to contribute')}</p>
+                </div>
+                <span style={{ fontSize: 11, color: '#C4B5FD', fontWeight: 600, flexShrink: 0 }}>README ↗</span>
+              </a>
+              <a href="https://github.com/villenagv/status-vzla/issues" target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#0D1117', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '12px 14px', textDecoration: 'none' }}>
+                <span style={{ fontSize: 22 }}>🐛</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#F0F6FC', margin: 0 }}>{t('Reportar errores o sugerir mejoras', 'Report bugs or suggest improvements')}</p>
+                  <p style={{ fontSize: 10, color: '#9BA5B0', margin: 0 }}>GitHub Issues</p>
+                </div>
+                <span style={{ fontSize: 11, color: '#C4B5FD', fontWeight: 600, flexShrink: 0 }}>Issues ↗</span>
+              </a>
+            </div>
+            <div className="mt-4 rounded-lg px-4 py-3" style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.25)' }}>
+              <p style={{ fontSize: 11, color: '#C4B5FD', lineHeight: 1.6, margin: 0 }}>
+                🤝 {t('Si quieres contribuir al código, abre un Pull Request en GitHub o escríbenos. Buscamos desarrolladores, diseñadores y analistas de datos comprometidos con Venezuela.', 'If you want to contribute to the code, open a Pull Request on GitHub or write to us. We\'re looking for developers, designers and data analysts committed to Venezuela.')}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* API pública */}
         <div className="mb-6 rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: '#111318' }}>
           <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
