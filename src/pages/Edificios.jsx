@@ -83,8 +83,9 @@ export default function Edificios() {
   const [todos, setTodos] = useState([]);
   const [cargandoDir, setCargandoDir] = useState(true);
   const [filtroDir, setFiltroDir] = useState('');
-  const [filtroRapido, setFiltroRapido] = useState('todos'); // 'todos' | 'criticos' | 'atrapados' | 'sin_verificar' | 'con_contactos'
-  const [ordenDir, setOrdenDir] = useState('recientes'); // 'prioridad' | 'recientes'
+  const [filtroRapido, setFiltroRapido] = useState('todos');
+  const [filtroCiudad, setFiltroCiudad] = useState('');
+  const [ordenDir, setOrdenDir] = useState('recientes');
   const [pageDir, setPageDir] = useState(12);
 
   // ── PERSONAS ──
@@ -337,10 +338,14 @@ export default function Edificios() {
   const sinVerificar = todos.filter(r => r.nivel_verificacion === 'sin_verificar' || !r.nivel_verificacion);
   const conContactos = todos.filter(r => r.contactos_acceso?.length > 0);
 
+  // Ciudades únicas disponibles en los datos
+  const ciudadesDisponibles = [...new Set(todos.map(r => r.ciudad).filter(Boolean))].sort();
+
   const dirBase = todos.filter(r => {
-    if (!filtroDir.trim()) return true;
-    const q = filtroDir.toLowerCase();
-    return (r.direccion || '').toLowerCase().includes(q) || (r.ciudad || '').toLowerCase().includes(q) || (r.nombre_lugar || '').toLowerCase().includes(q);
+    const qText = filtroDir.trim().toLowerCase();
+    const passText = !qText || (r.direccion || '').toLowerCase().includes(qText) || (r.ciudad || '').toLowerCase().includes(qText) || (r.nombre_lugar || '').toLowerCase().includes(qText);
+    const passCiudad = !filtroCiudad || (r.ciudad || '').toLowerCase() === filtroCiudad.toLowerCase();
+    return passText && passCiudad;
   });
   const dirFiltrados = dirBase.filter(r => {
     if (filtroRapido === 'criticos') return ['critico', 'colapsado', 'grave'].includes(r.nivel_dano);
@@ -444,6 +449,27 @@ export default function Edificios() {
                 </button>
               </div>
             </div>
+
+            {/* Filtro por ciudad */}
+            {ciudadesDisponibles.length > 0 && (
+              <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-1">
+                <span className="text-xs text-gray-400 font-medium whitespace-nowrap flex-shrink-0">📍 {t('Ciudad:', 'City:', 'Cidade:')}</span>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => { setFiltroCiudad(''); setPageDir(12); }}
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border cursor-pointer whitespace-nowrap transition-colors ${!filtroCiudad ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'}`}>
+                    {t('Todas', 'All', 'Todas')}
+                  </button>
+                  {ciudadesDisponibles.slice(0, 12).map(c => (
+                    <button key={c}
+                      onClick={() => { setFiltroCiudad(filtroCiudad === c ? '' : c); setPageDir(12); }}
+                      className={`text-xs font-semibold px-3 py-1.5 rounded-full border cursor-pointer whitespace-nowrap transition-colors ${filtroCiudad === c ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'}`}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Chips de filtro rápido con contadores */}
             <div className="flex gap-2 flex-wrap mb-4 overflow-x-auto pb-1">
@@ -609,35 +635,8 @@ export default function Edificios() {
               </>
             )}
 
-            {/* Solicitudes pendientes */}
-            {!cargandoSols && solicitudes.length > 0 && (
-              <div className="mt-8 mb-6">
-                <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl p-3 mb-3">
-                  <span className="text-base">🧑‍🤝‍🧑</span>
-                  <div>
-                    <p className="text-xs font-bold text-purple-800">{t('Vecinos están buscando información', 'Neighbors are looking for information', 'Vizinhos buscam informações')}</p>
-                    <p className="text-[11px] text-purple-600">{t('¿Conoces alguno? Tu información ayuda a la comunidad.', 'Do you know any? Your info helps the community.', 'Você conhece algum? Sua informação ajuda a comunidade.')}</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {solicitudes.slice(0, 5).map(s => (
-                    <Link key={s.id} to={`/edificio?id=${s.id}`}
-                      className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 no-underline hover:bg-amber-100 transition-colors gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate">{s.nombre_lugar}</p>
-                        <p className="text-xs text-gray-500 truncate">📍 {s.direccion || t('Sin dirección', 'No address', 'Sem endereço')} · {s.ciudad}</p>
-                      </div>
-                      <span className="text-xs font-semibold bg-purple-700 text-white px-3 py-1.5 rounded-lg flex-shrink-0">
-                        {t('Tengo info →', 'I have info →', 'Tenho info →')}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Tabla de personas */}
-            <div className="mt-8">
+            {/* ── PERSONAS BUSCADAS Y ENCONTRADAS (ahora primero) ── */}
+            <div className="mt-8 mb-4">
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <h2 className="text-base font-bold text-gray-800">👤 {t('Personas buscadas y encontradas', 'Missing & Found people', 'Pessoas procuradas e encontradas')}</h2>
                 <input value={filtroPer} onChange={e => { setFiltroPer(e.target.value); setPagePer(8); }}
@@ -667,23 +666,11 @@ export default function Edificios() {
                           const st = PERSONA_ESTADO[estado_caso] || { es: estado_caso || '—', en: estado_caso || '—', cls: 'bg-gray-100 text-gray-600' };
                           return (
                             <tr key={p.id} className="hover:bg-gray-50">
-                              <td className="px-4 py-3">
-                                <p className="font-semibold text-gray-900 text-xs">{nombre}</p>
-                                {p.sexo && <p className="text-[10px] text-gray-400">{p.sexo}</p>}
-                              </td>
+                              <td className="px-4 py-3"><p className="font-semibold text-gray-900 text-xs">{nombre}</p>{p.sexo && <p className="text-[10px] text-gray-400">{p.sexo}</p>}</td>
                               <td className="px-4 py-3 text-xs text-gray-600">{p.edad_aprox || '—'}</td>
-                              <td className="px-4 py-3 text-xs text-gray-600">
-                                <p>{p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'}</p>
-                                <p className="text-gray-400">{p.ciudad}{p.estado_region ? `, ${p.estado_region}` : ''}</p>
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                                  {esBuscada ? t('Buscada', 'Missing', 'Procurada') : t('Encontrada', 'Found', 'Encontrada')}
-                                </span>
-                              </td>
+                              <td className="px-4 py-3 text-xs text-gray-600"><p>{p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'}</p><p className="text-gray-400">{p.ciudad}{p.estado_region ? `, ${p.estado_region}` : ''}</p></td>
+                              <td className="px-4 py-3"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span></td>
+                              <td className="px-4 py-3"><span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>{esBuscada ? t('Buscada', 'Missing', 'Procurada') : t('Encontrada', 'Found', 'Encontrada')}</span></td>
                             </tr>
                           );
                         })}
@@ -698,26 +685,21 @@ export default function Edificios() {
                       const st = PERSONA_ESTADO[estado_caso] || { es: estado_caso || '—', en: estado_caso || '—', cls: 'bg-gray-100 text-gray-600' };
                       return (
                         <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">{nombre}</p>
-                            <p className="text-xs text-gray-400 truncate">📍 {p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'} · {p.ciudad}</p>
-                          </div>
+                          <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900 truncate">{nombre}</p><p className="text-xs text-gray-400 truncate">📍 {p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'} · {p.ciudad}</p></div>
                           <div className="flex flex-col items-end gap-1">
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span>
-                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                              {esBuscada ? t('Buscada', 'Missing', 'Procurada') : t('Encontrada', 'Found', 'Encontrada')}
-                            </span>
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>{esBuscada ? t('Buscada', 'Missing', 'Procurada') : t('Encontrada', 'Found', 'Encontrada')}</span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
                   {perFiltradas.length > pagePer && (
-                    <button onClick={() => setPagePer(v => v + 8)} className="w-full py-2.5 text-sm text-blue-700 border border-blue-200 bg-white rounded-xl cursor-pointer hover:bg-blue-50">
+                    <button onClick={() => setPagePer(v => v + 8)} className="w-full py-2.5 text-sm text-blue-700 border border-blue-200 bg-white rounded-xl cursor-pointer hover:bg-blue-50 mb-3">
                       {t(`Ver ${Math.min(8, perFiltradas.length - pagePer)} más`, `Load ${Math.min(8, perFiltradas.length - pagePer)} more`, `Ver ${Math.min(8, perFiltradas.length - pagePer)} mais`)}
                     </button>
                   )}
-                  <div className="flex gap-3 mt-3 flex-wrap">
+                  <div className="flex gap-3 flex-wrap">
                     <Link to="/buscar-persona" className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg font-semibold no-underline hover:bg-amber-100">
                       + {t('Reportar persona buscada', 'Report missing person', 'Reportar pessoa procurada')}
                     </Link>
@@ -728,6 +710,34 @@ export default function Edificios() {
                 </>
               )}
             </div>
+
+            {/* Solicitudes pendientes */}
+            {!cargandoSols && solicitudes.length > 0 && (
+              <div className="mt-8 mb-6">
+                <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl p-3 mb-3">
+                  <span className="text-base">🧑‍🤝‍🧑</span>
+                  <div>
+                    <p className="text-xs font-bold text-purple-800">{t('Vecinos están buscando información', 'Neighbors are looking for information', 'Vizinhos buscam informações')}</p>
+                    <p className="text-[11px] text-purple-600">{t('¿Conoces alguno? Tu información ayuda a la comunidad.', 'Do you know any? Your info helps the community.', 'Você conhece algum? Sua informação ajuda a comunidade.')}</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {solicitudes.slice(0, 5).map(s => (
+                    <Link key={s.id} to={`/edificio?id=${s.id}`}
+                      className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 no-underline hover:bg-amber-100 transition-colors gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">{s.nombre_lugar}</p>
+                        <p className="text-xs text-gray-500 truncate">📍 {s.direccion || t('Sin dirección', 'No address', 'Sem endereço')} · {s.ciudad}</p>
+                      </div>
+                      <span className="text-xs font-semibold bg-purple-700 text-white px-3 py-1.5 rounded-lg flex-shrink-0">
+                        {t('Tengo info →', 'I have info →', 'Tenho info →')}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
         )}
 
