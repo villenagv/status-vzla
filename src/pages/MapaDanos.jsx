@@ -664,8 +664,37 @@ export default function MapaDanos() {
         </div>
       </div>
 
+      {/* Botones flotantes fijos — siempre visibles en el mapa */}
+      <div style={{
+        position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+        display: 'flex', gap: 8, zIndex: 50, flexWrap: 'wrap', justifyContent: 'center',
+        pointerEvents: 'none',
+      }}>
+        <a href="/reportar-dano" style={{
+          pointerEvents: 'all',
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          padding: '11px 18px', background: '#C0392B', color: '#fff',
+          borderRadius: 999, textDecoration: 'none', fontSize: 13, fontWeight: 700,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.12)',
+          whiteSpace: 'nowrap',
+        }}>
+          📍 {t('Reportar edificio', 'Report building')}
+        </a>
+        <a href="/edificios" style={{
+          pointerEvents: 'all',
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          padding: '11px 18px', background: 'rgba(22,27,34,0.97)', color: '#F0F6FC',
+          border: '1px solid rgba(255,255,255,0.20)',
+          borderRadius: 999, textDecoration: 'none', fontSize: 13, fontWeight: 600,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.45)',
+          whiteSpace: 'nowrap',
+        }}>
+          🔄 {t('Actualizar info', 'Update info')}
+        </a>
+      </div>
+
       {cargando && (
-        <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#161B22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, zIndex: 50 }}>
+        <div style={{ position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)', background: '#161B22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, zIndex: 50 }}>
           <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: '#4A9EDB' }} />
           <span style={{ fontSize: 11, color: '#9BA5B0' }}>{t('Cargando reportes...', 'Loading reports...')}</span>
         </div>
@@ -708,6 +737,9 @@ function buildPopup(r, es, capa, eo) {
     <p style="font-size:10px;color:#666;margin:4px 0 0">📍 ${r.ciudad || ''}, ${r.estado_region || ''}</p>
     <a href="/edificio?id=${r.id}" style="display:block;margin-top:6px;font-size:10px;color:#2471A3;text-align:center;text-decoration:none;background:#f0f7ff;border-radius:6px;padding:4px 0;border:1px solid #bee3f8">
       ${es ? 'Ver ficha →' : 'View details →'}
+    </a>
+    <a href="/edificio?id=${r.id}#actualizar" style="display:block;margin-top:4px;font-size:10px;color:#15803D;text-align:center;text-decoration:none;background:#f0fdf4;border-radius:6px;padding:4px 0;border:1px solid #bbf7d0">
+      ${es ? '🔄 Actualizar información' : '🔄 Update info'}
     </a>
   </div>`;
 }
