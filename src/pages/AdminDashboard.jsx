@@ -13,6 +13,7 @@ import GestionUsuarios from '@/components/admin/GestionUsuarios';
 import VoluntariosDetalle from '@/components/admin/VoluntariosDetalle';
 import GeocodificarPanel from '@/components/admin/GeocodificarPanel';
 import ImportacionVzla from '@/components/admin/ImportacionVzla';
+import CargaFotosDrive from '@/components/admin/CargaFotosDrive';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
@@ -64,6 +65,7 @@ const AdminDashboard = () => {
       { key: 'manage',      label: '⚙️ Datos'               },
       { key: 'edificios_masivo', label: '🏗️ Edificios'     },
       { key: 'importar_vzla', label: '🇻🇪 Importar VZ'       },
+      { key: 'fotos_drive', label: '🖼️ Fotos Drive'         },
       { key: 'dossier',    label: '📋 Dossier'              },
   ];
 
@@ -113,6 +115,11 @@ const AdminDashboard = () => {
             {tab === 'importar_vzla' && (
               <div style={{ maxWidth: 720, margin: '0 auto', background: '#0D1117', borderRadius: 18, padding: 24 }}>
                 <ImportacionVzla />
+              </div>
+            )}
+            {tab === 'fotos_drive' && (
+              <div style={{ maxWidth: 720, margin: '0 auto' }}>
+                <CargaFotosDrive />
               </div>
             )}
             {tab === 'dossier' && (
