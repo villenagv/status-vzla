@@ -437,10 +437,40 @@ export default function EdificioDetalle() {
         <EstadoOperativo edificioId={id} es={es} />
 
         {/* ── 6. FOTOS ── */}
-        {edificio.foto_urls?.length > 0 && (
+        {edificio.foto_urls?.length > 0 ? (
           <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">📷 {t('Fotos del edificio', 'Building photos', 'Fotos do edifício')} ({edificio.foto_urls.length})</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">📷 {t('Fotos del edificio', 'Building photos', 'Fotos do edifício')} ({edificio.foto_urls.length})</p>
+              {/* Si la primera foto no parece ser una fachada (no podemos saberlo) mostramos nudge siempre que haya menos de 2 fotos */}
+              {edificio.foto_urls.length < 2 && (
+                <span className="text-[10px] text-amber-600 font-semibold">🏠 {t('¿Tienes foto de la fachada?', 'Have a front photo?', 'Tem foto da fachada?')}</span>
+              )}
+            </div>
             <GaleriaFotos urls={edificio.foto_urls} />
+            {edificio.foto_urls.length < 2 && (
+              <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                <span className="text-amber-500 text-sm flex-shrink-0">📷</span>
+                <p className="text-xs text-amber-800 leading-snug">
+                  {t('Este edificio tiene pocas fotos. Agrega una foto de la fachada (desde la calle) para que todos puedan identificarlo más fácilmente.',
+                     'This building has few photos. Add a front photo (from the street) so everyone can identify it more easily.',
+                     'Este edifício tem poucas fotos. Adicione uma foto da fachada (da rua) para que todos possam identificá-lo mais facilmente.')}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 mb-3 flex items-start gap-3">
+            <span className="text-2xl flex-shrink-0">📷</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-amber-800 mb-0.5">
+                {t('Este edificio no tiene fotos todavía.', 'This building has no photos yet.', 'Este edifício ainda não tem fotos.')}
+              </p>
+              <p className="text-xs text-amber-700 leading-snug">
+                {t('¿Puedes tomar una foto de la fachada desde la calle? Ayudas a que todos lo identifiquen. Usa el botón de actualización abajo.',
+                   'Can you take a front photo from the street? It helps everyone identify the building. Use the update button below.',
+                   'Você pode tirar uma foto da fachada da rua? Ajuda todos a identificar o edifício. Use o botão de atualização abaixo.')}
+              </p>
+            </div>
           </div>
         )}
 

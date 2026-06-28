@@ -257,7 +257,10 @@ export default function Edificios() {
   const agregarContacto = () => setContactosAcceso(prev => [...prev, { ...CONTACTO_VACIO }]);
   const quitarContacto = (i) => setContactosAcceso(prev => prev.filter((_, idx) => idx !== i));
   const setContacto = (i, k, v) => setContactosAcceso(prev => prev.map((c, idx) => idx === i ? { ...c, [k]: v } : c));
-  const [fotos, setFotos] = useState([]);
+  // Fotos separadas: fachada (1) + daños (hasta 4)
+  const [fotoFachada, setFotoFachada] = useState(null); // { id, url, uploading, error, preview }
+  const [fotosDano, setFotosDano] = useState([]);       // hasta 4
+  const MAX_DANO = 4;
   const [enviando, setEnviando] = useState(false);
   const [exito, setExito] = useState(null);
 
@@ -333,29 +336,42 @@ export default function Edificios() {
   };
 
   // ── SUBIR FOTOS ──
-  const subirFoto = async (file) => {
-    if (fotos.length >= MAX_FOTOS) return;
-    const id = Date.now();
-    setFotos(prev => [...prev, { id, url: null, uploading: true, error: false, preview: URL.createObjectURL(file) }]);
+  const subirFotoConSetState = async (file, setFn, maxCheck) => {
+    if (maxCheck && maxCheck()) return;
+    const id = Date.now() + Math.random();
+    const entry = { id, url: null, uploading: true, error: false, preview: URL.createObjectURL(file) };
+    setFn(prev => Array.isArray(prev) ? [...prev, entry] : entry);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFotos(prev => prev.map(f => f.id === id ? { ...f, url: file_url, uploading: false } : f));
+      setFn(prev => Array.isArray(prev)
+        ? prev.map(f => f.id === id ? { ...f, url: file_url, uploading: false } : f)
+        : (prev?.id === id ? { ...prev, url: file_url, uploading: false } : prev));
     } catch {
-      setFotos(prev => prev.map(f => f.id === id ? { ...f, uploading: false, error: true } : f));
+      setFn(prev => Array.isArray(prev)
+        ? prev.map(f => f.id === id ? { ...f, uploading: false, error: true } : f)
+        : (prev?.id === id ? { ...prev, uploading: false, error: true } : prev));
     }
   };
-  const handleFotoInput = (e) => {
-    Array.from(e.target.files || []).slice(0, MAX_FOTOS - fotos.length).forEach(subirFoto);
+  const handleFachadaInput = (e) => {
+    const file = e.target.files?.[0];
+    if (file) subirFotoConSetState(file, setFotoFachada, null);
     e.target.value = '';
   };
-  const quitarFoto = (id) => setFotos(prev => prev.filter(f => f.id !== id));
+  const handleDanoInput = (e) => {
+    Array.from(e.target.files || []).slice(0, MAX_DANO - fotosDano.length).forEach(file =>
+      subirFotoConSetState(file, setFotosDano, () => fotosDano.length >= MAX_DANO)
+    );
+    e.target.value = '';
+  };
+  const quitarFachada = () => setFotoFachada(null);
+  const quitarFotoDano = (id) => setFotosDano(prev => prev.filter(f => f.id !== id));
 
   // ── RESET ──
   const resetForm = () => {
     setEtapa('validacion');
     setPosiblesDups([]); setDupBuscado(false);
     clearDraft();
-    setFotos([]); setContactosAcceso([]);
+    setFotoFachada(null); setFotosDano([]); setContactosAcceso([]);
   };
 
   // ── ENVIAR ──
@@ -363,7 +379,11 @@ export default function Edificios() {
     setEnviando(true);
     try {
       const prioridad = (nivel === 'critico' || nivel === 'colapsado' || atrapados === 'si' || atrapados === 'voces') ? 'critica' : nivel === 'grave' ? 'alta' : 'normal';
-      const foto_urls = fotos.filter(f => f.url).map(f => f.url);
+      // Fachada va primera en el array; luego fotos de daños
+      const foto_urls = [
+        ...(fotoFachada?.url ? [fotoFachada.url] : []),
+        ...fotosDano.filter(f => f.url).map(f => f.url),
+      ];
       const contactosFiltrados = contactosAcceso.filter(c => c.nombre.trim() || c.telefono.trim() || c.email.trim());
       const nuevo = await base44.entities.ReportesDano.create({
         tipo_estructura: tipo || 'otro', nombre_lugar: valNombre,
@@ -1330,31 +1350,98 @@ export default function Edificios() {
                       </div>
                     </div>
 
-                    {/* 8. Fotos */}
-                    <div className="bg-white border border-gray-200 rounded-xl p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-1">8. {t('Fotos del daño (máx. 5, opcional)', 'Photos of damage (max 5, optional)', 'Fotos do dano (máx. 5, opcional)')}</h3>
-                      <p className="text-xs text-gray-400 mb-3">{t('Solo desde un lugar seguro. No entres al edificio.', 'Only from a safe location. Do not enter the building.', 'Somente de um lugar seguro. Não entre no edifício.')}</p>
-                      {fotos.length < MAX_FOTOS && (
-                        <label className="flex items-center gap-3 border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors mb-3">
-                          <Camera size={20} className="text-gray-400" />
+                    {/* 8. Fotos — Fachada + Daños separados */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-5">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-800 mb-0.5">8. {t('Fotos del edificio', 'Building photos', 'Fotos do edifício')}</h3>
+                        <p className="text-xs text-gray-400">{t('Solo desde un lugar seguro. No entres al edificio.', 'Only from a safe location. Do not enter the building.', 'Somente de um lugar seguro. Não entre no edifício.')}</p>
+                      </div>
+
+                      {/* ── 8a. Foto de fachada ── */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-base">🏠</span>
                           <div>
-                            <p className="text-sm font-medium text-gray-700">{t('Agregar fotos', 'Add photos', 'Adicionar fotos')}</p>
-                            <p className="text-xs text-gray-400">{MAX_FOTOS - fotos.length} {t('espacio(s) restante(s)', 'slot(s) remaining', 'espaço(s) restante(s)')}</p>
+                            <p className="text-xs font-bold text-gray-800">{t('Foto de la fachada', 'Building front photo', 'Foto da fachada')} <span className="text-amber-500 font-black">★ Recomendada</span></p>
+                            <p className="text-[10px] text-gray-400">{t('Una foto de frente al edificio desde la calle. Ayuda a que todos lo identifiquen.', 'A front photo of the building from the street. Helps everyone identify it.', 'Uma foto de frente ao edifício da rua. Ajuda todos a identificá-lo.')}</p>
                           </div>
-                          <input type="file" accept="image/*" multiple className="hidden" onChange={handleFotoInput} />
-                        </label>
-                      )}
-                      {fotos.length > 0 && (
-                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                          {fotos.map(f => (
+                        </div>
+
+                        {!fotoFachada ? (
+                          <label className="flex items-center gap-3 border-2 border-dashed border-amber-300 bg-amber-50 rounded-xl p-4 cursor-pointer hover:border-amber-400 hover:bg-amber-100 transition-colors">
+                            <Camera size={22} className="text-amber-500 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-bold text-amber-800">{t('Subir foto de fachada', 'Upload front photo', 'Enviar foto da fachada')}</p>
+                              <p className="text-xs text-amber-600">{t('1 foto · Desde la calle, sin entrar', '1 photo · From the street, no entry', '1 foto · Da rua, sem entrar')}</p>
+                            </div>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleFachadaInput} />
+                          </label>
+                        ) : (
+                          <div className="relative w-full rounded-xl overflow-hidden bg-gray-100 border-2 border-amber-300" style={{ height: 160 }}>
+                            <img src={fotoFachada.preview} alt="fachada" className="w-full h-full object-cover" />
+                            {fotoFachada.uploading && (
+                              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
+                                <Loader2 size={20} className="animate-spin text-white" />
+                                <span className="text-white text-xs font-bold">{t('Subiendo...', 'Uploading...', 'Enviando...')}</span>
+                              </div>
+                            )}
+                            {fotoFachada.error && (
+                              <div className="absolute inset-0 bg-red-500/70 flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">⚠️ {t('Error al subir', 'Upload error', 'Erro ao enviar')}</span>
+                              </div>
+                            )}
+                            {fotoFachada.url && !fotoFachada.uploading && (
+                              <div className="absolute bottom-2 left-2 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                ✓ {t('Fachada subida', 'Front photo uploaded', 'Fachada enviada')}
+                              </div>
+                            )}
+                            <button onClick={quitarFachada} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer hover:bg-red-700 shadow">
+                              <X size={12} />
+                            </button>
+                            <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">🏠 FACHADA</div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ── 8b. Fotos de daños ── */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-base">📸</span>
+                          <div>
+                            <p className="text-xs font-bold text-gray-800">{t('Fotos de los daños', 'Damage photos', 'Fotos dos danos')} <span className="text-gray-400 font-normal">({t('opcional, máx. 4', 'optional, max 4', 'opcional, máx. 4')})</span></p>
+                            <p className="text-[10px] text-gray-400">{t('Grietas, derrumbes, cables caídos, escombros visibles.', 'Cracks, collapses, fallen wires, visible debris.', 'Rachaduras, desmoronamentos, fios caídos, escombros visíveis.')}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-2">
+                          {fotosDano.map(f => (
                             <div key={f.id} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
                               {f.preview && <img src={f.preview} alt="" className="w-full h-full object-cover" />}
-                              {f.uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Loader2 size={16} className="animate-spin text-white" /></div>}
-                              {f.error && <div className="absolute inset-0 bg-red-500/70 flex items-center justify-center"><span className="text-white text-xs font-bold">!</span></div>}
-                              {!f.uploading && <button onClick={() => quitarFoto(f.id)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer hover:bg-red-700"><X size={10} /></button>}
-                              {f.url && !f.uploading && <div className="absolute bottom-1 left-1 w-3 h-3 rounded-full bg-green-500" />}
+                              {f.uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Loader2 size={14} className="animate-spin text-white" /></div>}
+                              {f.error && <div className="absolute inset-0 bg-red-500/70 flex items-center justify-center"><span className="text-white text-[10px] font-bold">!</span></div>}
+                              {!f.uploading && <button onClick={() => quitarFotoDano(f.id)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer hover:bg-red-700"><X size={9} /></button>}
+                              {f.url && !f.uploading && <div className="absolute bottom-1 left-1 w-2.5 h-2.5 rounded-full bg-green-500" />}
                             </div>
                           ))}
+                          {fotosDano.length < MAX_DANO && (
+                            <label className="aspect-square rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors gap-1">
+                              <Camera size={16} className="text-gray-400" />
+                              <span className="text-[10px] text-gray-400 text-center leading-tight">{t('Agregar', 'Add', 'Adicionar')}</span>
+                              <input type="file" accept="image/*" multiple className="hidden" onChange={handleDanoInput} />
+                            </label>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Nudge si no hay fachada y están en el formulario */}
+                      {!fotoFachada && fotosDano.length > 0 && (
+                        <div className="flex items-start gap-2 bg-amber-50 border border-amber-300 rounded-xl px-3 py-2.5">
+                          <span className="text-amber-500 text-sm flex-shrink-0">📷</span>
+                          <p className="text-xs text-amber-800 font-medium leading-snug">
+                            {t('¿Puedes agregar también una foto de la fachada? Ayuda a que los vecinos identifiquen el edificio más fácilmente.',
+                               'Can you also add a photo of the front of the building? It helps neighbors identify it more easily.',
+                               'Você pode adicionar também uma foto da fachada? Ajuda os vizinhos a identificar o edifício mais facilmente.')}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1439,10 +1526,10 @@ export default function Edificios() {
                     )}
 
                     <button onClick={handleSubmit}
-                      disabled={enviando || !tipo || !nivel || !atrapados || !ciudad || !estado || fotos.some(f => f.uploading) || contactosAcceso.some(c => !c.nombre.trim() && (c.telefono.trim() || c.email.trim()))}
+                      disabled={enviando || !tipo || !nivel || !atrapados || !ciudad || !estado || fotoFachada?.uploading || fotosDano.some(f => f.uploading) || contactosAcceso.some(c => !c.nombre.trim() && (c.telefono.trim() || c.email.trim()))}
                       className={`w-full py-4 rounded-xl text-base font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 transition-colors ${esCritico ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-700 hover:bg-blue-800 text-white'}`}>
                       {enviando ? <Loader2 size={18} className="animate-spin" /> : (esCritico ? '🚨' : '📋')}
-                      {fotos.some(f => f.uploading) ? t('Subiendo fotos...', 'Uploading photos...', 'Enviando fotos...')
+                      {(fotoFachada?.uploading || fotosDano.some(f => f.uploading)) ? t('Subiendo fotos...', 'Uploading photos...', 'Enviando fotos...')
                         : esCritico ? t('Enviar alerta crítica', 'Send critical alert', 'Enviar alerta crítico')
                         : t('Enviar reporte de daño', 'Submit damage report', 'Enviar relatório de dano')}
                     </button>
