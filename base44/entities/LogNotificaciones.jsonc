@@ -1,0 +1,35 @@
+{
+  "name": "LogNotificaciones",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "edificio",
+        "persona",
+        "refugio",
+        "sistema"
+      ],
+      "default": "edificio"
+    },
+    "entidad_id": {
+      "type": "string"
+    },
+    "entidad_nombre": {
+      "type": "string"
+    },
+    "emails_enviados": {
+      "type": "number",
+      "default": 0
+    },
+    "accion": {
+      "type": "string"
+    },
+    "detalles": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tipo"
+  ]
+}

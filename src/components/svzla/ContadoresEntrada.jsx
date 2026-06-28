@@ -34,7 +34,7 @@ export default function ContadoresEntrada() {
         }
 
         // Cache simple en localStorage (1 minuto) para evitar carga repetida
-        const cacheKey = 'contadores-entrada-v2';
+        const cacheKey = 'contadores-entrada-v3';
         const cached = (() => { try { const r = JSON.parse(localStorage.getItem(cacheKey)); return r && Date.now() - r.ts < 60000 ? r.value : null; } catch { return null; } })();
         if (cached) {
           setDatos(cached);
@@ -42,11 +42,12 @@ export default function ContadoresEntrada() {
         }
 
         // Carga ligera: solo IDs para conteos, en lugar de listas completas de 200
-        const [totalReportes, buscadas, encontradas, registradas] = await Promise.all([
+        const [totalReportes, buscadas, encontradas, registradas, emailsCache] = await Promise.all([
           base44.entities.ReportesDano.list('-created_date', 2000).then(d => d.length),
           base44.entities.PersonasBuscadas.list('-updated_date', 2000),
           base44.entities.PersonasEncontradas.list('-updated_date', 3000),
           base44.entities.PersonaRegistrada.list('-updated_date', 3000).catch(() => []),
+          base44.entities.ContadoresCache.filter({ clave: 'emails_enviados_total' }).catch(() => []),
         ]);
         const totalBuscados = buscadas.filter(p => ['buscando', 'informacion_recibida', 'visto_no_confirmado'].includes(p.estado_caso)).length;
         const totalRegistradas = registradas.length;
@@ -63,6 +64,8 @@ export default function ContadoresEntrada() {
         const conAtrapados = criticosData.filter(r => r.personas_atrapadas === 'si' || r.personas_atrapadas === 'voces').length;
         const muertosBuscados = totalBuscados; // aproximación: no filtramos a nivel detalle
 
+        const emailsEnviados = emailsCache.length > 0 ? (emailsCache[0].valor || 0) : 0;
+
         const res = {
           edificios: totalReportes,
           criticos: Math.max(criticos, conAtrapados),
@@ -74,6 +77,7 @@ export default function ContadoresEntrada() {
           encontradosDirectos: totalEncontradosDirectos,
           puntos: 0,
           fallecidos: muertosBuscados || 0,
+          emailsEnviados,
         };
 
         setDatos(res);
@@ -99,10 +103,11 @@ export default function ContadoresEntrada() {
     { val: datos.atrapados, icon: '🆘', label: { es: 'Personas atrapadas', en: 'Trapped people' }, color: 'text-red-800', bg: 'bg-red-50', border: 'border-red-200', pulse: true },
     { val: datos.encontrados, icon: '✅', label: { es: 'Personas encontradas', en: 'People found' }, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-100' },
     { val: datos.edificios, icon: '🏗️', label: { es: 'Edificios reportados', en: 'Buildings reported' }, color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-100' },
+    ...(datos.emailsEnviados > 0 ? [{ val: datos.emailsEnviados, icon: '📧', label: { es: 'Notificaciones enviadas', en: 'Notifications sent' }, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-100' }] : []),
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-6">
       {items.map((item, i) => (
         <div key={i} className={`${item.bg} border ${item.border} rounded-xl p-3 text-center flex flex-col items-center gap-1`}>
           <div className="flex items-center gap-1">

@@ -91,6 +91,31 @@ Deno.serve(async (req) => {
         console.warn(`Error enviando a ${email}: ${e.message}`);
       }
     }
+
+    // Registrar en LogNotificaciones para métricas globales
+    if (enviados > 0) {
+      try {
+        await base44.asServiceRole.entities.LogNotificaciones.create({
+          tipo: 'edificio',
+          entidad_id: edificio_id,
+          entidad_nombre: nombre_lugar || '',
+          emails_enviados: enviados,
+          accion: tipo_accion || 'actualizacion',
+        });
+
+        // Actualizar contador global cacheado
+        const cacheExisting = await base44.asServiceRole.entities.ContadoresCache.filter({ clave: 'emails_enviados_total' });
+        if (cacheExisting.length > 0) {
+          const nuevo = (cacheExisting[0].valor || 0) + enviados;
+          await base44.asServiceRole.entities.ContadoresCache.update(cacheExisting[0].id, { valor: nuevo, ultima_actualizacion: new Date().toISOString() });
+        } else {
+          await base44.asServiceRole.entities.ContadoresCache.create({ clave: 'emails_enviados_total', valor: enviados, ultima_actualizacion: new Date().toISOString() });
+        }
+      } catch (e) {
+        console.warn('Error registrando log de notificaciones:', e.message);
+      }
+    }
+
     return Response.json({ ok: true, notificados: enviados, total: emails.size });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
