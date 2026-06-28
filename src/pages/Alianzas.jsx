@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Copy, Check, Globe, Database, Mail } from 'lucide-react';
+import { ChevronLeft, Copy, Check, Globe, Database, Mail, Code } from 'lucide-react';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
@@ -25,6 +25,23 @@ export default function Alianzas() {
   const { lang } = useLang();
   const es = lang !== 'en';
   const [copiado, setCopiado] = useState(false);
+  const [copiadoApi, setCopiadoApi] = useState('');
+
+  const copiarApi = (texto, key) => {
+    navigator.clipboard.writeText(texto);
+    setCopiadoApi(key);
+    setTimeout(() => setCopiadoApi(''), 2000);
+  };
+
+  const API_BASE = 'https://statusvzla.com/functions/apiMapa';
+  const ENDPOINTS = [
+    { key: 'list',    url: `${API_BASE}?format=list`,                    desc: { es: 'Listado de edificios (nombre, dirección, ciudad)', en: 'Building list (name, address, city)' } },
+    { key: 'json',    url: `${API_BASE}`,                                desc: { es: 'Edificios + refugios completo (JSON estándar)',     en: 'Buildings + shelters full (standard JSON)' } },
+    { key: 'geojson', url: `${API_BASE}?format=geojson`,                 desc: { es: 'Formato GeoJSON para mapas (Leaflet, QGIS, Mapbox)', en: 'GeoJSON format for maps (Leaflet, QGIS, Mapbox)' } },
+    { key: 'ciudad',  url: `${API_BASE}?format=list&ciudad=Caracas`,     desc: { es: 'Filtrar por ciudad',                               en: 'Filter by city' } },
+    { key: 'nivel',   url: `${API_BASE}?format=list&nivel=grave`,        desc: { es: 'Filtrar por nivel de daño',                        en: 'Filter by damage level' } },
+    { key: 'tipo',    url: `${API_BASE}?format=list&tipo=hospital`,      desc: { es: 'Filtrar por tipo de estructura',                   en: 'Filter by structure type' } },
+  ];
 
   const copiar = () => {
     navigator.clipboard.writeText(IFRAME_CODE);
@@ -177,6 +194,63 @@ export default function Alianzas() {
                 🔄 {t('Actualizar uno existente', 'Update an existing one')}
               </Link>
             </div>
+          </div>
+        </div>
+
+        {/* API pública */}
+        <div className="mb-6 rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: '#111318' }}>
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex items-center gap-2 mb-1">
+              <Code size={16} style={{ color: '#A78BFA' }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#F0F6FC' }}>
+                {t('API pública de edificios', 'Public buildings API')}
+              </span>
+            </div>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)', margin: 0 }}>
+              {t('Acceso directo a nuestros datos. Sin registro. Sin costo. Con caché de 90 min.', 'Direct data access. No registration. No cost. 90-min cache.')}
+            </p>
+          </div>
+
+          <div className="px-5 py-4">
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+              {t('Endpoints disponibles', 'Available endpoints')}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {ENDPOINTS.map(ep => (
+                <div key={ep.key} style={{ background: '#0D1117', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', margin: '0 0 3px' }}>{es ? ep.desc.es : ep.desc.en}</p>
+                      <code style={{ fontSize: 10, color: '#93C5FD', wordBreak: 'break-all', lineHeight: 1.5 }}>{ep.url}</code>
+                    </div>
+                    <button onClick={() => copiarApi(ep.url, ep.key)} style={{
+                      flexShrink: 0, background: copiadoApi === ep.key ? 'rgba(111,207,151,0.15)' : 'rgba(255,255,255,0.07)',
+                      border: `1px solid ${copiadoApi === ep.key ? 'rgba(111,207,151,0.40)' : 'rgba(255,255,255,0.12)'}`,
+                      borderRadius: 6, padding: '4px 8px', cursor: 'pointer',
+                      color: copiadoApi === ep.key ? '#6FCF97' : 'rgba(255,255,255,0.55)',
+                      display: 'flex', alignItems: 'center', gap: 4, fontSize: 10,
+                    }}>
+                      {copiadoApi === ep.key ? <Check size={10} /> : <Copy size={10} />}
+                      {copiadoApi === ep.key ? t('¡Copiado!', 'Copied!') : t('Copiar', 'Copy')}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 rounded-lg px-4 py-3" style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.25)' }}>
+              <p style={{ fontSize: 11, color: '#C4B5FD', lineHeight: 1.6, margin: 0 }}>
+                <strong>📋 {t('Ejemplo de respuesta (?format=list):', 'Sample response (?format=list):')}</strong><br />
+                <code style={{ fontSize: 10, color: '#DDD6FE' }}>{`{ "ok": true, "metadata": { "total": 382 }, "edificios": [{ "numero": 1, "id": "...", "nombre": "Torre Parque Central", "nivel_dano": "grave", "direccion": "Av. Lecuna", "ciudad": "Caracas", ... }] }`}</code>
+              </p>
+            </div>
+
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 10, marginBottom: 0, lineHeight: 1.6 }}>
+              ℹ️ {t(
+                'Los datos se actualizan cada vez que un ciudadano o institución reporta un edificio. El caché se refresca automáticamente cada 90 minutos.',
+                'Data updates every time a citizen or institution reports a building. Cache auto-refreshes every 90 minutes.'
+              )}
+            </p>
           </div>
         </div>
 

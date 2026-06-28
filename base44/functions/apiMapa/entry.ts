@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     const ciudad = url.searchParams.get('ciudad') || null;
     const nivel  = url.searchParams.get('nivel')  || null;  // leve|moderado|grave|critico|colapsado
     const tipo   = url.searchParams.get('tipo')   || null;  // edificio_residencial|hospital|etc
-    const format = url.searchParams.get('format') || 'json'; // json | geojson
+    const format = url.searchParams.get('format') || 'json'; // json | geojson | list
 
     // ── Servir desde caché si no expiró ──────────────────────────────────
     const ahora = Date.now();
@@ -119,6 +119,34 @@ Deno.serve(async (req) => {
     const edificiosMapeados = edificios.map(mapEdificio);
     const refugiosMapeados  = refugios.map(mapRefugio);
 
+    // ── Formato LIST — listado simple de edificios (nombre, dirección, ciudad) ──
+    if (format === 'list') {
+      const lista = edificiosMapeados.map((e, i) => ({
+        numero: i + 1,
+        id: e.id,
+        nombre: e.nombre || '(sin nombre)',
+        tipo_estructura: e.tipo_estructura,
+        nivel_dano: e.nivel_dano,
+        direccion: e.ubicacion.direccion || null,
+        ciudad: e.ubicacion.ciudad || null,
+        estado_region: e.ubicacion.estado_region || null,
+        lat: e.ubicacion.lat || null,
+        lng: e.ubicacion.lng || null,
+        actualizado: e.actualizado,
+        url: e.url,
+      }));
+      return new Response(JSON.stringify({
+        ok: true,
+        metadata: {
+          fuente: 'StatusVzla.com',
+          generado: cache.generado,
+          total: lista.length,
+          docs: 'Filtra con ?ciudad=Caracas · ?nivel=grave · ?tipo=hospital',
+        },
+        edificios: lista,
+      }), { status: 200, headers: corsHeaders });
+    }
+
     // ── Formato GeoJSON (compatible con Leaflet, Mapbox, QGIS) ──────────
     if (format === 'geojson') {
       const features = [
@@ -159,7 +187,7 @@ Deno.serve(async (req) => {
         fuente: 'StatusVzla.com',
         powered_by: 'StatusVzla.com — Plataforma ciudadana de respuesta a emergencias',
         api_url: 'https://statusvzla.com/functions/apiMapa',
-        docs: 'Agrega ?format=geojson para GeoJSON · ?ciudad=Caracas · ?nivel=grave · ?tipo=hospital',
+        docs: 'Agrega ?format=geojson para GeoJSON · ?format=list para listado simple · ?ciudad=Caracas · ?nivel=grave · ?tipo=hospital',
         generado: cache.generado,
         cache_ttl_minutos: 90,
         total_edificios: edificiosMapeados.length,
