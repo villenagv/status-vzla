@@ -12,6 +12,7 @@ const NAV = [
   { to: '/centros-apoyo', es: 'Centros',     en: 'Centers',   pt: 'Centros' },
   { to: '/aliados',       es: 'Aliados',     en: 'Partners',  pt: 'Parceiros' },
   { to: '/voluntario',   es: 'Voluntarios', en: 'Volunteers',pt: 'Voluntários'},
+  { to: '/mapa-danos',  es: 'Mapa',        en: 'Map',        pt: 'Mapa'       },
 ];
 
 export default function TopBar() {
