@@ -5,17 +5,34 @@ import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+import OfflineBanner from '@/components/svzla/OfflineBanner';
+import LazyImage from '@/components/svzla/LazyImage';
+import { useDraft } from '@/lib/useDraft';
+import { useOffline } from '@/lib/useOffline';
 
+// Abreviaciones locales comunes en Venezuela
+const ABREVIACIONES = {
+  'av': 'avenida', 'ave': 'avenida', 'cll': 'calle', 'cl': 'calle',
+  'urb': 'urbanizacion', 'edif': 'edificio', 'edg': 'edificio',
+  'res': 'residencias', 'c c': 'centro comercial', 'cc': 'centro comercial',
+  'pto': 'puerto', 'mpo': 'municipio', 'pq': 'parque', 'bv': 'boulevard',
+  'gral': 'general', 'grl': 'general', 'prof': 'profesor', 'dr': 'doctor',
+};
 function normalizar(str) {
-  return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+  let s = (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+  // Expandir abreviaciones
+  s = s.split(' ').map(w => ABREVIACIONES[w] || w).join(' ');
+  return s;
 }
 function similitud(a, b) {
   const na = normalizar(a), nb = normalizar(b);
   if (!na || !nb) return 0;
   if (na === nb) return 1;
-  if (na.includes(nb) || nb.includes(na)) return 0.85;
+  if (na.includes(nb) || nb.includes(na)) return 0.9;
   const wA = na.split(' '), wB = nb.split(' ');
-  return wA.filter(w => w.length > 3 && wB.includes(w)).length / Math.max(wA.length, wB.length);
+  // Coincidencia parcial: palabras relevantes (>2 chars)
+  const matches = wA.filter(w => w.length > 2 && wB.some(wb => wb.startsWith(w) || w.startsWith(wb)));
+  return matches.length / Math.max(wA.length, wB.length);
 }
 
 const DANO_CONFIG = {
@@ -78,6 +95,11 @@ export default function Edificios() {
   const initialTab = params.get('tab') || (params.get('modo') === 'request' ? 'solicitar' : 'directorio');
 
   const [tab, setTab] = useState(initialTab);
+  const { offline } = useOffline();
+
+  // ── BORRADOR AUTOMÁTICO del formulario ──
+  const DRAFT_INIT = { valNombre: '', valDireccion: '', tipo: '', nivel: '', atrapados: '', ciudad: '', estado: '', descripcion: '', repNombre: '', repTelefono: '', repEmail: '', accesoCalle: '', accesoVehiculos: '', notasAcceso: '', electricidad: '', agua: '', gas: '', riesgoGas: false, riesgoElec: false, riesgoIncendio: false, racionamientoAgua: false, racionamientoElec: false, horarioAgua: '', horarioElec: '' };
+  const [draft, setDraft, clearDraft, hasDraft] = useDraft('edificios-reporte', DRAFT_INIT);
 
   // ── DIRECTORIO ──
   const [todos, setTodos] = useState([]);
@@ -200,37 +222,35 @@ export default function Edificios() {
 
   // ── REPORTAR: FLUJO DE 3 ETAPAS ──
   const [etapa, setEtapa] = useState('validacion'); // 'validacion' | 'resultados' | 'formulario'
-  const [valNombre, setValNombre] = useState('');
-  const [valDireccion, setValDireccion] = useState('');
   const [posiblesDups, setPosiblesDups] = useState([]);
   const [buscandoDup, setBuscandoDup] = useState(false);
   const [dupBuscado, setDupBuscado] = useState(false);
 
-  // Formulario completo (etapa 3)
-  const [nombreLugar, setNombreLugar] = useState('');
-  const [direccion, setDireccion] = useState('');
-  const [tipo, setTipo] = useState('');
-  const [nivel, setNivel] = useState('');
-  const [atrapados, setAtrapados] = useState('');
-  const [riesgoGas, setRiesgoGas] = useState(false);
-  const [riesgoElec, setRiesgoElec] = useState(false);
-  const [riesgoIncendio, setRiesgoIncendio] = useState(false);
-  const [accesoCalle, setAccesoCalle] = useState('');
-  const [accesoVehiculos, setAccesoVehiculos] = useState('');
-  const [notasAcceso, setNotasAcceso] = useState('');
-  const [electricidad, setElectricidad] = useState('');
-  const [agua, setAgua] = useState('');
-  const [gas, setGas] = useState('');
-  const [racionamientoAgua, setRacionamientoAgua] = useState(false);
-  const [racionamientoElec, setRacionamientoElec] = useState(false);
-  const [horarioAgua, setHorarioAgua] = useState('');
-  const [horarioElec, setHorarioElec] = useState('');
-  const [ciudad, setCiudad] = useState('');
-  const [estado, setEstado] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [repNombre, setRepNombre] = useState('');
-  const [repTelefono, setRepTelefono] = useState('');
-  const [repEmail, setRepEmail] = useState('');
+  // Formulario completo — desde borrador
+  const valNombre = draft.valNombre; const setValNombre = v => setDraft({ valNombre: v });
+  const valDireccion = draft.valDireccion; const setValDireccion = v => setDraft({ valDireccion: v });
+  const tipo = draft.tipo; const setTipo = v => setDraft({ tipo: v });
+  const nivel = draft.nivel; const setNivel = v => setDraft({ nivel: v });
+  const atrapados = draft.atrapados; const setAtrapados = v => setDraft({ atrapados: v });
+  const riesgoGas = draft.riesgoGas; const setRiesgoGas = v => setDraft({ riesgoGas: typeof v === 'function' ? v(draft.riesgoGas) : v });
+  const riesgoElec = draft.riesgoElec; const setRiesgoElec = v => setDraft({ riesgoElec: typeof v === 'function' ? v(draft.riesgoElec) : v });
+  const riesgoIncendio = draft.riesgoIncendio; const setRiesgoIncendio = v => setDraft({ riesgoIncendio: typeof v === 'function' ? v(draft.riesgoIncendio) : v });
+  const accesoCalle = draft.accesoCalle; const setAccesoCalle = v => setDraft({ accesoCalle: v });
+  const accesoVehiculos = draft.accesoVehiculos; const setAccesoVehiculos = v => setDraft({ accesoVehiculos: v });
+  const notasAcceso = draft.notasAcceso; const setNotasAcceso = v => setDraft({ notasAcceso: v });
+  const electricidad = draft.electricidad; const setElectricidad = v => setDraft({ electricidad: v });
+  const agua = draft.agua; const setAgua = v => setDraft({ agua: v });
+  const gas = draft.gas; const setGas = v => setDraft({ gas: v });
+  const racionamientoAgua = draft.racionamientoAgua; const setRacionamientoAgua = v => setDraft({ racionamientoAgua: v });
+  const racionamientoElec = draft.racionamientoElec; const setRacionamientoElec = v => setDraft({ racionamientoElec: v });
+  const horarioAgua = draft.horarioAgua; const setHorarioAgua = v => setDraft({ horarioAgua: v });
+  const horarioElec = draft.horarioElec; const setHorarioElec = v => setDraft({ horarioElec: v });
+  const ciudad = draft.ciudad; const setCiudad = v => setDraft({ ciudad: v });
+  const estado = draft.estado; const setEstado = v => setDraft({ estado: v });
+  const descripcion = draft.descripcion; const setDescripcion = v => setDraft({ descripcion: v });
+  const repNombre = draft.repNombre; const setRepNombre = v => setDraft({ repNombre: v });
+  const repTelefono = draft.repTelefono; const setRepTelefono = v => setDraft({ repTelefono: v });
+  const repEmail = draft.repEmail; const setRepEmail = v => setDraft({ repEmail: v });
   const [contactosAcceso, setContactosAcceso] = useState([]);
   const CONTACTO_VACIO = { nombre: '', telefono: '', email: '', rol: '' };
   const agregarContacto = () => setContactosAcceso(prev => [...prev, { ...CONTACTO_VACIO }]);
@@ -263,8 +283,6 @@ export default function Edificios() {
 
   // Ir a formulario con datos precargados
   const irAFormulario = () => {
-    setNombreLugar(valNombre);
-    setDireccion(valDireccion);
     setEtapa('formulario');
   };
 
@@ -289,16 +307,8 @@ export default function Edificios() {
   // ── RESET ──
   const resetForm = () => {
     setEtapa('validacion');
-    setValNombre(''); setValDireccion('');
     setPosiblesDups([]); setDupBuscado(false);
-    setTipo(''); setNivel(''); setAtrapados('');
-    setRiesgoGas(false); setRiesgoElec(false); setRiesgoIncendio(false);
-    setAccesoCalle(''); setAccesoVehiculos(''); setNotasAcceso('');
-    setElectricidad(''); setAgua(''); setGas('');
-    setRacionamientoAgua(false); setRacionamientoElec(false);
-    setHorarioAgua(''); setHorarioElec('');
-    setCiudad(''); setEstado(''); setDescripcion('');
-    setRepNombre(''); setRepTelefono(''); setRepEmail('');
+    clearDraft();
     setFotos([]); setContactosAcceso([]);
   };
 
@@ -371,6 +381,7 @@ export default function Edificios() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopBar />
+      <OfflineBanner offline={offline} />
 
       <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">
         {/* Encabezado */}
@@ -532,7 +543,7 @@ export default function Edificios() {
                         {/* Foto o placeholder de color */}
                         {r.foto_urls?.length > 0 ? (
                           <div className="relative">
-                            <img src={r.foto_urls[0]} alt="" className="w-full h-28 object-cover" loading="lazy" />
+                            <LazyImage src={r.foto_urls[0]} alt="" style={{ height: 112 }} />
                             {r.foto_urls.length > 1 && (
                               <span className="absolute bottom-1 right-1 text-[9px] bg-black/60 text-white px-1.5 py-0.5 rounded-full">
                                 +{r.foto_urls.length - 1}📷
@@ -869,6 +880,18 @@ export default function Edificios() {
                     {t('Ver directorio', 'View directory', 'Ver diretório')}
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* Aviso de borrador restaurado */}
+            {hasDraft && exito !== true && etapa === 'validacion' && (valNombre || valDireccion || tipo || nivel) && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 flex items-center justify-between gap-2">
+                <p className="text-xs text-blue-800 font-semibold">
+                  📝 {t('Tienes un borrador guardado. ¿Continuar donde lo dejaste?', 'You have a saved draft. Continue where you left off?', 'Você tem um rascunho salvo. Continuar de onde parou?')}
+                </p>
+                <button onClick={resetForm} className="text-xs text-blue-600 underline cursor-pointer flex-shrink-0">
+                  {t('Limpiar', 'Clear', 'Limpar')}
+                </button>
               </div>
             )}
 

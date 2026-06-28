@@ -63,12 +63,37 @@ const AdminStats = () => {
     { title: 'Solicitudes info',         key: 'solicitudes',          icon: <FileText size={18}/>,       color: 'blue',   subtitle: 'Edificios solicitados' },
   ];
 
+  const [normalizando, setNormalizando] = useState(false);
+  const [normResult, setNormResult] = useState(null);
+
+  const normalizarCiudades = async () => {
+    setNormalizando(true);
+    setNormResult(null);
+    try {
+      const res = await base44.functions.invoke('normalizarCiudades', {});
+      setNormResult(res.data);
+    } catch (e) {
+      setNormResult({ error: e.message });
+    }
+    setNormalizando(false);
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">📊 Estadísticas en tiempo real</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {lastUpdated && <span className="text-[10px] text-gray-400">Actualizado {lastUpdated.toLocaleTimeString()}</span>}
+          <button onClick={normalizarCiudades} disabled={normalizando}
+            className="text-xs text-teal-700 border border-teal-200 bg-teal-50 px-3 py-1.5 rounded-lg font-semibold disabled:opacity-40 cursor-pointer hover:bg-teal-100">
+            {normalizando ? <Loader2 size={12} className="animate-spin inline" /> : '🏙️'} Normalizar ciudades
+          </button>
+          {normResult && !normResult.error && (
+            <span className="text-[10px] text-teal-700 font-semibold">✅ {normResult.total_normalizados} corregidos</span>
+          )}
+          {normResult?.error && (
+            <span className="text-[10px] text-red-600 font-semibold">❌ {normResult.error}</span>
+          )}
           <button onClick={fetchStats} disabled={loading}
             className="text-xs text-blue-600 border border-blue-200 bg-blue-50 px-3 py-1.5 rounded-lg font-semibold disabled:opacity-40 cursor-pointer hover:bg-blue-100">
             {loading ? <Loader2 size={12} className="animate-spin inline" /> : '↻'} Actualizar
