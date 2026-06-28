@@ -278,8 +278,19 @@ export default function EdificioDetalle() {
           <ChevronLeft size={16} /> {t('Directorio de edificios', 'Buildings directory', 'Diretório de edifícios')}
         </Link>
 
-        {/* ── 1. ENCABEZADO ── */}
-        <div className={`bg-white rounded-2xl p-4 mb-3 border-2 ${esCritico ? 'border-red-300' : 'border-gray-200'}`}>
+        {/* ── 1. ENCABEZADO CON FOTO DE PORTADA ── */}
+        <div className={`bg-white rounded-2xl overflow-hidden mb-3 border-2 ${esCritico ? 'border-red-300' : 'border-gray-200'}`}>
+          {/* Foto de portada en la cabecera */}
+          <EdificioImagen
+            fotoUrls={edificio.foto_urls || []}
+            tipoEstructura={edificio.tipo_estructura}
+            nivelDano={edificio.nivel_dano}
+            height={260}
+            lang={lang}
+            sinFotoNudge
+            mostrarMiniaturasExtra
+          />
+          <div className="p-4">
           <div className="flex items-start justify-between gap-2 mb-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
@@ -363,6 +374,7 @@ export default function EdificioDetalle() {
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* Guía de seguridad — acceso contextual */}
@@ -439,99 +451,48 @@ export default function EdificioDetalle() {
         {/* ── 5. ESTADO OPERATIVO (servicios, acceso, racionamiento) ── */}
         <EstadoOperativo edificioId={id} es={es} />
 
-        {/* ── 6. FOTO DE PORTADA GRANDE + MINIATURAS EXTRA ── */}
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-3">
-          <EdificioImagen
-            fotoUrls={edificio.foto_urls || []}
-            tipoEstructura={edificio.tipo_estructura}
-            nivelDano={edificio.nivel_dano}
-            height={300}
-            lang={lang}
-          />
-
-          {/* Si no hay fotos: nudge buscando fachada */}
-          {(!edificio.foto_urls || edificio.foto_urls.length === 0) && !lowBw && (
-            <div className="flex items-start gap-3 px-4 py-3 border-t border-amber-200 bg-amber-50">
-              <span className="text-lg flex-shrink-0">🔍</span>
-              <div className="flex-1">
-                <p className="text-xs font-bold text-amber-800">
-                  {t('Estamos buscando la foto de fachada', 'We are looking for the front photo', 'Estamos buscando a foto da fachada')}
-                </p>
-                <p className="text-[11px] text-amber-700 leading-snug mt-0.5">
-                  {t('¿Conoces este edificio? Agrega una foto usando el botón de actualización abajo.',
-                     'Do you know this building? Add a photo using the update button below.',
-                     'Você conhece este edifício? Adicione uma foto usando o botão de atualização abaixo.')}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Fotos adicionales como galería compacta debajo */}
-          {edificio.foto_urls?.length > 1 && !lowBw && (
-            <div className="p-3 border-t border-gray-100">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-                📷 {t('Más fotos de este edificio', 'More photos of this building', 'Mais fotos deste edifício')} ({edificio.foto_urls.length})
-              </p>
-              <GaleriaFotos urls={edificio.foto_urls} />
-            </div>
-          )}
-
-          {/* Si hay solo 1 foto: nudge amigable */}
-          {edificio.foto_urls?.length === 1 && !lowBw && (
-            <div className="flex items-start gap-2 px-4 py-2.5 border-t border-amber-100 bg-amber-50">
-              <span className="text-amber-500 text-sm flex-shrink-0">🏠</span>
-              <p className="text-[11px] text-amber-700 leading-snug">
-                {t('¿Tienes una foto de la fachada desde la calle? Súbela para ayudar a identificar este edificio.',
-                   'Have a front photo from the street? Upload it to help identify this building.',
-                   'Tem uma foto da fachada da rua? Envie-a para ajudar a identificar este edifício.')}
-              </p>
-            </div>
-          )}
-        </div>
+        {/* ── 6. (Foto de portada ya está en bloque #1 arriba) ── */}
 
         {/* ── 7. HISTORIAL DE ACTUALIZACIONES ── */}
-        {actualizaciones.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">🕐 {t('Historial de actualizaciones', 'Update history', 'Histórico de atualizações')} ({actualizaciones.length})</h2>
-              {actualizaciones.length > 3 && (
-                <button onClick={() => setVerTodo(v => !v)} className="text-[11px] text-blue-600 font-semibold cursor-pointer">
-                  {verTodo ? t('Ver menos', 'Show less', 'Ver menos') : t(`Ver todos (${actualizaciones.length})`, `View all (${actualizaciones.length})`, `Ver todos (${actualizaciones.length})`)}
-                </button>
-              )}
-            </div>
-            <div className="space-y-2">
-              {(verTodo ? actualizacionesOrdenadas : actualizacionesOrdenadas.slice(0, 3)).map((a) => {
-                const s = ACCION_ESTILOS[a.tipo_accion] || { icon: '📋', color: '#555' };
-                const lbl = ACCION_LABELS[a.tipo_accion];
-                const esUrgente = ['personas_atrapadas', 'reportar_urgencia'].includes(a.tipo_accion);
-                return (
-                  <div key={a.id} className="flex gap-3 items-start">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: s.color }} />
-                    <div className={`flex-1 border rounded-xl px-3 py-2 ${esUrgente ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-100'}`}>
-                      <div className="flex items-center justify-between gap-1">
-                        <div className="flex items-center gap-1">
-                          <span>{s.icon}</span>
-                          <p className="text-xs font-semibold" style={{ color: s.color }}>{lbl ? (es ? lbl.es : lbl.en) : a.tipo_accion}</p>
-                        </div>
-                        <span className="text-[10px] text-gray-400 flex-shrink-0">{tiempoRelativo(a.created_date, es)}</span>
-                      </div>
-                      {a.descripcion && <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{a.descripcion}</p>}
-                      {a.nivel_dano_anterior && a.nivel_dano_nuevo && a.nivel_dano_anterior !== a.nivel_dano_nuevo && (
-                        <p className="text-[10px] text-gray-400 mt-0.5">
-                          {t('Daño:', 'Damage:', 'Dano:')} {a.nivel_dano_anterior} → <strong>{a.nivel_dano_nuevo}</strong>
-                        </p>
-                      )}
-                      {a.reportante_nombre && (
-                        <p className="text-[10px] text-gray-400 mt-0.5">👤 {a.reportante_nombre}</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
+          <div className="flex items-center mb-3">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">🕐 {t('Historial de actualizaciones e información', 'Update history & info', 'Histórico de atualizações')}{actualizaciones.length > 0 ? ` (${actualizaciones.length})` : ''}</h2>
           </div>
-        )}
+          {actualizaciones.length === 0 ? (
+            <p className="text-xs text-gray-400 italic">{t('Sin actualizaciones registradas aún. Sé el primero en reportar.', 'No updates recorded yet. Be the first to report.', 'Sem atualizações registradas ainda. Seja o primeiro a reportar.')}</p>
+          ) : (
+          <div className="space-y-2">
+            {actualizacionesOrdenadas.map((a) => {
+              const s = ACCION_ESTILOS[a.tipo_accion] || { icon: '📋', color: '#555' };
+              const lbl = ACCION_LABELS[a.tipo_accion];
+              const esUrgente = ['personas_atrapadas', 'reportar_urgencia'].includes(a.tipo_accion);
+              return (
+                <div key={a.id} className="flex gap-3 items-start">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: s.color }} />
+                  <div className={`flex-1 border rounded-xl px-3 py-2 ${esUrgente ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-100'}`}>
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1">
+                        <span>{s.icon}</span>
+                        <p className="text-xs font-semibold" style={{ color: s.color }}>{lbl ? (es ? lbl.es : lbl.en) : a.tipo_accion}</p>
+                      </div>
+                      <span className="text-[10px] text-gray-400 flex-shrink-0">{tiempoRelativo(a.created_date, es)}</span>
+                    </div>
+                    {a.descripcion && <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{a.descripcion}</p>}
+                    {a.nivel_dano_anterior && a.nivel_dano_nuevo && a.nivel_dano_anterior !== a.nivel_dano_nuevo && (
+                      <p className="text-[10px] text-gray-400 mt-0.5">
+                        {t('Daño:', 'Damage:', 'Dano:')} {a.nivel_dano_anterior} → <strong>{a.nivel_dano_nuevo}</strong>
+                      </p>
+                    )}
+                    {a.reportante_nombre && (
+                      <p className="text-[10px] text-gray-400 mt-0.5">👤 {a.reportante_nombre}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          )}
+        </div>
 
         {/* ── 8. PERSONAS REPORTADAS EN EL SITIO ── */}
         {reportesPersonas.length > 0 && (
