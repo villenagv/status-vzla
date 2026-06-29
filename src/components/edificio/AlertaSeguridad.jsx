@@ -394,16 +394,19 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
       overflowY: 'auto',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: '#111318', borderRadius: '20px 20px 0 0',
-        maxWidth: 520, width: '100%', padding: '24px 20px 32px',
-        border: '2px solid rgba(220,38,38,0.50)',
-        borderBottom: 'none',
-        boxShadow: '0 -8px 40px rgba(220,38,38,0.25)',
+        maxWidth: 520, width: '100%',
+        display: 'flex', flexDirection: 'column', gap: 6,
         maxHeight: '92vh', overflowY: 'auto',
       }}>
+        {/* ── TARJETA ROJA: Seguridad ── */}
+        <div style={{
+          background: '#111318', borderRadius: '20px 20px 0 0',
+          padding: '24px 20px 20px',
+          border: '2px solid rgba(220,38,38,0.50)',
+          borderBottom: 'none',
+          boxShadow: '0 -8px 40px rgba(220,38,38,0.25)',
+        }}>
         <div style={{ width: 36, height: 4, background: 'rgba(255,255,255,0.15)', borderRadius: 2, margin: '0 auto 20px' }} />
-
-        {/* ── SECCIÓN ROJA: Seguridad ── */}
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <span style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>⚠️</span>
           <p style={{ fontSize: 15, fontWeight: 900, color: '#FCA5A5', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
@@ -468,40 +471,47 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
           ))}
         </div>
 
-        {/* ── SECCIÓN AMARILLA: Información faltante (coexiste con el rojo) ── */}
+          {/* Botón confirmar dentro de la tarjeta roja */}
+          <div style={{ marginTop: 16 }}>
+            <button onClick={handleConfirmar} disabled={!puedeConfirmar} style={{
+              width: '100%', padding: '15px 0', borderRadius: 14, fontSize: 14, fontWeight: 800,
+              background: puedeConfirmar ? '#2471A3' : 'rgba(255,255,255,0.08)',
+              color: puedeConfirmar ? '#fff' : 'rgba(255,255,255,0.35)',
+              border: 'none', cursor: puedeConfirmar ? 'pointer' : 'default', marginBottom: 10,
+            }}>
+              ✅ {es ? 'Entendido — Continuar desde lugar seguro' : 'Understood — Continue from a safe location'}
+            </button>
+            {preguntaPrioritaria === 'atrapados' && !respAtrapados && (
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', textAlign: 'center', margin: '0 0 10px' }}>
+                {es ? 'Responde la pregunta para continuar' : 'Answer the question to continue'}
+              </p>
+            )}
+            <button onClick={onCerrar} style={{
+              width: '100%', padding: '11px 0', borderRadius: 14, fontSize: 13, fontWeight: 600,
+              background: 'transparent', color: 'rgba(255,255,255,0.50)',
+              border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
+            }}>
+              {es ? 'Cerrar' : 'Close'}
+            </button>
+          </div>
+        </div>{/* fin tarjeta roja */}
+
+        {/* ── TARJETA AMARILLA: Información faltante (debajo, separada) ── */}
         {haySeccionAmarilla && edificio && (
-          <SeccionInfoFaltante
-            edificio={edificio}
-            edificioId={edificioId}
-            es={es}
-          />
+          <div style={{
+            background: '#13110A',
+            border: '2px solid rgba(251,146,60,0.45)',
+            borderTop: 'none',
+            borderRadius: '0 0 20px 20px',
+            padding: '0 20px 28px',
+          }}>
+            <SeccionInfoFaltante
+              edificio={edificio}
+              edificioId={edificioId}
+              es={es}
+            />
+          </div>
         )}
-
-        {/* Botón confirmar */}
-        <div style={{ marginTop: 16 }}>
-          <button onClick={handleConfirmar} disabled={!puedeConfirmar} style={{
-            width: '100%', padding: '15px 0', borderRadius: 14, fontSize: 14, fontWeight: 800,
-            background: puedeConfirmar ? '#2471A3' : 'rgba(255,255,255,0.08)',
-            color: puedeConfirmar ? '#fff' : 'rgba(255,255,255,0.35)',
-            border: 'none', cursor: puedeConfirmar ? 'pointer' : 'default', marginBottom: 10,
-          }}>
-            ✅ {es ? 'Entendido — Continuar desde lugar seguro' : 'Understood — Continue from a safe location'}
-          </button>
-
-          {preguntaPrioritaria === 'atrapados' && !respAtrapados && (
-            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', textAlign: 'center', margin: '0 0 10px' }}>
-              {es ? 'Responde la pregunta para continuar' : 'Answer the question to continue'}
-            </p>
-          )}
-
-          <button onClick={onCerrar} style={{
-            width: '100%', padding: '11px 0', borderRadius: 14, fontSize: 13, fontWeight: 600,
-            background: 'transparent', color: 'rgba(255,255,255,0.50)',
-            border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
-          }}>
-            {es ? 'Cerrar' : 'Close'}
-          </button>
-        </div>
       </div>
     </div>
   );
