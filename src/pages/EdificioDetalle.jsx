@@ -10,6 +10,7 @@ import EstadoOperativo from '@/components/edificio/EstadoOperativo';
 import { NubePeligro, ModalSeguridadEdificio, getPreguntaPrioritaria, InfoFaltanteInline } from '@/components/edificio/AlertaSeguridad';
 import PersonasEnEdificio from '@/components/edificio/PersonasEnEdificio';
 import MascotasEnEdificio from '@/components/edificio/MascotasEnEdificio';
+import PanelRescate from '@/components/edificio/PanelRescate';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
 import SeoMeta from '@/components/seo/SeoMeta';
@@ -369,7 +370,7 @@ export default function EdificioDetalle() {
         />
 
         {/* ── 1. ENCABEZADO CON FOTO DE PORTADA ── */}
-        <div className={`bg-white rounded-2xl overflow-hidden mb-3 border-2 ${esCritico ? 'border-red-300' : 'border-gray-200'}`}>
+        <div className={`rounded-2xl overflow-hidden mb-3 border-2 ${esCritico ? 'border-red-400' : 'border-gray-300'}`} style={{ background: esCritico ? '#1A0505' : '#F8FAFC' }}>
           {/* Foto de portada en la cabecera */}
           <EdificioImagen
             fotoUrls={edificio.foto_urls || []}
@@ -386,18 +387,18 @@ export default function EdificioDetalle() {
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xl">{TIPO_LABELS[edificio.tipo_estructura] || '🏗️'}</span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{t('Ficha de edificio', 'Building record', 'Ficha de edifício')}</p>
-                  <h1 className="text-lg font-bold text-gray-900 leading-tight truncate">
+                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: esCritico ? '#FCA5A5' : '#6B7280' }}>{t('Ficha de edificio', 'Building record', 'Ficha de edifício')}</p>
+                  <h1 className="text-lg font-bold leading-tight truncate" style={{ color: esCritico ? '#FFFFFF' : '#111827' }}>
                     {edificio.nombre_lugar || edificio.tipo_estructura?.replace(/_/g, ' ') || t('Edificio sin nombre', 'Unnamed building', 'Edifício sem nome')}
                   </h1>
                 </div>
               </div>
               {edificio.tipo_estructura && (
-                <p className="text-[11px] text-gray-500 capitalize ml-9">{edificio.tipo_estructura.replace(/_/g, ' ')}</p>
+                <p className="text-[11px] capitalize ml-9" style={{ color: esCritico ? '#FCA5A5' : '#6B7280' }}>{edificio.tipo_estructura.replace(/_/g, ' ')}</p>
               )}
               {(edificio.direccion || edificio.ciudad) && (
-                <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
-                  <MapPin size={10} className="flex-shrink-0 text-gray-400" />
+                <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: esCritico ? '#C0C8D2' : '#6B7280' }}>
+                  <MapPin size={10} className="flex-shrink-0" style={{ color: esCritico ? '#FCA5A5' : '#9CA3AF' }} />
                   {[edificio.direccion, edificio.ciudad, edificio.estado_region].filter(Boolean).join(' · ')}
                 </p>
               )}
@@ -405,29 +406,29 @@ export default function EdificioDetalle() {
               {edificio.acceso_calle && edificio.acceso_calle !== 'no_verificado' && (
                 <p className="text-xs mt-1 flex items-center gap-1">
                   {{
-                    normal:        <span className="font-semibold text-green-700">✅ {t('Calle libre', 'Street clear', 'Rua livre')}</span>,
-                    dificultad:    <span className="font-semibold text-yellow-700">⚠️ {t('Acceso con dificultad', 'Access with difficulty', 'Acesso com dificuldade')}</span>,
-                    solo_peatonal: <span className="font-semibold text-orange-700">🚶 {t('Solo a pie', 'On foot only', 'Somente a pé')}</span>,
-                    bloqueada:     <span className="font-semibold text-red-700">🚫 {t('Calle bloqueada', 'Street blocked', 'Rua bloqueada')}</span>,
-                    insegura:      <span className="font-semibold text-red-900">☠️ {t('Vía insegura', 'Dangerous road', 'Via perigosa')}</span>,
-                    no_sabe:       <span className="font-semibold text-gray-500">❓ {t('Acceso no confirmado', 'Access unknown', 'Acesso desconhecido')}</span>,
+                    normal:        <span className="font-semibold" style={{ color: '#86EFAC' }}>✅ {t('Calle libre', 'Street clear', 'Rua livre')}</span>,
+                    dificultad:    <span className="font-semibold" style={{ color: '#FCD34D' }}>⚠️ {t('Acceso con dificultad', 'Access with difficulty', 'Acesso com dificuldade')}</span>,
+                    solo_peatonal: <span className="font-semibold" style={{ color: '#FCD34D' }}>🚶 {t('Solo a pie', 'On foot only', 'Somente a pé')}</span>,
+                    bloqueada:     <span className="font-semibold" style={{ color: '#FCA5A5' }}>🚫 {t('Calle bloqueada', 'Street blocked', 'Rua bloqueada')}</span>,
+                    insegura:      <span className="font-semibold" style={{ color: '#FCA5A5' }}>☠️ {t('Vía insegura', 'Dangerous road', 'Via perigosa')}</span>,
+                    no_sabe:       <span className="font-semibold" style={{ color: '#9BA5B0' }}>❓ {t('Acceso no confirmado', 'Access unknown', 'Acesso desconhecido')}</span>,
                   }[edificio.acceso_calle] || null}
                 </p>
               )}
             </div>
             {/* Métricas rápidas */}
             <div className="flex flex-col items-end gap-1 flex-shrink-0 text-right">
-              <div className="flex items-center gap-1 text-xs font-semibold text-gray-500">
+              <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: esCritico ? '#C0C8D2' : '#4B5563' }}>
                 <BarChart2 size={12} />{totalReportes} {t('reportes', 'reports', 'relatórios')}
               </div>
               {totalSuscriptores !== null && totalSuscriptores > 0 && (
-                <div className="flex items-center gap-1 text-[10px] font-semibold text-blue-600">
+                <div className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: esCritico ? '#93C5FD' : '#2563EB' }}>
                   <Bell size={10} />{totalSuscriptores} {t('siguiendo', 'following', 'seguindo')}
                 </div>
               )}
-              <p className="text-[10px] text-gray-500">🕐 {tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
+              <p className="text-[10px]" style={{ color: esCritico ? '#9BA5B0' : '#6B7280' }}>🕐 {tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
               {edificio.nivel_verificacion === 'institucional' && (
-                <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style={{ color: '#5EEAD4', background: 'rgba(20,184,166,0.15)', border: '1px solid rgba(20,184,166,0.35)' }}>
                   <Shield size={8} /> {t('Verificado', 'Verified', 'Verificado')}
                 </span>
               )}
@@ -437,30 +438,41 @@ export default function EdificioDetalle() {
           {/* Semáforo siempre visible */}
           <Semaforo nivel={edificio.nivel_dano} es={es} personas_atrapadas={edificio.personas_atrapadas} />
 
+          {/* ── PANEL DE RESCATE — entre semáforo y contadores ── */}
+          <div className="mt-3">
+            <PanelRescate edificioId={id} es={es} />
+          </div>
+
           {/* Riesgos activos */}
           {(edificio.riesgo_gas || edificio.riesgo_electrico || edificio.riesgo_incendio || edificio.riesgo_colapso) && (
             <div className="flex flex-wrap gap-1.5 mt-3">
-              {edificio.riesgo_gas       && <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full border border-orange-200 font-semibold">💨 {t('Gas', 'Gas', 'Gás')}</span>}
-              {edificio.riesgo_electrico && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full border border-yellow-200 font-semibold">⚡ {t('Eléctrico', 'Electrical', 'Elétrico')}</span>}
-              {edificio.riesgo_incendio  && <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full border border-red-200 font-semibold">🔥 {t('Incendio', 'Fire', 'Incêndio')}</span>}
-              {edificio.riesgo_colapso   && <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full border border-gray-300 font-semibold">💥 {t('Colapso', 'Collapse', 'Colapso')}</span>}
+              {edificio.riesgo_gas       && <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: 'rgba(251,146,60,0.18)', color: '#FCD34D', border: '1px solid rgba(251,146,60,0.45)' }}>💨 {t('Gas', 'Gas', 'Gás')}</span>}
+              {edificio.riesgo_electrico && <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: 'rgba(234,179,8,0.18)', color: '#FDE68A', border: '1px solid rgba(234,179,8,0.45)' }}>⚡ {t('Eléctrico', 'Electrical', 'Elétrico')}</span>}
+              {edificio.riesgo_incendio  && <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: 'rgba(220,38,38,0.18)', color: '#FCA5A5', border: '1px solid rgba(220,38,38,0.45)' }}>🔥 {t('Incendio', 'Fire', 'Incêndio')}</span>}
+              {edificio.riesgo_colapso   && <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: 'rgba(107,114,128,0.18)', color: '#D1D5DB', border: '1px solid rgba(107,114,128,0.45)' }}>💥 {t('Colapso', 'Collapse', 'Colapso')}</span>}
             </div>
           )}
 
           {/* Resumen contadores personas */}
           {(reportesAtrapados.length > 0 || reportesHeridos.length > 0 || reportesFallecidos.length > 0) && (
-            <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-100">
-              <div className={`text-center p-2 rounded-xl border ${reportesAtrapados.length > 0 ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-100'}`}>
-                <p className="text-base font-black text-red-700">{reportesAtrapados.length}</p>
-                <p className="text-[9px] text-red-600 leading-tight">{t('Atrapados', 'Trapped', 'Presos')}</p>
+            <div className="grid grid-cols-3 gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}>
+              <div className="text-center p-2 rounded-xl" style={{
+                background: reportesAtrapados.length > 0 ? 'rgba(220,38,38,0.18)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${reportesAtrapados.length > 0 ? 'rgba(220,38,38,0.45)' : 'rgba(255,255,255,0.10)'}`,
+              }}>
+                <p className="text-base font-black" style={{ color: '#FCA5A5' }}>{reportesAtrapados.length}</p>
+                <p className="text-[9px] leading-tight" style={{ color: '#FCA5A5' }}>{t('Atrapados', 'Trapped', 'Presos')}</p>
               </div>
-              <div className={`text-center p-2 rounded-xl border ${reportesHeridos.length > 0 ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
-                <p className="text-base font-black text-amber-700">{reportesHeridos.length}</p>
-                <p className="text-[9px] text-amber-600 leading-tight">{t('Heridos recup.', 'Injured recov.', 'Feridos recup.')}</p>
+              <div className="text-center p-2 rounded-xl" style={{
+                background: reportesHeridos.length > 0 ? 'rgba(217,119,6,0.18)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${reportesHeridos.length > 0 ? 'rgba(217,119,6,0.45)' : 'rgba(255,255,255,0.10)'}`,
+              }}>
+                <p className="text-base font-black" style={{ color: '#FCD34D' }}>{reportesHeridos.length}</p>
+                <p className="text-[9px] leading-tight" style={{ color: '#FCD34D' }}>{t('Heridos recup.', 'Injured recov.', 'Feridos recup.')}</p>
               </div>
-              <div className="text-center p-2 rounded-xl border bg-gray-50 border-gray-100">
-                <p className="text-base font-black text-gray-700">{reportesFallecidos.length}</p>
-                <p className="text-[9px] text-gray-500 leading-tight">{t('Fallecidos recup.', 'Deceased recov.', 'Falecidos recup.')}</p>
+              <div className="text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}>
+                <p className="text-base font-black" style={{ color: '#C0C8D2' }}>{reportesFallecidos.length}</p>
+                <p className="text-[9px] leading-tight" style={{ color: '#9BA5B0' }}>{t('Fallecidos recup.', 'Deceased recov.', 'Falecidos recup.')}</p>
               </div>
             </div>
           )}
