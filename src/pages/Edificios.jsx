@@ -414,6 +414,10 @@ export default function Edificios() {
   const conAtrapados = todos.filter(r => ['si', 'voces'].includes(r.personas_atrapadas));
   const sinVerificar = todos.filter(r => r.nivel_verificacion === 'sin_verificar' || !r.nivel_verificacion);
   const conContactos = todos.filter(r => r.contactos_acceso?.length > 0);
+  const ultimaHora = todos.filter(r => {
+    const diff = Date.now() - new Date(r.updated_date || r.created_date).getTime();
+    return diff <= 2 * 60 * 60 * 1000; // 2 horas
+  });
 
   // Ciudades únicas disponibles en los datos
   const ciudadesDisponibles = [...new Set(todos.map(r => r.ciudad).filter(Boolean))].sort();
@@ -429,11 +433,19 @@ export default function Edificios() {
     if (filtroRapido === 'atrapados') return ['si', 'voces'].includes(r.personas_atrapadas);
     if (filtroRapido === 'sin_verificar') return r.nivel_verificacion === 'sin_verificar' || !r.nivel_verificacion;
     if (filtroRapido === 'con_contactos') return r.contactos_acceso?.length > 0;
+    if (filtroRapido === 'ultima_hora') {
+      const diff = Date.now() - new Date(r.updated_date || r.created_date).getTime();
+      return diff <= 2 * 60 * 60 * 1000;
+    }
     return true;
   }).sort((a, b) => {
     if (ordenDir === 'recientes') {
       return new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date);
     }
+    // Prioridad: atrapados siempre primero, luego nivel de daño
+    const aAtrapado = ['si', 'voces'].includes(a.personas_atrapadas) ? -1 : 0;
+    const bAtrapado = ['si', 'voces'].includes(b.personas_atrapadas) ? -1 : 0;
+    if (aAtrapado !== bAtrapado) return aAtrapado - bAtrapado;
     return (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5);
   });
 
@@ -549,12 +561,23 @@ export default function Edificios() {
               </div>
             )}
 
-            {/* Chips de filtro rápido con contadores */}
-            <div className="flex gap-2 flex-wrap mb-4 overflow-x-auto pb-1">
+            {/* Chips de filtro rápido con contadores — organizados por grupo */}
+            {/* Grupo urgencia */}
+            {ultimaHora.length > 0 && (
+              <div className="mb-2">
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mr-2">{t('Última hora', 'Last 2 hours', 'Última hora')}</span>
+                <button onClick={() => { setFiltroRapido(filtroRapido === 'ultima_hora' ? 'todos' : 'ultima_hora'); setPageDir(12); }}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-full border cursor-pointer transition-colors whitespace-nowrap animate-pulse ${filtroRapido === 'ultima_hora' ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-50 text-blue-700 border-blue-300'}`}>
+                  🕐 {t(`Últimas 2h (${ultimaHora.length})`, `Last 2h (${ultimaHora.length})`, `Últimas 2h (${ultimaHora.length})`)}
+                </button>
+              </div>
+            )}
+            {/* Grupo emergencia */}
+            <div className="flex gap-2 flex-wrap mb-1 overflow-x-auto pb-1">
               {[
                 { key: 'todos',         label: t(`Todos (${todos.length})`, `All (${todos.length})`, `Todos (${todos.length})`), color: 'gray' },
-                { key: 'criticos',      label: t(`🚨 Críticos (${criticos.length})`, `🚨 Critical (${criticos.length})`, `🚨 Críticos (${criticos.length})`), color: 'red' },
-                { key: 'atrapados',     label: t(`🆘 Atrapados (${conAtrapados.length})`, `🆘 Trapped (${conAtrapados.length})`, `🆘 Presos (${conAtrapados.length})`), color: 'orange' },
+                { key: 'atrapados',     label: t(`🆘 Atrapados (${conAtrapados.length})`, `🆘 Trapped (${conAtrapados.length})`, `🆘 Presos (${conAtrapados.length})`), color: 'red' },
+                { key: 'criticos',      label: t(`🚨 Críticos/Graves (${criticos.length})`, `🚨 Critical/Severe (${criticos.length})`, `🚨 Críticos (${criticos.length})`), color: 'orange' },
                 { key: 'con_contactos', label: t(`📞 Con contactos (${conContactos.length})`, `📞 With contacts (${conContactos.length})`, `📞 Com contatos (${conContactos.length})`), color: 'teal' },
                 { key: 'sin_verificar', label: t(`⚪ Sin verificar (${sinVerificar.length})`, `⚪ Unverified (${sinVerificar.length})`, `⚪ Sem verificar (${sinVerificar.length})`), color: 'gray' },
               ].map(chip => {
