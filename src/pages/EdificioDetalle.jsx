@@ -11,6 +11,7 @@ import { NubePeligro, ModalSeguridadEdificio, getPreguntaPrioritaria, InfoFaltan
 import PersonasEnEdificio from '@/components/edificio/PersonasEnEdificio';
 import MascotasEnEdificio from '@/components/edificio/MascotasEnEdificio';
 import PanelRescate from '@/components/edificio/PanelRescate';
+import PanelRescateInline from '@/components/edificio/PanelRescateInline';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
 import SeoMeta from '@/components/seo/SeoMeta';
@@ -478,6 +479,14 @@ export default function EdificioDetalle() {
           )}
           </div>
         </div>
+
+        {/* ── PANEL RESCATE INLINE — justo antes de la guía de daños ── */}
+        <PanelRescateInline
+          edificioId={id}
+          edificio={edificio}
+          es={es}
+          onGuardado={() => setEdificio(prev => ({ ...prev }))}
+        />
 
         {/* Guía de seguridad — acceso contextual */}
         <Link to="/guia-edificios"
