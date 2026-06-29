@@ -13,9 +13,16 @@ export default function BuscadorEdificio({ es, valor, onCambiarNombre, onSelecci
   const [mostrar, setMostrar] = useState(false);
   const timer = useRef(null);
 
+  // Normaliza: minúsculas, sin acentos, sin espacios extra
+  const norm = (s) => (s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
   useEffect(() => {
     if (seleccionado) return; // ya eligió uno, no seguir buscando
-    if (!valor || valor.trim().length < 4) {
+    if (!valor || valor.trim().length < 3) {
       setResultados([]);
       setMostrar(false);
       return;
@@ -24,20 +31,25 @@ export default function BuscadorEdificio({ es, valor, onCambiarNombre, onSelecci
     timer.current = setTimeout(async () => {
       setBuscando(true);
       try {
-        const todos = await base44.entities.ReportesDano.list('-created_date', 200);
-        const q = valor.trim().toLowerCase();
+        const todos = await base44.entities.ReportesDano.list('-created_date', 300);
+        const q = norm(valor);
+        // Palabras significativas de la búsqueda (ignora conectores muy cortos)
+        const palabras = q.split(' ').filter(p => p.length >= 3);
         const coincidencias = (todos || []).filter(r => {
-          const nombre = (r.nombre_lugar || '').toLowerCase();
-          const dir = (r.direccion || '').toLowerCase();
-          return nombre.includes(q) || q.includes(nombre) && nombre.length > 3 || dir.includes(q);
-        }).slice(0, 5);
+          const texto = norm(`${r.nombre_lugar || ''} ${r.direccion || ''} ${r.referencia || ''}`);
+          if (!texto) return false;
+          // 1) coincidencia directa de la frase completa
+          if (texto.includes(q)) return true;
+          // 2) que cada palabra significativa esté contenida en alguna parte del texto
+          return palabras.length > 0 && palabras.every(p => texto.includes(p));
+        }).slice(0, 6);
         setResultados(coincidencias);
         setMostrar(coincidencias.length > 0);
       } catch {
         setResultados([]);
       }
       setBuscando(false);
-    }, 600);
+    }, 500);
     return () => clearTimeout(timer.current);
   }, [valor, seleccionado]);
 
