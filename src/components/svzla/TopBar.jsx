@@ -23,11 +23,21 @@ export default function TopBar() {
   const es = lang === 'es';
   const pt = lang === 'pt';
   const [user, setUser] = useState(null);
+  const [esInspector, setEsInspector] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => {});
+    base44.auth.me().then(async u => {
+      setUser(u);
+      if (!u) return;
+      if (u.role === 'admin') { setEsInspector(true); return; }
+      const perfiles = await base44.entities.PerfilProfesional.filter({ user_id: u.id }).catch(() => []);
+      const p = perfiles?.[0];
+      if (p && ['ingeniero', 'arquitecto'].includes(p.tipo_perfil) && p.estado_aprobacion === 'aprobado') {
+        setEsInspector(true);
+      }
+    }).catch(() => {});
   }, []);
   useEffect(() => { setMenuOpen(false); setLangOpen(false); }, [location.pathname]);
 
@@ -54,7 +64,7 @@ export default function TopBar() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex" style={{ gap: 1, flex: 1, justifyContent: 'center' }}>
-            {NAV.map(item => {
+            {[...NAV, ...(esInspector ? [{ to: '/inspecciones', es: '📋 Inspectores', en: '📋 Inspectors', pt: '📋 Inspetores' }] : [])].map(item => {
               const active = isActive(item.to);
               return (
                 <Link key={item.to} to={item.to} style={{
@@ -181,6 +191,7 @@ export default function TopBar() {
               </div>
             )}
             {[...NAV,
+              ...(esInspector ? [{ to: '/inspecciones', es: '📋 Inspectores', en: '📋 Inspectors', pt: '📋 Inspetores' }] : []),
               { to: '/guia-plataforma', es: '📖 Guía de uso',  en: '📖 User guide',   pt: '📖 Guia' },
               { to: '/contactanos',     es: '✉️ Contáctanos', en: '✉️ Contact us',   pt: '✉️ Contate-nos' },
             ].map(item => {
