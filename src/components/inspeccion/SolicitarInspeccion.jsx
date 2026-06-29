@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, MapPin, CheckCircle2, ShieldAlert, ChevronRight, ChevronLeft, Plus, Save } from 'lucide-react';
+import { Loader2, MapPin, CheckCircle2, ShieldAlert, ChevronRight, ChevronLeft, Plus, Save, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { comprimirFoto, dataURLaFile } from '@/lib/comprimirFoto';
 import { useInspeccionQueue } from '@/lib/useInspeccionQueue';
@@ -176,6 +176,13 @@ export default function SolicitarInspeccion({ es, prefill = {}, onListo }) {
     setEdificioExistente(null);
     setPaso(0);
     setGuardadoOk(false);
+  };
+
+  // Guarda en la cola local SIEMPRE (aunque haya señal) para subir más tarde
+  const guardarParaLuego = () => {
+    if (!puedeGuardar) return;
+    agregar(construirData(), fotosAplanadas().map(f => ({ dataURL: f.dataURL, descripcion: f.descripcion })));
+    setGuardadoOk('final');
   };
 
   // Guarda este edificio (en cola si offline, o sube directo si online) y deja añadir otro
@@ -421,6 +428,13 @@ export default function SolicitarInspeccion({ es, prefill = {}, onListo }) {
               className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-800 text-sm font-bold py-2.5 rounded-xl disabled:opacity-40 cursor-pointer hover:bg-gray-50">
               <Plus size={15} /> {es ? 'Guardar y añadir otro edificio' : 'Save and add another building'}
             </button>
+            {/* Con señal: opción de NO subir ahora y dejarlo en la cola para más tarde */}
+            {!offline && (
+              <button type="button" onClick={guardarParaLuego} disabled={!puedeGuardar || guardando || comprimiendoGrupo}
+                className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-300 text-amber-800 text-sm font-bold py-2.5 rounded-xl disabled:opacity-40 cursor-pointer hover:bg-amber-100">
+                <Clock size={15} /> {es ? 'Guardar para subir más tarde' : 'Save to upload later'}
+              </button>
+            )}
           </div>
         )}
       </div>
