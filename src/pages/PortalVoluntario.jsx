@@ -144,6 +144,7 @@ export default function PortalVoluntario() {
   const [perfil, setPerfil] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [tab, setTab] = useState('inicio');
+  const [triageVistaInicial, setTriageVistaInicial] = useState('triage');
   const [personasRegistradas, setPersonasRegistradas] = useState([]);
   const [personasBuscadas, setPersonasBuscadas] = useState([]);
   const [solicitudes, setSolicitudes] = useState([]);
@@ -294,6 +295,13 @@ export default function PortalVoluntario() {
           <div className="space-y-3">
             <p className="text-sm font-bold text-gray-700 mb-2">{t('Acciones rápidas', 'Quick actions')}</p>
             <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => { setTriageVistaInicial('campo'); setTab('tareas'); }} className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-3 py-3 cursor-pointer hover:bg-red-100 text-left col-span-2">
+                <span className="text-xl">📸</span>
+                <div>
+                  <p className="text-xs font-bold text-red-800">{t('Pedir inspección / Tomar fotos de daños', 'Request inspection / Take damage photos')}</p>
+                  <p className="text-[10px] text-red-600 mt-0.5">{t('Funciona sin señal — se sube después', 'Works offline — uploads later')}</p>
+                </div>
+              </button>
               <Link to="/edificios?tab=reportar" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-3 py-3 no-underline hover:bg-red-100">
                 <span className="text-xl">🚨</span>
                 <div><p className="text-xs font-bold text-red-800">{t('Reportar daño', 'Report damage')}</p></div>
@@ -378,7 +386,7 @@ export default function PortalVoluntario() {
                 </p>
               </div>
             ) : (
-              <CentroTriage perfil={perfil ? { ...perfil, user_id: perfil.user_id || user?.id } : { tipo_perfil: 'admin', user_id: user?.id, user_nombre: user?.full_name, user_email: user?.email }} es={es} />
+              <CentroTriage perfil={perfil ? { ...perfil, user_id: perfil.user_id || user?.id } : { tipo_perfil: 'admin', user_id: user?.id, user_nombre: user?.full_name, user_email: user?.email }} es={es} vistaInicial={triageVistaInicial} />
             )}
           </div>
         )}

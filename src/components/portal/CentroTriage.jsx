@@ -6,10 +6,10 @@ import ColaInspeccion from './ColaInspeccion';
 import TareasEspecialista from './TareasEspecialista';
 import InspeccionCampo from './InspeccionCampo';
 
-export default function CentroTriage({ perfil, es }) {
+export default function CentroTriage({ perfil, es, vistaInicial = 'triage' }) {
   const [reportes, setReportes] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [vista, setVista] = useState('triage');
+  const [vista, setVista] = useState(vistaInicial);
 
   const cargar = () => {
     setCargando(true);
