@@ -8,6 +8,7 @@ import Footer from '@/components/svzla/Footer';
 import GaleriaFotos from '@/components/svzla/GaleriaFotos';
 import EstadoOperativo from '@/components/edificio/EstadoOperativo';
 import { NubePeligro, ModalSeguridadEdificio, getPreguntaPrioritaria, InfoFaltanteInline } from '@/components/edificio/AlertaSeguridad';
+import PersonasEnEdificio from '@/components/edificio/PersonasEnEdificio';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
 import SeoMeta from '@/components/seo/SeoMeta';
@@ -626,6 +627,9 @@ export default function EdificioDetalle() {
             </p>
           </div>
         )}
+
+        {/* ── 8b. PERSONAS EN EL EDIFICIO — registro individual ── */}
+        <PersonasEnEdificio edificioId={id} edificio={edificio} es={es} />
 
         {/* ── 9. BOTONES DE ACCIÓN ── */}
         {updateOk && (
