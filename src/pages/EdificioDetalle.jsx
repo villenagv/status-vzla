@@ -13,6 +13,7 @@ import MascotasEnEdificio from '@/components/edificio/MascotasEnEdificio';
 import PanelRescate from '@/components/edificio/PanelRescate';
 import PanelRescateInline from '@/components/edificio/PanelRescateInline';
 import HistorialGestion from '@/components/edificio/HistorialGestion';
+import GaleriaTecnicaInspeccion from '@/components/edificio/GaleriaTecnicaInspeccion';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
 import SeoMeta from '@/components/seo/SeoMeta';
@@ -590,6 +591,9 @@ export default function EdificioDetalle() {
 
         {/* ── 6b. HISTORIAL DE GESTIÓN E INSPECCIONES ── */}
         <HistorialGestion edificio={edificio} es={es} />
+
+        {/* ── 6c. GALERÍA TÉCNICA DE INSPECCIÓN — fotos por área + resto del edificio ── */}
+        <GaleriaTecnicaInspeccion edificio={edificio} es={es} />
 
         {/* ── 7. HISTORIAL DE ACTUALIZACIONES CIUDADANAS ── */}
         <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
