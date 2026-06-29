@@ -702,6 +702,14 @@ export default function Edificios() {
                               >
                                 🔔 {t('Avísame', 'Notify me', 'Me avise')}
                               </button>
+                              {/* Botón Pedir inspección — prerrellenado */}
+                              <Link
+                                to={`/solicitar-inspeccion?edificio=${r.id}`}
+                                onClick={e => e.stopPropagation()}
+                                className="text-[9px] font-bold text-white bg-blue-700 px-1.5 py-0.5 rounded-full no-underline hover:bg-blue-800 flex items-center gap-0.5"
+                              >
+                                📸 {t('Inspección', 'Inspect', 'Inspeção')}
+                              </Link>
                               {/* Botón Actualizar */}
                               <Link
                                 to={`/edificio?id=${r.id}`}

@@ -50,6 +50,7 @@ import IdentificacionProfesional from './pages/IdentificacionProfesional.jsx';
 import Sobre from './pages/Sobre.jsx';
 import MapaDanos from './pages/MapaDanos.jsx';
 import Alianzas from './pages/Alianzas.jsx';
+import SolicitarInspeccion from './pages/SolicitarInspeccion.jsx';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -94,6 +95,7 @@ const PublicApp = () => (
     <Route path="/sobre" element={<Sobre />} />
     <Route path="/mapa-danos" element={<MapaDanos />} />
     <Route path="/alianzas" element={<Alianzas />} />
+    <Route path="/solicitar-inspeccion" element={<SolicitarInspeccion />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );

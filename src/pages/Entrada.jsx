@@ -162,6 +162,30 @@ export default function Entrada() {
           </div>
         </div>
 
+        {/* ── PEDIR INSPECCIÓN ── */}
+        <Link to="/solicitar-inspeccion" className="no-underline block" style={{ borderRadius: 16 }}>
+          <div style={{
+            background: '#1D4ED8',
+            borderRadius: 16,
+            padding: '16px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          }}>
+            <span style={{ fontSize: 28, flexShrink: 0 }}>📸</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 15, fontWeight: 800, color: '#fff', lineHeight: 1.2, marginBottom: 3 }}>
+                {es ? 'Pedir inspección de daños' : 'Request a damage inspection'}
+              </p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.82)', lineHeight: 1.4 }}>
+                {es ? 'Toma fotos · Un voluntario técnico revisará y te contactará' : 'Take photos · A technical volunteer will review and contact you'}
+              </p>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 20, flexShrink: 0 }}>›</span>
+          </div>
+        </Link>
+
         {/* ── CONSULTAR INFORMACIÓN ── */}
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest mb-2.5" style={{ color: '#9CA3AF' }}>

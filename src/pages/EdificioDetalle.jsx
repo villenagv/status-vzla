@@ -667,6 +667,10 @@ export default function EdificioDetalle() {
             className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl cursor-pointer text-sm transition-colors">
             <Eye size={15} /> {t('Agregar actualización sobre este edificio', 'Add an update about this building', 'Adicionar atualização sobre este edifício')}
           </button>
+          <Link to={`/solicitar-inspeccion?edificio=${id}`}
+            className="flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-2xl cursor-pointer text-sm transition-colors no-underline">
+            📸 {t('Pedir inspección de este edificio', 'Request an inspection of this building', 'Pedir inspeção deste edifício')}
+          </Link>
           <div className="grid grid-cols-2 gap-2">
             <button onClick={() => conSeguridad(confirmarIgual)}
               className="flex items-center justify-center gap-2 bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-2xl cursor-pointer text-xs transition-colors">
