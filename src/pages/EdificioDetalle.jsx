@@ -14,6 +14,7 @@ import PanelRescate from '@/components/edificio/PanelRescate';
 import PanelRescateInline from '@/components/edificio/PanelRescateInline';
 import HistorialGestion from '@/components/edificio/HistorialGestion';
 import GaleriaTecnicaInspeccion from '@/components/edificio/GaleriaTecnicaInspeccion';
+import AlertaBuscaInspector from '@/components/edificio/AlertaBuscaInspector';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
 import SeoMeta from '@/components/seo/SeoMeta';
@@ -484,6 +485,9 @@ export default function EdificioDetalle() {
           )}
           </div>
         </div>
+
+        {/* ── ALERTA: SE BUSCA INSPECTOR (triaje pidió inspección presencial) ── */}
+        <AlertaBuscaInspector edificio={edificio} es={es} />
 
         {/* ── PANEL RESCATE INLINE — justo antes de la guía de daños ── */}
         <PanelRescateInline
