@@ -6,7 +6,7 @@ import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import SubidaMasivaModulo from '@/components/voluntario/SubidaMasivaModulo';
-import TareasEspecialista from '@/components/portal/TareasEspecialista';
+import CentroTriage from '@/components/portal/CentroTriage';
 import GestionEdificios from '@/components/portal/GestionEdificios';
 
 const CONDICION_LABELS = {
@@ -219,7 +219,7 @@ export default function PortalVoluntario() {
     { key: 'inicio',     icon: '🏠', es: 'Inicio',      en: 'Home'      },
     { key: 'edificios',  icon: '🏗️', es: 'Edificios',   en: 'Buildings' },
     { key: 'personas',   icon: '👤', es: 'Personas',     en: 'People'    },
-    ...(esEspecialista || isAdmin ? [{ key: 'tareas', icon: '⚙️', es: 'Evaluaciones', en: 'Assessments' }] : []),
+    ...(esEspecialista || isAdmin ? [{ key: 'tareas', icon: '🏛️', es: 'Triaje técnico', en: 'Technical triage' }] : []),
     { key: 'carga',      icon: '📤', es: 'Carga datos',  en: 'Upload'    },
   ];
 
@@ -378,7 +378,7 @@ export default function PortalVoluntario() {
                 </p>
               </div>
             ) : (
-              <TareasEspecialista perfil={perfil || { tipo_perfil: 'admin', user_nombre: user?.full_name, user_email: user?.email }} es={es} />
+              <CentroTriage perfil={perfil ? { ...perfil, user_id: perfil.user_id || user?.id } : { tipo_perfil: 'admin', user_id: user?.id, user_nombre: user?.full_name, user_email: user?.email }} es={es} />
             )}
           </div>
         )}

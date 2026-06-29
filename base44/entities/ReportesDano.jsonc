@@ -207,6 +207,53 @@
       ],
       "default": "sin_verificar"
     },
+    "triage_estado": {
+      "type": "string",
+      "description": "Fase del triaje t\u00e9cnico: pendiente de clasificar, clasificado online, en cola de inspecci\u00f3n presencial, inspeccionado, descartado",
+      "enum": [
+        "pendiente_triage",
+        "clasificado",
+        "en_cola_inspeccion",
+        "inspeccionado",
+        "descartado"
+      ],
+      "default": "pendiente_triage"
+    },
+    "triage_riesgo": {
+      "type": "string",
+      "description": "Resultado del triaje r\u00e1pido online realizado por un especialista",
+      "enum": [
+        "sin_clasificar",
+        "riesgo_colapso",
+        "riesgo_moderado",
+        "solo_estetico"
+      ],
+      "default": "sin_clasificar"
+    },
+    "triage_notas": {
+      "type": "string",
+      "description": "Notas t\u00e9cnicas del triaje r\u00e1pido"
+    },
+    "triage_por": {
+      "type": "string",
+      "description": "Nombre o email del especialista que hizo el triaje"
+    },
+    "triage_fecha": {
+      "type": "string",
+      "description": "Fecha ISO del triaje"
+    },
+    "requiere_inspeccion_presencial": {
+      "type": "boolean",
+      "description": "Marcado cuando el triaje determina que necesita visita t\u00e9cnica en persona",
+      "default": false
+    },
+    "voluntario_asignado_id": {
+      "type": "string",
+      "description": "ID del usuario voluntario/especialista asignado a la inspecci\u00f3n presencial"
+    },
+    "voluntario_asignado_nombre": {
+      "type": "string"
+    },
     "reportante_nombre": {
       "type": "string"
     },
