@@ -7,6 +7,7 @@ import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import GaleriaFotos from '@/components/svzla/GaleriaFotos';
 import EstadoOperativo from '@/components/edificio/EstadoOperativo';
+import { NubePeligro, ModalSeguridadEdificio } from '@/components/edificio/AlertaSeguridad';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
 import SeoMeta from '@/components/seo/SeoMeta';
@@ -128,6 +129,8 @@ export default function EdificioDetalle() {
 
   // Solicitudes
   const [solicitudes, setSolicitudes] = useState([]);
+  const [modalSeguridad, setModalSeguridad] = useState(false);
+  const [accionPendiente, setAccionPendiente] = useState(null);
   const [conozco, setConozco] = useState(null);
   const [respConozco, setRespConozco] = useState({ nombre: '', desc: '' });
   const [enviandoResp, setEnviandoResp] = useState(false);
@@ -237,6 +240,16 @@ export default function EdificioDetalle() {
 
   const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
+  // Dispara modal de seguridad si es edificio peligroso, o ejecuta la acción directamente
+  const conSeguridad = (accion) => {
+    if (noEntrar) {
+      setAccionPendiente(() => accion);
+      setModalSeguridad(true);
+    } else {
+      accion();
+    }
+  };
+
   if (cargando) return (
     <div className="min-h-screen bg-gray-50 flex flex-col"><TopBar />
       <div className="flex-1 flex items-center justify-center py-20">
@@ -297,11 +310,20 @@ export default function EdificioDetalle() {
       />
       <JsonLd data={buildEdificioJsonLd(edificio, lang)} />
       <TopBar />
+      <ModalSeguridadEdificio
+        visible={modalSeguridad}
+        es={es}
+        onConfirmar={() => { setModalSeguridad(false); if (accionPendiente) { accionPendiente(); setAccionPendiente(null); } }}
+        onCerrar={() => { setModalSeguridad(false); setAccionPendiente(null); }}
+      />
       <div className="max-w-lg mx-auto w-full px-4 py-5">
 
         <Link to="/edificios" className="flex items-center gap-1 text-sm text-gray-500 mb-4 hover:text-gray-800 no-underline">
           <ChevronLeft size={16} /> {t('Directorio de edificios', 'Buildings directory', 'Diretório de edifícios')}
         </Link>
+
+        {/* ── NUBE LATENTE DE PELIGRO ── */}
+        <NubePeligro nivel={edificio.nivel_dano} personas_atrapadas={edificio.personas_atrapadas} es={es} />
 
         {/* ── 1. ENCABEZADO CON FOTO DE PORTADA ── */}
         <div className={`bg-white rounded-2xl overflow-hidden mb-3 border-2 ${esCritico ? 'border-red-300' : 'border-gray-200'}`}>
@@ -551,16 +573,16 @@ export default function EdificioDetalle() {
           </div>
         )}
         <div className="grid grid-cols-1 gap-2 mb-4">
-          <button onClick={() => { setEditando(v => !v); setUpdateOk(false); }}
+          <button onClick={() => conSeguridad(() => { setEditando(v => !v); setUpdateOk(false); })}
             className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl cursor-pointer text-sm transition-colors">
             <Eye size={15} /> {t('Agregar actualización sobre este edificio', 'Add an update about this building', 'Adicionar atualização sobre este edifício')}
           </button>
           <div className="grid grid-cols-2 gap-2">
-            <button onClick={confirmarIgual}
+            <button onClick={() => conSeguridad(confirmarIgual)}
               className="flex items-center justify-center gap-2 bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-2xl cursor-pointer text-xs transition-colors">
               <ThumbsUp size={13} /> {t('Sigue igual', 'Still the same', 'Continua igual')}
             </button>
-            <button onClick={() => { setUpdateForm(f => ({ ...f, tipo: 'informacion_incorrecta' })); setEditando(true); }}
+            <button onClick={() => conSeguridad(() => { setUpdateForm(f => ({ ...f, tipo: 'informacion_incorrecta' })); setEditando(true); })}
               className="flex items-center justify-center gap-2 border-2 border-red-300 text-red-600 hover:bg-red-50 font-semibold py-3 rounded-2xl cursor-pointer text-xs transition-colors">
               <Info size={13} /> {t('Info incorrecta', 'Wrong info', 'Info incorreta')}
             </button>
