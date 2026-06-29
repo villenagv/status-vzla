@@ -24,6 +24,7 @@ export default function Voluntario() {
   const [especialidad, setEspecialidad] = useState('');
   const [numeroColegio, setNumeroColegio] = useState('');
   const [institucion, setInstitucion] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [fotoId, setFotoId] = useState(null);
   const [fotoIdUrl, setFotoIdUrl] = useState('');
   const [subiendoFoto, setSubiendoFoto] = useState(false);
@@ -81,6 +82,7 @@ export default function Voluntario() {
         tipo_perfil: tipoPerfil,
         especialidad,
         numero_colegio: numeroColegio,
+        telefono_contacto: telefono,
       });
       setSolicitud({ estado: result.data?.estado || 'pendiente' });
       setEnviado(true);
@@ -279,6 +281,22 @@ export default function Voluntario() {
               placeholder={t('Ej: Cruz Roja, Hospital Vargas, ONG Rescate...', 'E.g. Red Cross, Vargas Hospital, NGO Rescue...')}
               className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-blue-400 placeholder-gray-400"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-700 mb-1.5">
+              📞 {t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)')}
+            </label>
+            <input
+              type="tel"
+              value={telefono}
+              onChange={e => setTelefono(e.target.value)}
+              placeholder={t('Ej: +58 414 1234567', 'E.g. +1 801 231 0953')}
+              className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-blue-400 placeholder-gray-400"
+            />
+            <p className="text-[10px] text-gray-400 mt-1">
+              🔒 {t('Privado. Solo el equipo coordinador lo verá.', 'Private. Only the coordination team will see it.')}
+            </p>
           </div>
 
           {/* Foto de identificación */}

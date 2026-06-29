@@ -33,6 +33,14 @@ function SolicitudCard({ sol, es, onAprobar, onRechazar, procesando }) {
           {sol.institucion_nombre && (
             <p className="text-xs text-gray-500 mt-0.5">🏢 {sol.institucion_nombre}</p>
           )}
+          {sol.telefono_contacto && (
+            <p className="text-xs text-gray-500 mt-0.5">📞 {sol.telefono_contacto}</p>
+          )}
+          {sol.rol_solicitado && sol.rol_solicitado !== 'voluntario' && (
+            <p className="text-xs font-semibold mt-0.5" style={{ color: sol.rol_solicitado === 'ingeniero' ? '#1d4ed8' : '#7c3aed' }}>
+              {sol.rol_solicitado === 'ingeniero' ? '⚙️ Ingeniero' : '📐 Arquitecto'}
+            </p>
+          )}
           <p className="text-[10px] text-gray-400 mt-0.5">{new Date(sol.created_date).toLocaleDateString()}</p>
         </div>
 

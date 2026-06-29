@@ -11,6 +11,10 @@
     "user_nombre": {
       "type": "string"
     },
+    "telefono_contacto": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto del especialista"
+    },
     "tipo_perfil": {
       "type": "string",
       "enum": [

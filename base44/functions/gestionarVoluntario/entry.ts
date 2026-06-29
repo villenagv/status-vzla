@@ -2,6 +2,158 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const APP_URL = 'https://statusvzla.com';
 
+const EMAIL_BIENVENIDA_ES = (nombre) => `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+
+  <div style="background:#1e293b;border-radius:16px;padding:24px;text-align:center;margin-bottom:16px;">
+    <p style="font-size:32px;margin:0 0 8px;">⚙️</p>
+    <h1 style="color:#ffffff;font-size:20px;font-weight:800;margin:0 0 6px;">¡Bienvenido/a al equipo de especialistas CRIS!</h1>
+    <p style="color:#94a3b8;font-size:13px;margin:0;">Status Venezuela · Plataforma de respuesta a emergencias</p>
+  </div>
+
+  <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;margin-bottom:16px;">
+    <p style="color:#1e293b;font-size:15px;font-weight:700;margin:0 0 8px;">Hola, ${nombre || 'especialista'}:</p>
+    <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 16px;">
+      Tu perfil como <strong>ingeniero/arquitecto</strong> ha sido <strong style="color:#16a34a;">aprobado oficialmente</strong>. 
+      Ya cuentas con acceso pleno al Centro de Inspecciones y todas las herramientas técnicas de la plataforma.
+    </p>
+    <a href="${APP_URL}/inspecciones" style="display:block;background:#1d4ed8;color:#ffffff;text-decoration:none;text-align:center;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:16px;">
+      🏗️ Ir al Centro de Inspecciones →
+    </a>
+  </div>
+
+  <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:16px;padding:20px;margin-bottom:16px;">
+    <p style="color:#92400e;font-size:13px;font-weight:800;margin:0 0 10px;">📢 COMUNICADO INSTITUCIONAL URGENTE</p>
+    <p style="color:#78350f;font-size:13px;line-height:1.6;margin:0 0 10px;">
+      Desde la mañana de hoy hemos iniciado formalmente el proceso de <strong>acoplamiento técnico de nuestra plataforma con otras organizaciones y sistemas</strong> que están trabajando en la emergencia. El objetivo es unificar esfuerzos y optimizar los datos de inspección a nivel nacional.
+    </p>
+    <p style="color:#78350f;font-size:13px;line-height:1.6;margin:0;">
+      Los detalles técnicos, cambios en protocolos y nuevas funcionalidades se informarán en tiempo real a través de nuestros canales oficiales. Es fundamental que estés conectado/a.
+    </p>
+  </div>
+
+  <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:16px;padding:20px;margin-bottom:16px;">
+    <p style="color:#14532d;font-size:13px;font-weight:800;margin:0 0 12px;">📌 Canales oficiales del equipo:</p>
+    
+    <div style="margin-bottom:12px;">
+      <p style="color:#15803d;font-size:13px;font-weight:700;margin:0 0 4px;">💬 Grupo de coordinación técnica (WhatsApp):</p>
+      <a href="https://chat.whatsapp.com/Iav9GC5hlvc3SQQkUnm0wj" style="color:#1d4ed8;font-size:13px;word-break:break-all;">
+        https://chat.whatsapp.com/Iav9GC5hlvc3SQQkUnm0wj
+      </a>
+      <p style="color:#6b7280;font-size:11px;margin:2px 0 0;">Únete de inmediato. Aquí informaremos sobre cambios y coordinación.</p>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <p style="color:#15803d;font-size:13px;font-weight:700;margin:0 0 4px;">📞 Contacto directo del equipo:</p>
+      <p style="color:#1e293b;font-size:13px;margin:0;"><strong>+1 (801) 231-0953</strong></p>
+      <p style="color:#6b7280;font-size:11px;margin:2px 0 0;">Para emergencias logísticas y coordinación urgente.</p>
+    </div>
+
+    <div>
+      <p style="color:#15803d;font-size:13px;font-weight:700;margin:0 0 4px;">📱 Síguenos en redes sociales:</p>
+      <p style="color:#1e293b;font-size:13px;margin:0;"><strong>@statusvzlacom</strong></p>
+      <p style="color:#6b7280;font-size:11px;margin:2px 0 0;">Comunicados oficiales, actualizaciones y coordinación pública.</p>
+    </div>
+  </div>
+
+  <div style="background:#f1f5f9;border-radius:12px;padding:16px;margin-bottom:16px;">
+    <p style="color:#475569;font-size:12px;line-height:1.6;margin:0;">
+      🔒 Tu labor es vital para validar la integridad estructural y priorizar la seguridad en esta emergencia. 
+      Gracias por poner tu conocimiento técnico al servicio de la vida.<br><br>
+      ⚠️ <strong>Importante:</strong> Nunca entres a estructuras dañadas sin autorización. 
+      Si hay grietas graves, colapso, olor a gas, cables caídos o personas atrapadas, espera a las autoridades.
+    </p>
+  </div>
+
+  <p style="text-align:center;color:#94a3b8;font-size:11px;">
+    CRIS · Status Venezuela · Plataforma ciudadana, no partidista y sin fines de lucro.<br>
+    Nunca envíes dinero a cambio de información.
+  </p>
+</div>
+</body>
+</html>
+`.trim();
+
+const EMAIL_BIENVENIDA_EN = (nombre) => `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+
+  <div style="background:#1e293b;border-radius:16px;padding:24px;text-align:center;margin-bottom:16px;">
+    <p style="font-size:32px;margin:0 0 8px;">⚙️</p>
+    <h1 style="color:#ffffff;font-size:20px;font-weight:800;margin:0 0 6px;">Welcome to the CRIS specialist team!</h1>
+    <p style="color:#94a3b8;font-size:13px;margin:0;">Status Venezuela · Emergency response platform</p>
+  </div>
+
+  <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;margin-bottom:16px;">
+    <p style="color:#1e293b;font-size:15px;font-weight:700;margin:0 0 8px;">Hello, ${nombre || 'specialist'}:</p>
+    <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 16px;">
+      Your profile as an <strong>engineer/architect</strong> has been <strong style="color:#16a34a;">officially approved</strong>. 
+      You now have full access to the Inspection Center and all technical tools on the platform.
+    </p>
+    <a href="${APP_URL}/inspecciones" style="display:block;background:#1d4ed8;color:#ffffff;text-decoration:none;text-align:center;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:16px;">
+      🏗️ Go to Inspection Center →
+    </a>
+  </div>
+
+  <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:16px;padding:20px;margin-bottom:16px;">
+    <p style="color:#92400e;font-size:13px;font-weight:800;margin:0 0 10px;">📢 INSTITUTIONAL ANNOUNCEMENT</p>
+    <p style="color:#78350f;font-size:13px;line-height:1.6;margin:0 0 10px;">
+      As of this morning, we have formally started the process of <strong>technical integration of our platform with other organizations and systems</strong> working on the emergency, aiming to unify efforts and optimize inspection data nationwide.
+    </p>
+    <p style="color:#78350f;font-size:13px;line-height:1.6;margin:0;">
+      Technical details, protocol changes, and new features will be shared in real time through our official channels. It is essential that you stay connected.
+    </p>
+  </div>
+
+  <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:16px;padding:20px;margin-bottom:16px;">
+    <p style="color:#14532d;font-size:13px;font-weight:800;margin:0 0 12px;">📌 Official team channels:</p>
+    
+    <div style="margin-bottom:12px;">
+      <p style="color:#15803d;font-size:13px;font-weight:700;margin:0 0 4px;">💬 Technical coordination group (WhatsApp):</p>
+      <a href="https://chat.whatsapp.com/Iav9GC5hlvc3SQQkUnm0wj" style="color:#1d4ed8;font-size:13px;word-break:break-all;">
+        https://chat.whatsapp.com/Iav9GC5hlvc3SQQkUnm0wj
+      </a>
+      <p style="color:#6b7280;font-size:11px;margin:2px 0 0;">Join immediately. Updates and coordination will be shared here.</p>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <p style="color:#15803d;font-size:13px;font-weight:700;margin:0 0 4px;">📞 Direct team contact:</p>
+      <p style="color:#1e293b;font-size:13px;margin:0;"><strong>+1 (801) 231-0953</strong></p>
+      <p style="color:#6b7280;font-size:11px;margin:2px 0 0;">For logistics emergencies and urgent coordination.</p>
+    </div>
+
+    <div>
+      <p style="color:#15803d;font-size:13px;font-weight:700;margin:0 0 4px;">📱 Follow us on social media:</p>
+      <p style="color:#1e293b;font-size:13px;margin:0;"><strong>@statusvzlacom</strong></p>
+      <p style="color:#6b7280;font-size:11px;margin:2px 0 0;">Official announcements, updates, and public coordination.</p>
+    </div>
+  </div>
+
+  <div style="background:#f1f5f9;border-radius:12px;padding:16px;margin-bottom:16px;">
+    <p style="color:#475569;font-size:12px;line-height:1.6;margin:0;">
+      🔒 Your work is vital to validate structural integrity and prioritize safety in this emergency. 
+      Thank you for putting your technical knowledge at the service of life.<br><br>
+      ⚠️ <strong>Important:</strong> Never enter damaged structures without authorization. 
+      If there are major cracks, collapse, gas smell, fallen wires, or trapped people, wait for authorities.
+    </p>
+  </div>
+
+  <p style="text-align:center;color:#94a3b8;font-size:11px;">
+    CRIS · Status Venezuela · Citizen, non-partisan, non-profit platform.<br>
+    Never send money in exchange for information.
+  </p>
+</div>
+</body>
+</html>
+`.trim();
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -24,12 +176,34 @@ Deno.serve(async (req) => {
         revisado_por: user.email,
       });
 
+      // Si es ingeniero o arquitecto, aprobar también el PerfilProfesional
+      const esEspecialista = ['ingeniero', 'arquitecto'].includes(sol.rol_solicitado);
+      if (esEspecialista) {
+        const perfiles = await base44.asServiceRole.entities.PerfilProfesional.filter({ user_id: sol.user_id });
+        if (perfiles?.length > 0) {
+          await base44.asServiceRole.entities.PerfilProfesional.update(perfiles[0].id, {
+            estado_aprobacion: 'aprobado',
+            aprobado_por: user.email,
+          });
+        }
+      }
+
       if (sol.user_email) {
+        // Determinar idioma por heurística (si tiene nombre completo en inglés o sin acento, enviar en inglés)
+        // Por defecto enviamos en español (la mayoría de los usuarios son venezolanos)
+        const htmlBody = esEspecialista
+          ? EMAIL_BIENVENIDA_ES(sol.user_nombre || sol.user_email)
+          : `Hola ${sol.user_nombre || sol.user_email},\n\n¡Tu cuenta de voluntario en Status Venezuela CRIS ha sido activada!\n\nYa puedes acceder al Portal de Voluntarios en: ${APP_URL}/portal-voluntario\n\n💬 Únete al grupo de coordinación: https://chat.whatsapp.com/Iav9GC5hlvc3SQQkUnm0wj\n📞 Contacto: +1 (801) 231-0953\n📱 Síguenos: @statusvzlacom\n\n---\nPlataforma ciudadana, no partidista y sin fines de lucro.\nNunca envíes dinero a cambio de información.`;
+
+        const subject = esEspecialista
+          ? '✅ ¡Acceso aprobado! Bienvenido/a al equipo de especialistas CRIS — Comunicado Institucional'
+          : '✅ Tu acceso como voluntario fue aprobado — CRIS';
+
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: sol.user_email,
-          subject: '✅ Tu acceso como voluntario fue aprobado — CRIS',
+          subject,
           from_name: 'CRIS StatusVzla',
-          body: `Hola ${sol.user_nombre || sol.user_email},\n\n¡Tu cuenta de voluntario en Status Venezuela CRIS ha sido activada!\n\nYa puedes acceder al Portal de Voluntarios en: ${APP_URL}/portal-voluntario\n\n---\nPlataforma ciudadana, no partidista y sin fines de lucro.\nNunca envíes dinero a cambio de información.`,
+          body: htmlBody,
         }).catch(() => {});
       }
 
@@ -106,9 +280,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── REGISTRAR solicitud de voluntario (post OTP) ──
+    // ── REGISTRAR solicitud de voluntario ──
     if (accion === 'registrar_solicitud') {
-      const { token_invitacion, institucion_nombre, foto_id_url, tipo_perfil, especialidad, numero_colegio } = body;
+      const { token_invitacion, institucion_nombre, foto_id_url, tipo_perfil, especialidad, numero_colegio, telefono_contacto } = body;
 
       const existentes = await base44.asServiceRole.entities.SolicitudVoluntario.filter({ user_id: user.id });
       if (existentes?.length > 0) {
@@ -119,7 +293,6 @@ Deno.serve(async (req) => {
       let inst_nombre = institucion_nombre || '';
       let inst_tipo = '';
 
-      // Verificar token de invitación
       if (token_invitacion) {
         const lista = await base44.asServiceRole.entities.InvitacionInstitucional.filter({ token: token_invitacion, activo: true });
         const inv = lista?.[0];
@@ -133,7 +306,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Verificar por dominio de email
       if (!pre_aprobado && user.email) {
         const dominio = user.email.split('@')[1]?.toLowerCase();
         if (dominio) {
@@ -154,6 +326,7 @@ Deno.serve(async (req) => {
         user_id: user.id,
         user_email: user.email,
         user_nombre: user.full_name || '',
+        telefono_contacto: telefono_contacto || '',
         estado: (pre_aprobado && !esEspecialista) ? 'aprobado' : 'pendiente',
         rol_solicitado: perfilTipo,
         institucion_nombre: inst_nombre,
@@ -163,12 +336,12 @@ Deno.serve(async (req) => {
         pre_aprobado: pre_aprobado && !esEspecialista,
       });
 
-      // Crear/actualizar PerfilProfesional
       const perfilesExistentes = await base44.asServiceRole.entities.PerfilProfesional.filter({ user_id: user.id });
       const perfilData = {
         user_id: user.id,
         user_email: user.email,
         user_nombre: user.full_name || '',
+        telefono_contacto: telefono_contacto || '',
         tipo_perfil: perfilTipo,
         especialidad: especialidad || '',
         numero_colegio: numero_colegio || '',
@@ -182,14 +355,13 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.PerfilProfesional.create(perfilData);
       }
 
-      // Notificar admin
       if (esEspecialista || !pre_aprobado) {
         const tipoLabel = perfilTipo === 'ingeniero' ? '⚙️ Ingeniero' : perfilTipo === 'arquitecto' ? '📐 Arquitecto' : '🤝 Voluntario';
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: 'villenagv@gmail.com',
           subject: `🔔 Nueva solicitud: ${tipoLabel} — ${user.email}`,
           from_name: 'CRIS Admin',
-          body: `Nueva solicitud pendiente.\n\nTipo: ${tipoLabel}\nEmail: ${user.email}\nNombre: ${user.full_name || '—'}\nEspecialidad: ${especialidad || '—'}\nN° Colegio: ${numero_colegio || '—'}\nInstitución: ${inst_nombre || '—'}\n\nVer en: ${APP_URL}/admin`,
+          body: `Nueva solicitud pendiente.\n\nTipo: ${tipoLabel}\nEmail: ${user.email}\nNombre: ${user.full_name || '—'}\nTeléfono: ${telefono_contacto || '—'}\nEspecialidad: ${especialidad || '—'}\nN° Colegio: ${numero_colegio || '—'}\nInstitución: ${inst_nombre || '—'}\n\nVer en: ${APP_URL}/admin`,
         }).catch(() => {});
       }
 
