@@ -347,6 +347,7 @@ export default function EdificioDetalle() {
         es={es}
         preguntaPrioritaria={getPreguntaPrioritaria(edificio)}
         edificioId={id}
+        edificio={edificio}
         onRespuestaPrioritaria={(resp) => setRespuestaPrioritaria(resp)}
         onConfirmar={() => { setModalSeguridad(false); if (accionPendiente) { accionPendiente(); setAccionPendiente(null); } }}
         onCerrar={() => { setModalSeguridad(false); setAccionPendiente(null); }}

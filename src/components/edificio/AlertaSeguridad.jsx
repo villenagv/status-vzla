@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Loader2 } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const EMERGENCIAS = [
@@ -9,9 +9,7 @@ const EMERGENCIAS = [
   { num: '911', op: 'Movistar' },
 ];
 
-// ── Detecta cuál es la pregunta de mayor prioridad que falta ──
-// Prioridad 1: ¿Hay atrapados? (campo no respondido = 'no_sabe' o vacío)
-// Prioridad 2: ¿Falta foto de fachada?
+// ── Detecta todos los campos críticos que faltan, en orden de prioridad ──
 export function getPreguntaPrioritaria(edificio) {
   if (!edificio) return null;
   const atrapados = edificio.personas_atrapadas;
@@ -21,11 +19,36 @@ export function getPreguntaPrioritaria(edificio) {
   return null;
 }
 
+// Devuelve lista de preguntas incompletas secundarias (para la sección amarilla)
+export function getInfoFaltante(edificio) {
+  if (!edificio) return [];
+  const faltante = [];
+
+  // ¿Acceso a la calle?
+  if (!edificio.acceso_calle || edificio.acceso_calle === 'no_sabe' || edificio.acceso_calle === 'no_verificado') {
+    faltante.push('acceso_calle');
+  }
+  // ¿Gas?
+  if (!edificio.gas || edificio.gas === 'no_confirmado') {
+    faltante.push('gas');
+  }
+  // ¿Electricidad?
+  if (!edificio.electricidad || edificio.electricidad === 'no_confirmado') {
+    faltante.push('electricidad');
+  }
+  // ¿Agua?
+  if (!edificio.agua || edificio.agua === 'no_confirmado') {
+    faltante.push('agua');
+  }
+
+  return faltante;
+}
+
 // ── Nube latente — se muestra siempre encima de la ficha ──
 export function NubePeligro({ nivel, personas_atrapadas, sinFoto, es }) {
   const noEntrar = ['grave', 'critico', 'colapsado'].includes(nivel);
   const atrapados = ['si', 'voces', 'posible'].includes(personas_atrapadas);
-  const faltaFoto = sinFoto && !atrapados; // solo mostramos si no hay urgencia mayor
+  const faltaFoto = sinFoto && !atrapados;
 
   if (!noEntrar && !atrapados && !faltaFoto) return null;
 
@@ -35,14 +58,9 @@ export function NubePeligro({ nivel, personas_atrapadas, sinFoto, es }) {
 
   return (
     <div style={{
-      background: bg,
-      border: `2px solid ${border}`,
-      borderRadius: 14,
-      padding: '12px 16px',
-      marginBottom: 12,
-      display: 'flex',
-      alignItems: 'flex-start',
-      gap: 12,
+      background: bg, border: `2px solid ${border}`, borderRadius: 14,
+      padding: '12px 16px', marginBottom: 12,
+      display: 'flex', alignItems: 'flex-start', gap: 12,
       boxShadow: `0 4px 18px ${esAtrapados ? 'rgba(220,38,38,0.35)' : 'rgba(0,0,0,0.25)'}`,
     }}>
       <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -53,7 +71,6 @@ export function NubePeligro({ nivel, personas_atrapadas, sinFoto, es }) {
           </span>
         )}
       </div>
-
       <div style={{ flex: 1 }}>
         {esAtrapados && (
           <p style={{ fontSize: 13, fontWeight: 900, color: '#fff', margin: '0 0 3px', letterSpacing: '-0.01em' }}>
@@ -98,49 +115,283 @@ export function NubePeligro({ nivel, personas_atrapadas, sinFoto, es }) {
   );
 }
 
-// ── Modal pop-up de confirmación con pregunta prioritaria dinámica ──
-export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, preguntaPrioritaria, edificioId, onRespuestaPrioritaria }) {
+// ── Sección amarilla de información faltante (se muestra dentro o fuera del modal) ──
+function SeccionInfoFaltante({ edificio, edificioId, es, onDatoGuardado }) {
+  const faltante = getInfoFaltante(edificio);
+  const [respuestas, setRespuestas] = useState({});
+  const [guardando, setGuardando] = useState(false);
+  const [guardado, setGuardado] = useState(false);
+  const [fotoFile, setFotoFile] = useState(null);
+  const [fotoOk, setFotoOk] = useState(false);
+
+  // Solo si hay edificio con fotos pero sin info secundaria, o si hay pregunta de foto
+  const pregPrincipal = getPreguntaPrioritaria(edificio);
+  const faltaFotoEnSec = pregPrincipal === 'foto'; // ya se maneja arriba en rojo, la movemos aquí solo si no es el bloque rojo
+  const itemsFaltantes = [
+    ...faltante,
+    ...(faltaFotoEnSec ? ['foto'] : []),
+  ];
+
+  if (itemsFaltantes.length === 0) return null;
+
+  const setResp = (campo, valor) => setRespuestas(p => ({ ...p, [campo]: valor }));
+
+  const guardarRespuestas = async () => {
+    if (!edificioId) return;
+    setGuardando(true);
+    try {
+      const updateData = {};
+      if (respuestas.acceso_calle) updateData.acceso_calle = respuestas.acceso_calle;
+      if (respuestas.gas) updateData.gas = respuestas.gas;
+      if (respuestas.electricidad) updateData.electricidad = respuestas.electricidad;
+      if (respuestas.agua) updateData.agua = respuestas.agua;
+
+      if (Object.keys(updateData).length > 0) {
+        await base44.entities.ReportesDano.update(edificioId, updateData);
+      }
+
+      // Foto en background
+      if (fotoFile && !fotoOk) {
+        (async () => {
+          try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file: fotoFile });
+            const ed = await base44.entities.ReportesDano.get(edificioId);
+            const existentes = ed?.foto_urls || [];
+            if (existentes.length < 5) {
+              await base44.entities.ReportesDano.update(edificioId, {
+                foto_urls: [file_url, ...existentes].slice(0, 5),
+              });
+            }
+            setFotoOk(true);
+          } catch {}
+        })();
+      }
+
+      setGuardado(true);
+      if (onDatoGuardado) onDatoGuardado(updateData);
+      setTimeout(() => setGuardado(false), 4000);
+    } catch {}
+    setGuardando(false);
+  };
+
+  const hayRespuesta = Object.keys(respuestas).length > 0 || fotoFile;
+
+  const ACCESO_OPTS = [
+    { val: 'normal',        es: '✅ Libre', en: '✅ Clear' },
+    { val: 'dificultad',    es: '⚠️ Dificultad', en: '⚠️ Difficult' },
+    { val: 'solo_peatonal', es: '🚶 Solo a pie', en: '🚶 On foot' },
+    { val: 'bloqueada',     es: '🚫 Bloqueada', en: '🚫 Blocked' },
+    { val: 'no_sabe',       es: '❓ No sé', en: '❓ Unknown' },
+  ];
+  const SERV_OPTS = [
+    { val: 'disponible',    es: '✅ Disponible', en: '✅ Available' },
+    { val: 'no_disponible', es: '❌ Sin servicio', en: '❌ No service' },
+    { val: 'intermitente',  es: '⚡ Intermitente', en: '⚡ Intermittent' },
+    { val: 'no_confirmado', es: '❓ No sé', en: '❓ Unknown' },
+  ];
+
+  return (
+    <div style={{
+      background: 'rgba(180,83,9,0.10)',
+      border: '2px solid rgba(251,146,60,0.45)',
+      borderRadius: 14,
+      padding: '14px 16px',
+      marginTop: 12,
+    }}>
+      {/* Encabezado amarillo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <span style={{ fontSize: 20 }}>📋</span>
+        <div>
+          <p style={{ fontSize: 12, fontWeight: 900, color: '#FDE68A', margin: 0, letterSpacing: '-0.01em' }}>
+            {es ? '¿Puedes completar esta info?' : 'Can you complete this info?'}
+          </p>
+          <p style={{ fontSize: 10, color: 'rgba(253,230,138,0.70)', margin: 0 }}>
+            {es ? 'Ayuda a otros a tomar mejores decisiones' : 'Help others make better decisions'}
+          </p>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+        {/* Acceso a la calle */}
+        {faltante.includes('acceso_calle') && (
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              🚶 {es ? '¿Cómo está la calle / acceso a pie?' : 'How is the street / foot access?'}
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {ACCESO_OPTS.map(o => (
+                <button key={o.val} onClick={() => setResp('acceso_calle', o.val)} style={{
+                  padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                  cursor: 'pointer',
+                  background: respuestas.acceso_calle === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
+                  color: respuestas.acceso_calle === o.val ? '#fff' : 'rgba(253,230,138,0.85)',
+                  border: `1.5px solid ${respuestas.acceso_calle === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                }}>
+                  {es ? o.es : o.en}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Gas */}
+        {faltante.includes('gas') && (
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              💨 {es ? '¿Hay olor a gas o fuga reportada?' : 'Is there a gas smell or reported leak?'}
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {[
+                { val: 'fuga_reportada', es: '🚨 Sí, hay fuga', en: '🚨 Leak reported' },
+                { val: 'suspendido',     es: '🔴 Gas suspendido', en: '🔴 Gas off' },
+                { val: 'disponible',     es: '✅ Gas normal', en: '✅ Gas OK' },
+                { val: 'no_confirmado',  es: '❓ No sé', en: '❓ Unknown' },
+              ].map(o => (
+                <button key={o.val} onClick={() => setResp('gas', o.val)} style={{
+                  padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                  cursor: 'pointer',
+                  background: respuestas.gas === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
+                  color: respuestas.gas === o.val ? '#fff' : 'rgba(253,230,138,0.85)',
+                  border: `1.5px solid ${respuestas.gas === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                }}>
+                  {es ? o.es : o.en}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Electricidad */}
+        {faltante.includes('electricidad') && (
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              ⚡ {es ? '¿Hay electricidad / cables caídos?' : 'Is there power / fallen wires?'}
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {SERV_OPTS.map(o => (
+                <button key={o.val} onClick={() => setResp('electricidad', o.val)} style={{
+                  padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                  cursor: 'pointer',
+                  background: respuestas.electricidad === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
+                  color: respuestas.electricidad === o.val ? '#fff' : 'rgba(253,230,138,0.85)',
+                  border: `1.5px solid ${respuestas.electricidad === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                }}>
+                  {es ? o.es : o.en}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Agua */}
+        {faltante.includes('agua') && (
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              💧 {es ? '¿Hay agua disponible?' : 'Is water available?'}
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {SERV_OPTS.map(o => (
+                <button key={o.val} onClick={() => setResp('agua', o.val)} style={{
+                  padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                  cursor: 'pointer',
+                  background: respuestas.agua === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
+                  color: respuestas.agua === o.val ? '#fff' : 'rgba(253,230,138,0.85)',
+                  border: `1.5px solid ${respuestas.agua === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                }}>
+                  {es ? o.es : o.en}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Foto de fachada (si no hay foto y no se capturó en el bloque rojo) */}
+        {faltaFotoEnSec && (
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              📷 {es ? '¿Tienes foto del edificio (desde lugar seguro)?' : 'Do you have a building photo (from safe location)?'}
+            </p>
+            {!fotoFile ? (
+              <label style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                border: '1.5px dashed rgba(251,146,60,0.45)', borderRadius: 10,
+                padding: '10px 0', cursor: 'pointer', fontSize: 11, color: '#FDE68A', fontWeight: 600,
+                background: 'rgba(180,83,9,0.08)',
+              }}>
+                <Camera size={14} />
+                {es ? 'Seleccionar foto (opcional)' : 'Select photo (optional)'}
+                <input type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) setFotoFile(e.target.files[0]); }} />
+              </label>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <img src={URL.createObjectURL(fotoFile)} alt="" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8 }} />
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 11, color: '#86EFAC', margin: 0, fontWeight: 600 }}>✅ {es ? 'Lista para subir' : 'Ready to upload'}</p>
+                  <button onClick={() => setFotoFile(null)} style={{ fontSize: 10, color: 'rgba(253,230,138,0.55)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    {es ? 'Quitar' : 'Remove'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Botón guardar */}
+      {hayRespuesta && !guardado && (
+        <button onClick={guardarRespuestas} disabled={guardando} style={{
+          marginTop: 12, width: '100%', padding: '11px 0', borderRadius: 12,
+          fontSize: 12, fontWeight: 800, cursor: guardando ? 'default' : 'pointer',
+          background: guardando ? 'rgba(217,119,6,0.4)' : '#D97706',
+          color: '#fff', border: 'none',
+        }}>
+          {guardando ? (es ? 'Guardando...' : 'Saving...') : `📡 ${es ? 'Enviar información' : 'Send info'}`}
+        </button>
+      )}
+      {guardado && (
+        <p style={{ marginTop: 10, fontSize: 11, fontWeight: 700, color: '#86EFAC', textAlign: 'center' }}>
+          ✅ {es ? '¡Gracias! Información guardada.' : 'Thanks! Info saved.'}
+        </p>
+      )}
+      <p style={{ fontSize: 10, color: 'rgba(253,230,138,0.45)', margin: '8px 0 0', textAlign: 'center' }}>
+        {es ? 'Solo responde si estás seguro/a. "No sé" también ayuda.' : 'Only answer if you are sure. "Unknown" also helps.'}
+      </p>
+    </div>
+  );
+}
+
+// ── Modal principal con sección roja de seguridad + sección amarilla integrada ──
+export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, preguntaPrioritaria, edificioId, onRespuestaPrioritaria, edificio }) {
   const [respAtrapados, setRespAtrapados] = useState('');
   const [fotoFile, setFotoFile] = useState(null);
-  const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [fotoOk, setFotoOk] = useState(false);
 
   if (!visible) return null;
 
+  // El modal requiere respuesta de atrapados para continuar (si aplica)
   const puedeConfirmar = preguntaPrioritaria === 'atrapados' ? !!respAtrapados : true;
+  // ¿Hay info faltante secundaria que mostrar en amarillo?
+  const infoFaltante = edificio ? getInfoFaltante(edificio) : [];
+  // La foto se muestra en amarillo solo si NO se está pidiendo en el bloque rojo
+  const mostrarFotoEnAmarillo = preguntaPrioritaria === 'foto';
+  const haySeccionAmarilla = infoFaltante.length > 0 || mostrarFotoEnAmarillo;
 
   const handleConfirmar = () => {
-    // Si hay respuesta sobre atrapados, la notificamos al padre
     if (preguntaPrioritaria === 'atrapados' && respAtrapados && onRespuestaPrioritaria) {
       onRespuestaPrioritaria({ atrapados: respAtrapados });
     }
-    // Si hay foto seleccionada, la subimos en background (no bloqueamos al usuario)
     if (fotoFile && edificioId && !fotoOk) {
-      subirFotoBackground(fotoFile, edificioId);
+      subirFotoBackground(fotoFile, edificioId, setFotoOk);
     }
     onConfirmar();
   };
 
-  const subirFotoBackground = async (file, id) => {
-    setSubiendoFoto(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const edificio = await base44.entities.ReportesDano.get(id);
-      const fotosActuales = edificio?.foto_urls || [];
-      if (fotosActuales.length < 5) {
-        await base44.entities.ReportesDano.update(id, {
-          foto_urls: [file_url, ...fotosActuales].slice(0, 5),
-        });
-      }
-      setFotoOk(true);
-    } catch {}
-    setSubiendoFoto(false);
-  };
-
   return (
     <div onClick={onCerrar} style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.70)',
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
       zIndex: 9000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      overflowY: 'auto',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
         background: '#111318', borderRadius: '20px 20px 0 0',
@@ -148,10 +399,11 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
         border: '2px solid rgba(220,38,38,0.50)',
         borderBottom: 'none',
         boxShadow: '0 -8px 40px rgba(220,38,38,0.25)',
+        maxHeight: '92vh', overflowY: 'auto',
       }}>
         <div style={{ width: 36, height: 4, background: 'rgba(255,255,255,0.15)', borderRadius: 2, margin: '0 auto 20px' }} />
 
-        {/* Título */}
+        {/* ── SECCIÓN ROJA: Seguridad ── */}
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <span style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>⚠️</span>
           <p style={{ fontSize: 15, fontWeight: 900, color: '#FCA5A5', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
@@ -162,7 +414,6 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
           </p>
         </div>
 
-        {/* Advertencia NO ENTRAR */}
         <div style={{ background: 'rgba(220,38,38,0.10)', border: '1px solid rgba(220,38,38,0.35)', borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
           <p style={{ fontSize: 13, color: '#FCA5A5', fontWeight: 700, margin: '0 0 4px' }}>
             🚫 {es ? 'NO ENTRAR a la estructura' : 'DO NOT ENTER the structure'}
@@ -174,10 +425,10 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
           </p>
         </div>
 
-        {/* ── PREGUNTA PRIORITARIA DINÁMICA ── */}
+        {/* Pregunta roja prioritaria: atrapados */}
         {preguntaPrioritaria === 'atrapados' && (
           <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.30)', borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
-            <p style={{ fontSize: 12, fontWeight: 800, color: '#FCA5A5', margin: '0 0 10px' }}>
+            <p style={{ fontSize: 12, fontWeight: 800, color: '#FCA5A5', margin: '0 0 8px' }}>
               🆘 {es ? 'Pregunta urgente — responde si sabes' : 'Urgent question — answer if you know'}
             </p>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: '0 0 10px', lineHeight: 1.45 }}>
@@ -188,11 +439,11 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
                 { val: 'si',      es: '🚨 Sí, hay atrapados',    en: '🚨 Yes, trapped' },
                 { val: 'voces',   es: '👂 Escuché voces/golpes', en: '👂 Heard voices' },
                 { val: 'no',      es: '✅ No hay atrapados',     en: '✅ No trapped' },
-                { val: 'no_sabe', es: '❓ No sé',                en: '❓ I don\'t know' },
+                { val: 'no_sabe', es: '❓ No sé',                en: "❓ I don't know" },
               ].map(op => (
                 <button key={op.val} onClick={() => setRespAtrapados(op.val)} style={{
                   padding: '10px 8px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                  cursor: 'pointer', textAlign: 'left', transition: 'all 120ms',
+                  cursor: 'pointer', textAlign: 'left',
                   background: respAtrapados === op.val ? (op.val === 'no' ? '#15803D' : op.val === 'no_sabe' ? '#374151' : '#C0392B') : 'rgba(255,255,255,0.06)',
                   color: '#fff',
                   border: `1.5px solid ${respAtrapados === op.val ? 'transparent' : 'rgba(255,255,255,0.12)'}`,
@@ -204,48 +455,8 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
           </div>
         )}
 
-        {preguntaPrioritaria === 'foto' && (
-          <div style={{ background: 'rgba(37,99,235,0.10)', border: '1px solid rgba(59,130,246,0.30)', borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
-            <p style={{ fontSize: 12, fontWeight: 800, color: '#93C5FD', margin: '0 0 6px' }}>
-              📷 {es ? 'Se busca foto de la fachada' : 'Facade photo needed'}
-            </p>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.70)', margin: '0 0 10px', lineHeight: 1.5 }}>
-              {es
-                ? '¿Tienes una foto reciente del edificio desde la calle? Agrégala aquí (opcional, desde lugar seguro).'
-                : 'Do you have a recent photo of the building from the street? Add it here (optional, from safe location).'}
-            </p>
-            {!fotoFile ? (
-              <label style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                border: '1.5px dashed rgba(59,130,246,0.45)', borderRadius: 10,
-                padding: '12px 0', cursor: 'pointer', fontSize: 12, color: '#93C5FD', fontWeight: 600,
-                background: 'rgba(37,99,235,0.06)',
-              }}>
-                <Camera size={16} />
-                {es ? 'Seleccionar foto' : 'Select photo'}
-                <input type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) setFotoFile(e.target.files[0]); }} />
-              </label>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <img src={URL.createObjectURL(fotoFile)} alt="" style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)' }} />
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 11, color: '#86EFAC', margin: 0, fontWeight: 600 }}>
-                    ✅ {es ? 'Foto lista — se subirá al confirmar' : 'Photo ready — will upload on confirm'}
-                  </p>
-                  <button onClick={() => setFotoFile(null)} style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 2 }}>
-                    {es ? 'Quitar' : 'Remove'}
-                  </button>
-                </div>
-              </div>
-            )}
-            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', marginTop: 8, marginBottom: 0 }}>
-              {es ? 'No es obligatorio. Puedes continuar sin foto.' : 'Not required. You can continue without a photo.'}
-            </p>
-          </div>
-        )}
-
-        {/* Números de emergencia compactos */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 16 }}>
+        {/* Números de emergencia */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 14 }}>
           {EMERGENCIAS.map(e => (
             <a key={e.num} href={`tel:${e.num}`} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -257,31 +468,56 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
           ))}
         </div>
 
-        {/* Botón confirmar */}
-        <button onClick={handleConfirmar} disabled={!puedeConfirmar} style={{
-          width: '100%', padding: '15px 0', borderRadius: 14, fontSize: 14, fontWeight: 800,
-          background: puedeConfirmar ? '#2471A3' : 'rgba(255,255,255,0.08)',
-          color: puedeConfirmar ? '#fff' : 'rgba(255,255,255,0.35)',
-          border: 'none', cursor: puedeConfirmar ? 'pointer' : 'default', marginBottom: 10,
-          transition: 'all 150ms',
-        }}>
-          ✅ {es ? 'Entendido — Continuar desde lugar seguro' : 'Understood — Continue from a safe location'}
-        </button>
-
-        {preguntaPrioritaria === 'atrapados' && !respAtrapados && (
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', textAlign: 'center', marginBottom: 10, margin: '0 0 10px' }}>
-            {es ? 'Responde la pregunta para continuar' : 'Answer the question to continue'}
-          </p>
+        {/* ── SECCIÓN AMARILLA: Información faltante (coexiste con el rojo) ── */}
+        {haySeccionAmarilla && edificio && (
+          <SeccionInfoFaltante
+            edificio={edificio}
+            edificioId={edificioId}
+            es={es}
+          />
         )}
 
-        <button onClick={onCerrar} style={{
-          width: '100%', padding: '11px 0', borderRadius: 14, fontSize: 13, fontWeight: 600,
-          background: 'transparent', color: 'rgba(255,255,255,0.50)',
-          border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
-        }}>
-          {es ? 'Cerrar' : 'Close'}
-        </button>
+        {/* Botón confirmar */}
+        <div style={{ marginTop: 16 }}>
+          <button onClick={handleConfirmar} disabled={!puedeConfirmar} style={{
+            width: '100%', padding: '15px 0', borderRadius: 14, fontSize: 14, fontWeight: 800,
+            background: puedeConfirmar ? '#2471A3' : 'rgba(255,255,255,0.08)',
+            color: puedeConfirmar ? '#fff' : 'rgba(255,255,255,0.35)',
+            border: 'none', cursor: puedeConfirmar ? 'pointer' : 'default', marginBottom: 10,
+          }}>
+            ✅ {es ? 'Entendido — Continuar desde lugar seguro' : 'Understood — Continue from a safe location'}
+          </button>
+
+          {preguntaPrioritaria === 'atrapados' && !respAtrapados && (
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', textAlign: 'center', margin: '0 0 10px' }}>
+              {es ? 'Responde la pregunta para continuar' : 'Answer the question to continue'}
+            </p>
+          )}
+
+          <button onClick={onCerrar} style={{
+            width: '100%', padding: '11px 0', borderRadius: 14, fontSize: 13, fontWeight: 600,
+            background: 'transparent', color: 'rgba(255,255,255,0.50)',
+            border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
+          }}>
+            {es ? 'Cerrar' : 'Close'}
+          </button>
+        </div>
       </div>
     </div>
   );
+}
+
+// Helper fuera del componente para no recrear en cada render
+async function subirFotoBackground(file, id, setFotoOk) {
+  try {
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const edificio = await base44.entities.ReportesDano.get(id);
+    const fotosActuales = edificio?.foto_urls || [];
+    if (fotosActuales.length < 5) {
+      await base44.entities.ReportesDano.update(id, {
+        foto_urls: [file_url, ...fotosActuales].slice(0, 5),
+      });
+    }
+    if (setFotoOk) setFotoOk(true);
+  } catch {}
 }
