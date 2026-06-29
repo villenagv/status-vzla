@@ -1,77 +1,147 @@
-# Base44 Project
+Status Vzla (CRIS) 🇻🇪
 
-Use this repository to run and edit the app locally, then publish changes back through Base44.
+Status Vzla (también conocida bajo las siglas CRIS) es una plataforma ciudadana independiente y de código abierto, diseñada para la gestión de crisis, emergencias y coordinación de apoyo humanitario en Venezuela.
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+🎯 Nuestra Razón de Ser
 
-## Prerequisites
+Esta iniciativa nace como un esfuerzo tecnológico cívico, independiente, no partidista y estrictamente sin fines de lucro. La herramienta no busca convertirse en un estándar gubernamental ni reemplazar los sistemas oficiales; su propósito es aportar a las tareas de búsqueda, rescate y coordinación, brindando a la comunidad una alternativa ciudadana rápida, confiable y accesible.
 
-1. Clone the repository using the project's Git URL.
-2. Navigate to the project directory.
-3. Install dependencies: `npm install`.
-4. Install the Base44 CLI: `npm install -g base44@latest`.
+Misión
 
-See the [Base44 CLI docs](https://docs.base44.com/developers/references/cli/get-started/overview) if you want to run Base44 commands directly.
+Proveer una plataforma tecnológica resiliente y sin barreras, que democratice el acceso a la información humanitaria y permita a los ciudadanos reportar, consultar y organizar datos críticos en tiempo real durante situaciones de crisis.
 
-## Run Locally
+Visión
 
-Run the full local development environment from the project root:
+Facilitar la resiliencia comunitaria y apoyar directamente las labores de rescate al conectar rápidamente a quienes necesitan ayuda (ciudadanos, familias) con quienes pueden ofrecerla (instituciones, voluntarios), superando las limitaciones típicas de infraestructura de comunicaciones en zonas de desastre.
 
-```bash
-base44 dev
-```
+Objetivo Principal
 
-`base44 dev` starts the local Base44 development backend and, when this app is configured for it, also starts the frontend dev server for you. Use the frontend URL printed by the command.
+Centralizar y organizar reportes ciudadanos sobre personas (desaparecidas o encontradas), infraestructura (daños en edificios) y necesidades (centros de acopio y refugios), operando de manera eficiente incluso en entornos críticos de baja conectividad (Low Bandwidth).
 
-For example, when the Base44 project config includes a `serveCommand`, `base44 dev` can launch the frontend too:
+📚 Documentación del Proyecto
 
-```json5
-{
-  "site": {
-    "serveCommand": "npm run dev"
-  }
-}
-```
+Para facilitar el uso, el desarrollo continuo y la comprensión de la plataforma, hemos dividido la documentación en las siguientes áreas clave. Te invitamos a revisarlas según tu perfil (usuario, contribuidor o ingeniero):
 
-In a Base44 project this lives in `base44/config.jsonc`.
+README.md: Visión general del proyecto, instalación rápida y manifiesto (Estás aquí).
 
-## Run Only The Frontend
+STRUCTURE.md: Guía de arquitectura, árbol de directorios y patrones de diseño (Lectura obligatoria para desarrolladores).
 
-If you only want to work on the frontend against the hosted Base44 backend, run:
+MANUAL_USUARIO.md (En construcción): Guía práctica sobre cómo utilizar la plataforma para reportar, buscar personas y organizar ayuda.
 
-```bash
+MANUAL_TECNICO.md (En construcción): Documentación profunda sobre la lógica del servidor, integraciones, base de datos y flujos de datos.
+
+✨ Características Principales
+
+Status Vzla está diseñado pensando en la urgencia y la resiliencia tecnológica:
+
+⚡ Sin Barreras (Frictionless): Reportes y consultas vitales disponibles para el público general sin la necesidad de un registro o cuenta obligatoria.
+
+👥 Gestión de Personas: Módulo dedicado para reportar personas desaparecidas o encontradas, agilizando las búsquedas cruzadas para reunir familias.
+
+🏢 Monitoreo de Infraestructura: Registro y visualización del estado operativo y daños estructurales de edificios e instituciones críticas.
+
+🤝 Coordinación Voluntaria: Portales dedicados para el registro institucional y la gestión eficiente de especialistas y voluntarios en el sitio.
+
+📶 Modo "Baja Conectividad" (Low-Bw): Arquitectura web optimizada para reducir drásticamente el consumo de datos y mantener la operatividad con señal inestable o baja batería.
+
+🗺️ Mapa Interactivo de Daños: Visualización geoespacial de zonas afectadas y puntos de apoyo seguros.
+
+🛠️ Stack Tecnológico
+
+El proyecto está construido como una Single Page Application (SPA) moderna, respaldada por un Backend-as-a-Service, optimizada para cargas ultra rápidas:
+
+Frontend Core: React 18
+
+Build Tool: Vite
+
+Enrutamiento: React Router Dom
+
+Gestión de Datos/Caché: TanStack Query (@tanstack/react-query)
+
+Estilos y UI: Tailwind CSS + Componentes accesibles de Radix UI (shadcn/ui)
+
+Formularios: React Hook Form + Zod (validación)
+
+Mapas: React Leaflet
+
+Backend / Base de Datos: Base44 BaaS (con @base44/sdk)
+
+🚀 Guía Rápida de Instalación
+
+Sigue estos pasos para levantar el entorno de desarrollo local y colaborar:
+
+Prerrequisitos
+
+Node.js (v18 o superior)
+
+npm o yarn
+
+Pasos
+
+Clonar el repositorio:
+
+git clone https://github.com/villenagv/status-vzla.git
+cd status-vzla
+
+
+Instalar dependencias:
+
+npm install
+
+
+Configurar el entorno Base44:
+(Asegúrate de tener configuradas tus credenciales o variables de entorno .env.local necesarias para la conexión con el proyecto Base44 backend).
+
+Iniciar el servidor de desarrollo:
+
 npm run dev
-```
 
-Open the local URL printed by Vite.
 
-## Use The Hosted Backend
+La aplicación estará disponible de forma local en http://localhost:5173.
 
-For frontend-only development, create or update `.env.local` in the project root:
+📂 Estructura del Proyecto
 
-```bash
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=https://your-app.base44.app
-```
+Una visión general de los directorios clave para orientar a los desarrolladores y colaboradores:
 
-`VITE_BASE44_APP_ID` identifies the Base44 app.
+status-vzla/
+├── base44/           # Configuración, esquemas de entidades y Cloud Functions del entorno backend (BaaS)
+├── public/           # Archivos estáticos y widgets web
+├── src/
+│   ├── api/          # Configuración del cliente Base44 (base44Client.js)
+│   ├── components/   # Componentes de UI reutilizables (UI base, institucionales, voluntarios, etc.)
+│   ├── hooks/        # Custom React hooks (ej. useOffline)
+│   ├── lib/          # Proveedores de Contexto (Auth, Lang, LowBw) y utilidades core
+│   ├── pages/        # Vistas principales y rutas completas de la SPA
+│   ├── utils/        # Funciones y transformaciones auxiliares
+│   ├── App.jsx       # Componente raíz y enrutador principal
+│   └── main.jsx      # Punto de entrada de la aplicación
+└── package.json      # Dependencias y scripts
 
-`VITE_BASE44_APP_BASE_URL` tells the Base44 Vite plugin where to send local `/api` requests. Point it at your deployed Base44 app URL when you want the local frontend to use the hosted backend.
 
-When you use `base44 dev`, the command injects the local Base44 values for you, so `.env.local` is mainly needed for frontend-only workflows.
+🤝 Contribución
 
-## Publish Your Changes
+¡Las contribuciones de la comunidad técnica son vitales! Al ser una plataforma cívica de emergencias, tu código puede marcar una diferencia real.
 
-After pushing your changes to git, open the Base44 dashboard and publish the app:
+Si deseas contribuir con el proyecto:
 
-```bash
-base44 dashboard open
-```
+Haz un Fork del repositorio.
 
-## Docs & Support
+Crea una rama para tu feature o corrección (git checkout -b feature/MiNuevaCaracteristica).
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+Haz commit de tus cambios (git commit -m 'Añadir: nueva característica vital').
 
-Base44 CLI command reference: [https://docs.base44.com/developers/references/cli/commands/introduction](https://docs.base44.com/developers/references/cli/commands/introduction)
+Sube la rama a tu fork (git push origin feature/MiNuevaCaracteristica).
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+Abre un Pull Request.
+
+Por favor, asegúrate de mantener el código limpio, respetar la accesibilidad y considerar siempre entornos de baja conectividad en los nuevos flujos. Para más detalles técnicos, revisa el archivo STRUCTURE.md.
+
+📄 Licencia y Autoría
+
+Autoría: Este proyecto fue concebido y desarrollado de forma independiente por Gerardo Villena.
+
+Plataforma Oficial y Contacto: Puedes acceder a la herramienta en producción, contactar al equipo o sugerir alianzas a través del sitio web oficial: https://statusvzla.com/.
+
+Licencia: Distribuido bajo la Licencia MIT. Se fomenta el uso, modificación y distribución abierta de este código con el fin exclusivo de preservar la vida y apoyar la coordinación de asistencia civil.
+
+Hecho por venezolanos 🇻🇪 • No partidista • Sin fines de lucro
