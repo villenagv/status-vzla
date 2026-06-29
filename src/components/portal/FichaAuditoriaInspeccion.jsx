@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { ChevronDown, AlertTriangle, Camera } from 'lucide-react';
+import { ChevronDown, AlertTriangle } from 'lucide-react';
+import GaleriaTecnicaInspeccion from '@/components/edificio/GaleriaTecnicaInspeccion';
 
 /**
  * FichaAuditoriaInspeccion
@@ -204,13 +205,11 @@ export default function FichaAuditoriaInspeccion({ reporte, es }) {
           )}
           {secciones.map((s, i) => <Seccion key={i} titulo={s.titulo} campos={s.campos} />)}
 
-          {/* Evidencia fotográfica */}
+          {/* Evidencia fotográfica — galería real con miniaturas y visor */}
           <div>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">{t('📷 Evidencia fotográfica', '📷 Photo evidence')}</p>
             {fotos > 0 ? (
-              <p className="text-xs text-gray-700 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg flex items-center gap-1.5">
-                <Camera size={12} className="text-gray-400" /> {fotos} {t('foto(s) en el reporte', 'photo(s) in report')}
-              </p>
+              <GaleriaTecnicaInspeccion edificio={reporte} es={es} />
             ) : (
               <p className="text-xs text-amber-700 font-semibold italic px-3 py-2 bg-amber-100 border border-amber-300 rounded-lg flex items-center gap-1.5">
                 <AlertTriangle size={12} className="text-amber-600" /> {t('Sin fotos — tomar evidencia en campo', 'No photos — capture evidence on site')}
