@@ -192,20 +192,18 @@ function SeccionInfoFaltante({ edificio, edificioId, es, onDatoGuardado }) {
 
   return (
     <div style={{
-      background: 'rgba(180,83,9,0.10)',
-      border: '2px solid rgba(251,146,60,0.45)',
-      borderRadius: 14,
-      padding: '14px 16px',
-      marginTop: 12,
+      background: '#1C1200',
+      borderTop: 'none',
+      padding: '14px 0 0',
     }}>
       {/* Encabezado amarillo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <span style={{ fontSize: 20 }}>📋</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+        <span style={{ fontSize: 22 }}>📋</span>
         <div>
-          <p style={{ fontSize: 12, fontWeight: 900, color: '#FDE68A', margin: 0, letterSpacing: '-0.01em' }}>
+          <p style={{ fontSize: 13, fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
             {es ? '¿Puedes completar esta info?' : 'Can you complete this info?'}
           </p>
-          <p style={{ fontSize: 10, color: 'rgba(253,230,138,0.70)', margin: 0 }}>
+          <p style={{ fontSize: 11, color: '#FCD34D', margin: 0, fontWeight: 600 }}>
             {es ? 'Ayuda a otros a tomar mejores decisiones' : 'Help others make better decisions'}
           </p>
         </div>
@@ -216,17 +214,17 @@ function SeccionInfoFaltante({ edificio, edificioId, es, onDatoGuardado }) {
         {/* Acceso a la calle */}
         {faltante.includes('acceso_calle') && (
           <div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#FCD34D', margin: '0 0 6px' }}>
               🚶 {es ? '¿Cómo está la calle / acceso a pie?' : 'How is the street / foot access?'}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {ACCESO_OPTS.map(o => (
                 <button key={o.val} onClick={() => setResp('acceso_calle', o.val)} style={{
-                  padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                  padding: '8px 11px', borderRadius: 8, fontSize: 12, fontWeight: 700,
                   cursor: 'pointer',
-                  background: respuestas.acceso_calle === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
-                  color: respuestas.acceso_calle === o.val ? '#fff' : 'rgba(253,230,138,0.85)',
-                  border: `1.5px solid ${respuestas.acceso_calle === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                  background: respuestas.acceso_calle === o.val ? '#D97706' : '#2D1A00',
+                  color: '#FFFFFF',
+                  border: `2px solid ${respuestas.acceso_calle === o.val ? '#FFFFFF' : '#92400E'}`,
                 }}>
                   {es ? o.es : o.en}
                 </button>
@@ -238,7 +236,7 @@ function SeccionInfoFaltante({ edificio, edificioId, es, onDatoGuardado }) {
         {/* Gas */}
         {faltante.includes('gas') && (
           <div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#FCD34D', margin: '0 0 6px' }}>
               💨 {es ? '¿Hay olor a gas o fuga reportada?' : 'Is there a gas smell or reported leak?'}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -249,11 +247,11 @@ function SeccionInfoFaltante({ edificio, edificioId, es, onDatoGuardado }) {
                 { val: 'no_confirmado',  es: '❓ No sé', en: '❓ Unknown' },
               ].map(o => (
                 <button key={o.val} onClick={() => setResp('gas', o.val)} style={{
-                  padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                  padding: '8px 11px', borderRadius: 8, fontSize: 12, fontWeight: 700,
                   cursor: 'pointer',
-                  background: respuestas.gas === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
-                  color: respuestas.gas === o.val ? '#fff' : 'rgba(253,230,138,0.85)',
-                  border: `1.5px solid ${respuestas.gas === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                  background: respuestas.gas === o.val ? '#D97706' : '#2D1A00',
+                  color: '#FFFFFF',
+                  border: `2px solid ${respuestas.gas === o.val ? '#FFFFFF' : '#92400E'}`,
                 }}>
                   {es ? o.es : o.en}
                 </button>
@@ -265,17 +263,17 @@ function SeccionInfoFaltante({ edificio, edificioId, es, onDatoGuardado }) {
         {/* Electricidad */}
         {faltante.includes('electricidad') && (
           <div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#FCD34D', margin: '0 0 6px' }}>
               ⚡ {es ? '¿Hay electricidad / cables caídos?' : 'Is there power / fallen wires?'}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {SERV_OPTS.map(o => (
                 <button key={o.val} onClick={() => setResp('electricidad', o.val)} style={{
-                  padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                  padding: '8px 11px', borderRadius: 8, fontSize: 12, fontWeight: 700,
                   cursor: 'pointer',
-                  background: respuestas.electricidad === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
-                  color: respuestas.electricidad === o.val ? '#fff' : 'rgba(253,230,138,0.85)',
-                  border: `1.5px solid ${respuestas.electricidad === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                  background: respuestas.electricidad === o.val ? '#D97706' : '#2D1A00',
+                  color: '#FFFFFF',
+                  border: `2px solid ${respuestas.electricidad === o.val ? '#FFFFFF' : '#92400E'}`,
                 }}>
                   {es ? o.es : o.en}
                 </button>
@@ -287,17 +285,17 @@ function SeccionInfoFaltante({ edificio, edificioId, es, onDatoGuardado }) {
         {/* Agua */}
         {faltante.includes('agua') && (
           <div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#FCD34D', margin: '0 0 6px' }}>
               💧 {es ? '¿Hay agua disponible?' : 'Is water available?'}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {SERV_OPTS.map(o => (
                 <button key={o.val} onClick={() => setResp('agua', o.val)} style={{
-                  padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                  padding: '8px 11px', borderRadius: 8, fontSize: 12, fontWeight: 700,
                   cursor: 'pointer',
-                  background: respuestas.agua === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
-                  color: respuestas.agua === o.val ? '#fff' : 'rgba(253,230,138,0.85)',
-                  border: `1.5px solid ${respuestas.agua === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                  background: respuestas.agua === o.val ? '#D97706' : '#2D1A00',
+                  color: '#FFFFFF',
+                  border: `2px solid ${respuestas.agua === o.val ? '#FFFFFF' : '#92400E'}`,
                 }}>
                   {es ? o.es : o.en}
                 </button>
@@ -309,7 +307,7 @@ function SeccionInfoFaltante({ edificio, edificioId, es, onDatoGuardado }) {
         {/* Foto de fachada (si no hay foto y no se capturó en el bloque rojo) */}
         {faltaFotoEnSec && (
           <div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#FCD34D', margin: '0 0 6px' }}>
               📷 {es ? '¿Tienes foto del edificio (desde lugar seguro)?' : 'Do you have a building photo (from safe location)?'}
             </p>
             {!fotoFile ? (
@@ -341,20 +339,20 @@ function SeccionInfoFaltante({ edificio, edificioId, es, onDatoGuardado }) {
       {/* Botón guardar */}
       {hayRespuesta && !guardado && (
         <button onClick={guardarRespuestas} disabled={guardando} style={{
-          marginTop: 12, width: '100%', padding: '11px 0', borderRadius: 12,
-          fontSize: 12, fontWeight: 800, cursor: guardando ? 'default' : 'pointer',
-          background: guardando ? 'rgba(217,119,6,0.4)' : '#D97706',
-          color: '#fff', border: 'none',
+          marginTop: 14, width: '100%', padding: '13px 0', borderRadius: 12,
+          fontSize: 13, fontWeight: 800, cursor: guardando ? 'default' : 'pointer',
+          background: guardando ? '#92400E' : '#D97706',
+          color: '#FFFFFF', border: '2px solid #FCD34D',
         }}>
           {guardando ? (es ? 'Guardando...' : 'Saving...') : `📡 ${es ? 'Enviar información' : 'Send info'}`}
         </button>
       )}
       {guardado && (
-        <p style={{ marginTop: 10, fontSize: 11, fontWeight: 700, color: '#86EFAC', textAlign: 'center' }}>
+        <p style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: '#86EFAC', textAlign: 'center' }}>
           ✅ {es ? '¡Gracias! Información guardada.' : 'Thanks! Info saved.'}
         </p>
       )}
-      <p style={{ fontSize: 10, color: 'rgba(253,230,138,0.45)', margin: '8px 0 0', textAlign: 'center' }}>
+      <p style={{ fontSize: 11, color: '#FCD34D', margin: '10px 0 0', textAlign: 'center', fontWeight: 500 }}>
         {es ? 'Solo responde si estás seguro/a. "No sé" también ayuda.' : 'Only answer if you are sure. "Unknown" also helps.'}
       </p>
     </div>
@@ -389,107 +387,111 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
 
   return (
     <div onClick={onCerrar} style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)',
       zIndex: 9000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
       overflowY: 'auto',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
         maxWidth: 520, width: '100%',
-        display: 'flex', flexDirection: 'column', gap: 6,
+        display: 'flex', flexDirection: 'column', gap: 0,
         maxHeight: '92vh', overflowY: 'auto',
       }}>
         {/* ── TARJETA ROJA: Seguridad ── */}
         <div style={{
-          background: '#111318', borderRadius: '20px 20px 0 0',
+          background: '#1A0000',
+          borderRadius: '20px 20px 0 0',
           padding: '24px 20px 20px',
-          border: '2px solid rgba(220,38,38,0.50)',
-          borderBottom: 'none',
-          boxShadow: '0 -8px 40px rgba(220,38,38,0.25)',
+          border: '2px solid #EF4444',
+          borderBottom: '1px solid #7F1D1D',
+          boxShadow: '0 -8px 40px rgba(239,68,68,0.40)',
         }}>
-        <div style={{ width: 36, height: 4, background: 'rgba(255,255,255,0.15)', borderRadius: 2, margin: '0 auto 20px' }} />
-        <div style={{ textAlign: 'center', marginBottom: 16 }}>
-          <span style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>⚠️</span>
-          <p style={{ fontSize: 15, fontWeight: 900, color: '#FCA5A5', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
-            {es ? 'Advertencia de seguridad' : 'Safety warning'}
-          </p>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: 0 }}>
-            {es ? 'Lee esto antes de continuar' : 'Read this before continuing'}
-          </p>
-        </div>
-
-        <div style={{ background: 'rgba(220,38,38,0.10)', border: '1px solid rgba(220,38,38,0.35)', borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
-          <p style={{ fontSize: 13, color: '#FCA5A5', fontWeight: 700, margin: '0 0 4px' }}>
-            🚫 {es ? 'NO ENTRAR a la estructura' : 'DO NOT ENTER the structure'}
-          </p>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', lineHeight: 1.55, margin: 0 }}>
-            {es
-              ? 'No entres a edificios dañados. Espera a Protección Civil, Bomberos o rescatistas autorizados.'
-              : 'Do not enter damaged buildings. Wait for Civil Protection, Firefighters, or authorized rescue teams.'}
-          </p>
-        </div>
-
-        {/* Pregunta roja prioritaria: atrapados */}
-        {preguntaPrioritaria === 'atrapados' && (
-          <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.30)', borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
-            <p style={{ fontSize: 12, fontWeight: 800, color: '#FCA5A5', margin: '0 0 8px' }}>
-              🆘 {es ? 'Pregunta urgente — responde si sabes' : 'Urgent question — answer if you know'}
+          <div style={{ width: 36, height: 4, background: 'rgba(255,255,255,0.25)', borderRadius: 2, margin: '0 auto 20px' }} />
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <span style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>⚠️</span>
+            <p style={{ fontSize: 16, fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
+              {es ? 'Advertencia de seguridad' : 'Safety warning'}
             </p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: '0 0 10px', lineHeight: 1.45 }}>
-              {es ? '¿Sabes si hay personas atrapadas con vida en este edificio?' : 'Do you know if there are people trapped alive in this building?'}
+            <p style={{ fontSize: 12, color: '#FCA5A5', margin: 0, fontWeight: 600 }}>
+              {es ? 'Lee esto antes de continuar' : 'Read this before continuing'}
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-              {[
-                { val: 'si',      es: '🚨 Sí, hay atrapados',    en: '🚨 Yes, trapped' },
-                { val: 'voces',   es: '👂 Escuché voces/golpes', en: '👂 Heard voices' },
-                { val: 'no',      es: '✅ No hay atrapados',     en: '✅ No trapped' },
-                { val: 'no_sabe', es: '❓ No sé',                en: "❓ I don't know" },
-              ].map(op => (
-                <button key={op.val} onClick={() => setRespAtrapados(op.val)} style={{
-                  padding: '10px 8px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                  cursor: 'pointer', textAlign: 'left',
-                  background: respAtrapados === op.val ? (op.val === 'no' ? '#15803D' : op.val === 'no_sabe' ? '#374151' : '#C0392B') : 'rgba(255,255,255,0.06)',
-                  color: '#fff',
-                  border: `1.5px solid ${respAtrapados === op.val ? 'transparent' : 'rgba(255,255,255,0.12)'}`,
-                }}>
-                  {es ? op.es : op.en}
-                </button>
-              ))}
-            </div>
           </div>
-        )}
 
-        {/* Números de emergencia */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 14 }}>
-          {EMERGENCIAS.map(e => (
-            <a key={e.num} href={`tel:${e.num}`} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              background: '#C0392B', borderRadius: 10, padding: '7px 4px', textDecoration: 'none',
-            }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{e.num}</span>
-              <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.65)' }}>{e.op}</span>
-            </a>
-          ))}
-        </div>
+          <div style={{ background: '#7F1D1D', border: '2px solid #EF4444', borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
+            <p style={{ fontSize: 14, color: '#FFFFFF', fontWeight: 800, margin: '0 0 4px' }}>
+              🚫 {es ? 'NO ENTRAR a la estructura' : 'DO NOT ENTER the structure'}
+            </p>
+            <p style={{ fontSize: 12, color: '#FEE2E2', lineHeight: 1.55, margin: 0 }}>
+              {es
+                ? 'No entres a edificios dañados. Espera a Protección Civil, Bomberos o rescatistas autorizados.'
+                : 'Do not enter damaged buildings. Wait for Civil Protection, Firefighters, or authorized rescue teams.'}
+            </p>
+          </div>
 
-          {/* Botón confirmar dentro de la tarjeta roja */}
+          {/* Pregunta roja prioritaria: atrapados */}
+          {preguntaPrioritaria === 'atrapados' && (
+            <div style={{ background: '#450A0A', border: '2px solid #EF4444', borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: '#FCA5A5', margin: '0 0 8px' }}>
+                🆘 {es ? 'Pregunta urgente — responde si sabes' : 'Urgent question — answer if you know'}
+              </p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', margin: '0 0 10px', lineHeight: 1.45 }}>
+                {es ? '¿Sabes si hay personas atrapadas con vida en este edificio?' : 'Do you know if there are people trapped alive in this building?'}
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                {[
+                  { val: 'si',      es: '🚨 Sí, hay atrapados',    en: '🚨 Yes, trapped' },
+                  { val: 'voces',   es: '👂 Escuché voces/golpes', en: '👂 Heard voices' },
+                  { val: 'no',      es: '✅ No hay atrapados',     en: '✅ No trapped' },
+                  { val: 'no_sabe', es: '❓ No sé',                en: "❓ I don't know" },
+                ].map(op => (
+                  <button key={op.val} onClick={() => setRespAtrapados(op.val)} style={{
+                    padding: '11px 8px', borderRadius: 10, fontSize: 13, fontWeight: 700,
+                    cursor: 'pointer', textAlign: 'left',
+                    background: respAtrapados === op.val
+                      ? (op.val === 'no' ? '#15803D' : op.val === 'no_sabe' ? '#1F2937' : '#B91C1C')
+                      : '#2D0000',
+                    color: '#FFFFFF',
+                    border: `2px solid ${respAtrapados === op.val ? '#FFFFFF' : '#7F1D1D'}`,
+                  }}>
+                    {es ? op.es : op.en}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Números de emergencia */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 14 }}>
+            {EMERGENCIAS.map(e => (
+              <a key={e.num} href={`tel:${e.num}`} style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                background: '#991B1B', border: '2px solid #EF4444', borderRadius: 10, padding: '8px 4px', textDecoration: 'none',
+              }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF' }}>{e.num}</span>
+                <span style={{ fontSize: 9, color: '#FCA5A5', fontWeight: 600 }}>{e.op}</span>
+              </a>
+            ))}
+          </div>
+
+          {/* Botón confirmar */}
           <div style={{ marginTop: 16 }}>
             <button onClick={handleConfirmar} disabled={!puedeConfirmar} style={{
-              width: '100%', padding: '15px 0', borderRadius: 14, fontSize: 14, fontWeight: 800,
-              background: puedeConfirmar ? '#2471A3' : 'rgba(255,255,255,0.08)',
-              color: puedeConfirmar ? '#fff' : 'rgba(255,255,255,0.35)',
-              border: 'none', cursor: puedeConfirmar ? 'pointer' : 'default', marginBottom: 10,
+              width: '100%', padding: '16px 0', borderRadius: 14, fontSize: 15, fontWeight: 800,
+              background: puedeConfirmar ? '#1D4ED8' : '#1F2937',
+              color: puedeConfirmar ? '#FFFFFF' : '#6B7280',
+              border: puedeConfirmar ? '2px solid #3B82F6' : '2px solid #374151',
+              cursor: puedeConfirmar ? 'pointer' : 'default', marginBottom: 10,
             }}>
               ✅ {es ? 'Entendido — Continuar desde lugar seguro' : 'Understood — Continue from a safe location'}
             </button>
             {preguntaPrioritaria === 'atrapados' && !respAtrapados && (
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', textAlign: 'center', margin: '0 0 10px' }}>
+              <p style={{ fontSize: 11, color: '#FCA5A5', textAlign: 'center', margin: '0 0 10px', fontWeight: 600 }}>
                 {es ? 'Responde la pregunta para continuar' : 'Answer the question to continue'}
               </p>
             )}
             <button onClick={onCerrar} style={{
-              width: '100%', padding: '11px 0', borderRadius: 14, fontSize: 13, fontWeight: 600,
-              background: 'transparent', color: 'rgba(255,255,255,0.50)',
-              border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
+              width: '100%', padding: '12px 0', borderRadius: 14, fontSize: 13, fontWeight: 700,
+              background: '#111827', color: '#D1D5DB',
+              border: '2px solid #374151', cursor: 'pointer',
             }}>
               {es ? 'Cerrar' : 'Close'}
             </button>
@@ -499,9 +501,9 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
         {/* ── TARJETA AMARILLA: Información faltante (debajo, separada) ── */}
         {haySeccionAmarilla && edificio && (
           <div style={{
-            background: '#13110A',
-            border: '2px solid rgba(251,146,60,0.45)',
-            borderTop: 'none',
+            background: '#1C1200',
+            border: '2px solid #F59E0B',
+            borderTop: '1px solid #92400E',
             borderRadius: '0 0 20px 20px',
             padding: '0 20px 28px',
           }}>
