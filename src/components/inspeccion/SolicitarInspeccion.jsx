@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { comprimirFoto, dataURLaFile } from '@/lib/comprimirFoto';
 import { GRUPOS_FOTOS, SENALES_PELIGRO, MAX_FOTOS_TOTAL } from './guiaFotos';
 import GrupoFotos from './GrupoFotos';
+import BuscadorEdificio from './BuscadorEdificio';
 
 const TIPO_OPTS = [
   { val: 'edificio_residencial', es: 'Edificio / Apt', en: 'Building / Apt' },
@@ -42,11 +43,26 @@ export default function SolicitarInspeccion({ es, prefill = {}, onListo }) {
     GRUPOS_FOTOS.reduce((acc, g) => ({ ...acc, [g.key]: [] }), {})
   );
   const [subiendoGrupo, setSubiendoGrupo] = useState(null);
+  const [edificioExistente, setEdificioExistente] = useState(null); // reporte ya registrado elegido
   const [enviando, setEnviando] = useState(false);
   const [exito, setExito] = useState(false);
   const [error, setError] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // Al elegir un edificio ya registrado: precargamos sus datos y bloqueamos creación de duplicado
+  const seleccionarEdificio = (reporte) => {
+    setEdificioExistente(reporte);
+    if (!reporte) return;
+    setForm(f => ({
+      ...f,
+      tipo_estructura: reporte.tipo_estructura || f.tipo_estructura,
+      nombre_lugar: reporte.nombre_lugar || f.nombre_lugar,
+      direccion: reporte.direccion || f.direccion,
+      ciudad: reporte.ciudad || f.ciudad,
+      estado_region: reporte.estado_region || f.estado_region,
+    }));
+  };
 
   const totalFotos = Object.values(fotosPorGrupo).reduce((n, arr) => n + arr.length, 0);
 
@@ -73,13 +89,31 @@ export default function SolicitarInspeccion({ es, prefill = {}, onListo }) {
   // Aplanar todas las URLs (fachada primero para que sea la foto de portada)
   const todasLasUrls = () => GRUPOS_FOTOS.flatMap(g => fotosPorGrupo[g.key].map(f => f.url));
 
-  const puedeEnviar = form.ciudad.trim() && (form.reportante_email.trim() || form.reportante_telefono.trim());
+  const puedeEnviar = form.ciudad.trim() && form.reportante_nombre.trim() && form.reportante_telefono.trim() && form.reportante_email.trim();
 
   const enviar = async () => {
     if (!puedeEnviar) return;
     setEnviando(true);
     setError(false);
     try {
+      // Si el usuario eligió un edificio ya registrado, sumamos fotos/notas a esa ficha (sin duplicar)
+      if (edificioExistente) {
+        const fotosPrev = edificioExistente.foto_urls || [];
+        const fotosNuevas = todasLasUrls();
+        await base44.entities.ReportesDano.update(edificioExistente.id, {
+          foto_urls: [...fotosPrev, ...fotosNuevas].slice(0, MAX_FOTOS_TOTAL),
+          descripcion: [edificioExistente.descripcion, form.descripcion.trim()].filter(Boolean).join('\n— '),
+          personas_atrapadas: form.personas_atrapadas !== 'no_sabe' ? form.personas_atrapadas : edificioExistente.personas_atrapadas,
+          requiere_inspeccion_presencial: true,
+          reportante_nombre: form.reportante_nombre.trim(),
+          reportante_telefono: form.reportante_telefono.trim(),
+          reportante_email: form.reportante_email.trim(),
+        });
+        setExito(true);
+        onListo?.();
+        setEnviando(false);
+        return;
+      }
       await base44.entities.ReportesDano.create({
         tipo_estructura: form.tipo_estructura,
         nombre_lugar: form.nombre_lugar.trim(),
@@ -197,8 +231,10 @@ export default function SolicitarInspeccion({ es, prefill = {}, onListo }) {
               </div>
             </div>
 
-            <input value={form.nombre_lugar} onChange={e => set('nombre_lugar', e.target.value)}
-              placeholder={es ? 'Nombre del lugar (ej: Residencias El Ávila)' : 'Place name (e.g. El Ávila Building)'} className={INPUT} />
+            <BuscadorEdificio es={es} valor={form.nombre_lugar}
+              onCambiarNombre={v => set('nombre_lugar', v)}
+              onSeleccionar={seleccionarEdificio}
+              seleccionado={edificioExistente} />
             <input value={form.direccion} onChange={e => set('direccion', e.target.value)}
               placeholder={es ? 'Dirección / referencia' : 'Address / reference'} className={INPUT} />
             <div className="grid grid-cols-2 gap-2">
@@ -254,12 +290,12 @@ export default function SolicitarInspeccion({ es, prefill = {}, onListo }) {
         <div className="bg-white border border-blue-200 rounded-2xl p-4 space-y-2">
           <p className="text-xs font-bold text-blue-900">🔒 {es ? 'Tus datos de contacto (privados)' : 'Your contact info (private)'}</p>
           <p className="text-[11px] text-gray-600 leading-relaxed">
-            {es ? 'Te contactaremos por aquí para coordinar la inspección. No se muestran públicamente.' : 'We will reach you here to coordinate the inspection. Never shown publicly.'}
+            {es ? 'Te contactaremos por aquí para coordinar la inspección. No se muestran públicamente. Los tres campos son obligatorios.' : 'We will reach you here to coordinate the inspection. Never shown publicly. All three fields are required.'}
           </p>
           <input value={form.reportante_nombre} onChange={e => set('reportante_nombre', e.target.value)}
-            placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'} className={INPUT} />
+            placeholder={es ? 'Tu nombre *' : 'Your name *'} className={INPUT} />
           <input value={form.reportante_telefono} onChange={e => set('reportante_telefono', e.target.value)}
-            placeholder={es ? 'Teléfono / WhatsApp' : 'Phone / WhatsApp'} className={INPUT} />
+            placeholder={es ? 'Teléfono / WhatsApp *' : 'Phone / WhatsApp *'} className={INPUT} />
           <input value={form.reportante_email} onChange={e => set('reportante_email', e.target.value)} type="email"
             placeholder={es ? 'Email *' : 'Email *'} className={INPUT} />
 
@@ -292,7 +328,9 @@ export default function SolicitarInspeccion({ es, prefill = {}, onListo }) {
           <button type="button" onClick={enviar} disabled={!puedeEnviar || enviando || subiendoGrupo}
             className="flex-1 flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold py-3 rounded-xl disabled:opacity-40 cursor-pointer">
             {enviando ? <Loader2 size={15} className="animate-spin" /> : <MapPin size={15} />}
-            {es ? 'Enviar solicitud' : 'Send request'}
+            {edificioExistente
+              ? (es ? 'Consolidar información' : 'Consolidate info')
+              : (es ? 'Enviar solicitud' : 'Send request')}
           </button>
         )}
       </div>
@@ -307,7 +345,7 @@ export default function SolicitarInspeccion({ es, prefill = {}, onListo }) {
       )}
       {/* Aviso de validación en último paso */}
       {paso === TOTAL_PASOS - 1 && !puedeEnviar && (
-        <p className="text-[11px] text-gray-400 text-center -mt-2">{es ? 'Completa la ciudad y un dato de contacto (email o teléfono).' : 'Fill in the city and one contact (email or phone).'}</p>
+        <p className="text-[11px] text-gray-400 text-center -mt-2">{es ? 'Completa nombre, teléfono y email para enviar.' : 'Fill in name, phone and email to send.'}</p>
       )}
 
       {subiendoGrupo && (
