@@ -121,4 +121,4 @@ export const SENALES_PELIGRO = {
   ],
 };
 
-export const MAX_FOTOS_TOTAL = 50;
+export const MAX_FOTOS_TOTAL = 5;
