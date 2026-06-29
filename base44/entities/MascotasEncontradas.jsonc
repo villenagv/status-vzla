@@ -1,0 +1,117 @@
+{
+  "name": "MascotasEncontradas",
+  "type": "object",
+  "properties": {
+    "edificio_id": {
+      "type": "string",
+      "description": "ID del edificio donde se encontr\u00f3 la mascota"
+    },
+    "especie": {
+      "type": "string",
+      "enum": [
+        "perro",
+        "gato",
+        "ave",
+        "conejo",
+        "reptil",
+        "otro"
+      ],
+      "description": "Especie de la mascota"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n general de la mascota"
+    },
+    "color": {
+      "type": "string",
+      "description": "Color o colores del pelaje/plumaje"
+    },
+    "raza_aprox": {
+      "type": "string",
+      "description": "Raza aproximada o tipo (mediano, grande, peque\u00f1o)"
+    },
+    "tenia_collar": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no",
+        "no_sabe"
+      ],
+      "default": "no_sabe"
+    },
+    "descripcion_collar": {
+      "type": "string",
+      "description": "Color, texto o detalles del collar"
+    },
+    "tenia_id_placa": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no",
+        "no_sabe"
+      ],
+      "default": "no_sabe"
+    },
+    "info_id_placa": {
+      "type": "string",
+      "description": "Texto visible en la placa de identificaci\u00f3n"
+    },
+    "condicion": {
+      "type": "string",
+      "enum": [
+        "bien",
+        "asustada",
+        "herida_leve",
+        "herida_grave",
+        "fallecida",
+        "no_sabe"
+      ],
+      "default": "no_sabe"
+    },
+    "ubicacion_actual": {
+      "type": "string",
+      "description": "D\u00f3nde est\u00e1 la mascota ahora (direcci\u00f3n o descripci\u00f3n)"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "foto_url": {
+      "type": "string"
+    },
+    "reportante_nombre": {
+      "type": "string"
+    },
+    "reportante_telefono": {
+      "type": "string"
+    },
+    "reportante_email": {
+      "type": "string"
+    },
+    "notas_publicas": {
+      "type": "string"
+    },
+    "estado_caso": {
+      "type": "string",
+      "enum": [
+        "encontrada",
+        "en_custodia",
+        "devuelta_dueno",
+        "adoptada",
+        "fallecida",
+        "perdida_de_nuevo"
+      ],
+      "default": "encontrada"
+    },
+    "fuente": {
+      "type": "string",
+      "default": "ciudadano"
+    }
+  },
+  "required": [
+    "especie",
+    "ciudad"
+  ]
+}

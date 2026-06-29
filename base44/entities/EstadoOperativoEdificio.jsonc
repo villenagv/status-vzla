@@ -98,6 +98,79 @@
     "notas_acceso": {
       "type": "string"
     },
+    "estado_rescate": {
+      "type": "string",
+      "enum": [
+        "no_presente",
+        "en_camino",
+        "trabajando",
+        "finalizado",
+        "requiere_apoyo_adicional",
+        "no_confirmado"
+      ],
+      "default": "no_confirmado",
+      "description": "Estado del equipo de rescate en el sitio"
+    },
+    "rescate_notas": {
+      "type": "string",
+      "description": "Detalles adicionales sobre el equipo de rescate"
+    },
+    "rescate_institucion": {
+      "type": "string",
+      "description": "Nombre del equipo o instituci\u00f3n de rescate presente"
+    },
+    "estado_maquinaria": {
+      "type": "string",
+      "enum": [
+        "no_requerida",
+        "requerida_no_disponible",
+        "en_camino",
+        "en_sitio",
+        "no_confirmado"
+      ],
+      "default": "no_confirmado",
+      "description": "Estado de la maquinaria pesada en el sitio"
+    },
+    "tipos_maquinaria_req": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "retroexcavadora",
+          "grua",
+          "ambulancia_rescate",
+          "unidad_hidraulica",
+          "generador",
+          "iluminacion",
+          "camion_escombros",
+          "otro"
+        ]
+      },
+      "description": "Tipos de maquinaria requerida"
+    },
+    "recursos_adicionales_req": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "voluntarios",
+          "medicos",
+          "enfermeros",
+          "agua_potable",
+          "medicamentos",
+          "camillas",
+          "cuerdas_rescate",
+          "equipo_comunicacion",
+          "comida",
+          "otro"
+        ]
+      },
+      "description": "Recursos adicionales requeridos"
+    },
+    "maquinaria_notas": {
+      "type": "string",
+      "description": "Notas adicionales sobre maquinaria y recursos"
+    },
     "reportante_nombre": {
       "type": "string"
     },

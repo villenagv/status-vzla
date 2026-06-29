@@ -59,6 +59,8 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
     racionamiento_agua: false, racionamiento_electricidad: false, racionamiento_gas: false,
     horario_agua: '', horario_electricidad: '', horario_gas: '',
     notas_acceso: '', notas_racionamiento: '',
+    estado_rescate: '', rescate_notas: '', rescate_institucion: '',
+    estado_maquinaria: '', tipos_maquinaria_req: [], recursos_adicionales_req: [], maquinaria_notas: '',
     reportante_nombre: '',
   });
   const [guardando, setGuardando] = useState(false);
@@ -96,11 +98,13 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
   );
 
   const categorias = [
-    { key: 'danos',       icon: '🏗️', es: 'Tipo de daños',      en: 'Damage type'     },
-    { key: 'acceso',      icon: '🚶', es: '¿Cómo está la calle?', en: 'Street walkability' },
+    { key: 'danos',       icon: '🏗️', es: 'Tipo de daños',           en: 'Damage type'            },
+    { key: 'acceso',      icon: '🚶', es: '¿Cómo está la calle?',    en: 'Street walkability'      },
     { key: 'vehiculos',   icon: '🚗', es: '¿Llega ayuda / vehículos?', en: 'Can vehicles reach it?' },
-    { key: 'servicios',   icon: '⚡', es: 'Servicios básicos',   en: 'Basic services'  },
-    { key: 'racionamiento', icon: '🕐', es: 'Racionamiento',     en: 'Rationing'       },
+    { key: 'servicios',   icon: '⚡', es: 'Servicios básicos',        en: 'Basic services'         },
+    { key: 'racionamiento', icon: '🕐', es: 'Racionamiento',          en: 'Rationing'              },
+    { key: 'rescate',     icon: '🚒', es: 'Equipos de rescate',       en: 'Rescue teams'           },
+    { key: 'maquinaria',  icon: '🏗️', es: 'Maquinaria y recursos',   en: 'Machinery & resources'  },
   ];
 
   return (
@@ -243,6 +247,131 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Rescate */}
+      {paso === 'rescate' && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-3">
+          <p className="text-xs font-bold text-red-700">🚒 {es ? '¿Hay equipos de rescate en el sitio?' : 'Are rescue teams at the site?'}</p>
+          <p className="text-[10px] leading-relaxed" style={{ color: '#6B7280' }}>
+            {es ? 'Esta información ayuda a coordinar recursos y evitar duplicar esfuerzos.' : 'This helps coordinate resources and avoid duplicating efforts.'}
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {[
+              { val: 'no_presente',          es: '❌ No hay — ningún equipo en sitio',         en: '❌ None — no team on site'              },
+              { val: 'en_camino',            es: '🚐 En camino — llegarán pronto',             en: '🚐 En route — arriving soon'            },
+              { val: 'trabajando',           es: '🔴 Activos — trabajando ahora',              en: '🔴 Active — working now'                },
+              { val: 'finalizado',           es: '✅ Finalizaron — operación cerrada',         en: '✅ Finished — operation closed'         },
+              { val: 'requiere_apoyo_adicional', es: '🆘 Necesita más apoyo urgente',         en: '🆘 Needs additional support urgently'   },
+              { val: 'no_confirmado',        es: '❓ No sé',                                   en: '❓ Unknown'                             },
+            ].map(opt => (
+              <button key={opt.val} onClick={() => set('estado_rescate', opt.val)}
+                className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left transition-colors
+                  ${form.estado_rescate === opt.val ? 'bg-red-600 text-white border-red-600' : 'bg-white border-gray-200 text-gray-700'}`}>
+                {es ? opt.es : opt.en}
+              </button>
+            ))}
+          </div>
+          {form.estado_rescate === 'requiere_apoyo_adicional' && (
+            <div className="bg-red-100 border-2 border-red-400 rounded-xl px-3 py-2">
+              <p className="text-xs font-bold text-red-800">🆘 {es ? 'Se marcará como urgencia crítica y se notificará a los suscriptores.' : 'Will be flagged as critical and subscribers will be notified.'}</p>
+            </div>
+          )}
+          <input value={form.rescate_institucion || ''} onChange={e => set('rescate_institucion', e.target.value)}
+            placeholder={es ? 'Equipo o institución presente (ej: Bomberos Caracas, Protección Civil)' : 'Team or institution present (e.g. Fire Dept, Civil Protection)'}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-red-500" />
+          <textarea rows={2} value={form.rescate_notas || ''} onChange={e => set('rescate_notas', e.target.value)}
+            placeholder={es ? 'Notas adicionales sobre el rescate...' : 'Additional notes about the rescue...'}
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:border-red-500" />
+        </div>
+      )}
+
+      {/* Maquinaria y recursos */}
+      {paso === 'maquinaria' && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 space-y-3">
+          <p className="text-xs font-bold text-orange-800">🏗️ {es ? '¿Se necesita maquinaria o recursos?' : 'Is machinery or resources needed?'}</p>
+          <p className="text-[10px] leading-relaxed" style={{ color: '#6B7280' }}>
+            {es ? 'Indica el estado y qué se necesita para priorizar la respuesta.' : 'Indicate the status and what is needed to prioritize the response.'}
+          </p>
+          {/* Estado maquinaria */}
+          <div>
+            <p className="text-xs font-semibold text-orange-700 mb-1.5">🚛 {es ? '¿Maquinaria pesada?' : 'Heavy machinery?'}</p>
+            <div className="flex flex-col gap-1.5">
+              {[
+                { val: 'no_requerida',          es: '✅ No se necesita',                  en: '✅ Not needed'                },
+                { val: 'requerida_no_disponible', es: '🆘 Se necesita — NO hay en sitio', en: '🆘 Needed — NOT available'   },
+                { val: 'en_camino',             es: '🚛 En camino al sitio',              en: '🚛 On its way'               },
+                { val: 'en_sitio',              es: '✅ Ya está en el sitio',             en: '✅ Already on site'          },
+                { val: 'no_confirmado',         es: '❓ No sé',                            en: '❓ Unknown'                  },
+              ].map(opt => (
+                <button key={opt.val} onClick={() => set('estado_maquinaria', opt.val)}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer text-left transition-colors
+                    ${form.estado_maquinaria === opt.val ? 'bg-orange-600 text-white border-orange-600' : 'bg-white border-gray-200 text-gray-700'}`}>
+                  {es ? opt.es : opt.en}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Tipos de maquinaria */}
+          <div>
+            <p className="text-xs font-semibold text-orange-700 mb-1.5">{es ? '¿Qué maquinaria se necesita? (selecciona todas las que apliquen)' : 'What machinery is needed? (select all that apply)'}</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { val: 'retroexcavadora',    es: '🚜 Retroexcavadora',      en: '🚜 Excavator'        },
+                { val: 'grua',               es: '🏗️ Grúa',                en: '🏗️ Crane'           },
+                { val: 'ambulancia_rescate', es: '🚑 Ambulancia de rescate', en: '🚑 Rescue ambulance' },
+                { val: 'unidad_hidraulica',  es: '🔧 Unidad hidráulica',    en: '🔧 Hydraulic unit'   },
+                { val: 'generador',          es: '🔌 Generador',             en: '🔌 Generator'        },
+                { val: 'iluminacion',        es: '💡 Iluminación',           en: '💡 Lighting'         },
+                { val: 'camion_escombros',   es: '🚛 Camión escombros',      en: '🚛 Debris truck'     },
+                { val: 'otro',               es: '🔩 Otro',                  en: '🔩 Other'            },
+              ].map(opt => {
+                const sel = (form.tipos_maquinaria_req || []).includes(opt.val);
+                return (
+                  <button key={opt.val} onClick={() => {
+                    const cur = form.tipos_maquinaria_req || [];
+                    set('tipos_maquinaria_req', sel ? cur.filter(v => v !== opt.val) : [...cur, opt.val]);
+                  }} className={`py-2 px-2 rounded-xl text-xs font-semibold border cursor-pointer text-left transition-colors
+                    ${sel ? 'bg-orange-500 text-white border-orange-500' : 'bg-white border-gray-200 text-gray-700'}`}>
+                    {es ? opt.es : opt.en}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {/* Recursos adicionales */}
+          <div>
+            <p className="text-xs font-semibold text-orange-700 mb-1.5">{es ? '¿Qué recursos adicionales se necesitan?' : 'What additional resources are needed?'}</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { val: 'voluntarios',          es: '🙋 Voluntarios',         en: '🙋 Volunteers'      },
+                { val: 'medicos',              es: '👨‍⚕️ Médicos',           en: '👨‍⚕️ Doctors'       },
+                { val: 'enfermeros',           es: '🩺 Enfermeros',          en: '🩺 Nurses'          },
+                { val: 'agua_potable',         es: '💧 Agua potable',        en: '💧 Drinking water'  },
+                { val: 'medicamentos',         es: '💊 Medicamentos',        en: '💊 Medication'      },
+                { val: 'camillas',             es: '🛏️ Camillas',            en: '🛏️ Stretchers'     },
+                { val: 'cuerdas_rescate',      es: '🪢 Cuerdas / arneses',   en: '🪢 Ropes / harnesses'},
+                { val: 'equipo_comunicacion',  es: '📡 Equipos comunicación', en: '📡 Communication'  },
+                { val: 'comida',               es: '🍱 Comida',              en: '🍱 Food'            },
+                { val: 'otro',                 es: '➕ Otro',                 en: '➕ Other'           },
+              ].map(opt => {
+                const sel = (form.recursos_adicionales_req || []).includes(opt.val);
+                return (
+                  <button key={opt.val} onClick={() => {
+                    const cur = form.recursos_adicionales_req || [];
+                    set('recursos_adicionales_req', sel ? cur.filter(v => v !== opt.val) : [...cur, opt.val]);
+                  }} className={`py-2 px-2 rounded-xl text-xs font-semibold border cursor-pointer text-left transition-colors
+                    ${sel ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700'}`}>
+                    {es ? opt.es : opt.en}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <textarea rows={2} value={form.maquinaria_notas || ''} onChange={e => set('maquinaria_notas', e.target.value)}
+            placeholder={es ? 'Notas adicionales sobre maquinaria y recursos...' : 'Additional notes on machinery and resources...'}
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:border-orange-500" />
         </div>
       )}
 
@@ -404,6 +533,62 @@ export default function EstadoOperativo({ edificioId, es }) {
           {srv.notas_racionamiento && (
             <p className="text-[10px] text-orange-600 italic">{srv.notas_racionamiento}</p>
           )}
+        </div>
+      )}
+
+      {/* ── ESTADO DE RESCATE — siempre visible si hay dato ── */}
+      {srv?.estado_rescate && srv.estado_rescate !== 'no_confirmado' && (() => {
+        const RESCATE_CFG = {
+          no_presente:               { bg: '#F3F4F6', border: '#E5E7EB', color: '#374151', dot: '⚫', es: 'Sin equipo en sitio',           en: 'No team on site'             },
+          en_camino:                 { bg: '#EFF6FF', border: '#BFDBFE', color: '#1D4ED8', dot: '🚐', es: 'Equipo en camino',              en: 'Team en route'               },
+          trabajando:                { bg: '#FEF2F2', border: '#FECACA', color: '#DC2626', dot: '🔴', es: 'Equipo activo trabajando',      en: 'Team actively working'       },
+          finalizado:                { bg: '#F0FDF4', border: '#BBF7D0', color: '#15803D', dot: '✅', es: 'Operación finalizada',          en: 'Operation finished'          },
+          requiere_apoyo_adicional:  { bg: '#FEF2F2', border: '#EF4444', color: '#B91C1C', dot: '🆘', es: '¡SE NECESITA MÁS APOYO!',      en: 'ADDITIONAL SUPPORT NEEDED!' },
+        };
+        const cfg = RESCATE_CFG[srv.estado_rescate] || RESCATE_CFG.no_presente;
+        return (
+          <div style={{ background: cfg.bg, border: `2px solid ${cfg.border}`, borderRadius: 12, padding: '10px 14px' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: cfg.color, margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              🚒 {es ? 'Equipo de rescate' : 'Rescue team'}
+            </p>
+            <p style={{ fontSize: 13, fontWeight: 800, color: cfg.color, margin: 0 }}>{cfg.dot} {es ? cfg.es : cfg.en}</p>
+            {srv.rescate_institucion && <p style={{ fontSize: 11, color: '#4B5563', margin: '3px 0 0' }}>🏛️ {srv.rescate_institucion}</p>}
+            {srv.rescate_notas && <p style={{ fontSize: 11, color: '#4B5563', margin: '3px 0 0', fontStyle: 'italic' }}>{srv.rescate_notas}</p>}
+          </div>
+        );
+      })()}
+
+      {/* ── MAQUINARIA Y RECURSOS — visible si hay dato relevante ── */}
+      {srv && (srv.estado_maquinaria && srv.estado_maquinaria !== 'no_confirmado' || (srv.tipos_maquinaria_req?.length > 0) || (srv.recursos_adicionales_req?.length > 0)) && (
+        <div style={{ background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: 12, padding: '10px 14px' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#C2410C', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            🏗️ {es ? 'Maquinaria y recursos' : 'Machinery & resources'}
+          </p>
+          {srv.estado_maquinaria && srv.estado_maquinaria !== 'no_confirmado' && (
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#EA580C', margin: '0 0 4px' }}>
+              {{
+                no_requerida: `✅ ${es ? 'Sin maquinaria requerida' : 'No machinery needed'}`,
+                requerida_no_disponible: `🆘 ${es ? 'MAQUINARIA REQUERIDA — no disponible' : 'MACHINERY NEEDED — not available'}`,
+                en_camino: `🚛 ${es ? 'Maquinaria en camino' : 'Machinery en route'}`,
+                en_sitio: `✅ ${es ? 'Maquinaria ya en sitio' : 'Machinery already on site'}`,
+              }[srv.estado_maquinaria] || ''}
+            </p>
+          )}
+          {srv.tipos_maquinaria_req?.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4 }}>
+              {srv.tipos_maquinaria_req.map(t => (
+                <span key={t} style={{ fontSize: 10, fontWeight: 600, background: '#FFEDD5', color: '#C2410C', border: '1px solid #FED7AA', borderRadius: 20, padding: '2px 8px' }}>{t.replace(/_/g, ' ')}</span>
+              ))}
+            </div>
+          )}
+          {srv.recursos_adicionales_req?.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {srv.recursos_adicionales_req.map(r => (
+                <span key={r} style={{ fontSize: 10, fontWeight: 600, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', borderRadius: 20, padding: '2px 8px' }}>{r.replace(/_/g, ' ')}</span>
+              ))}
+            </div>
+          )}
+          {srv.maquinaria_notas && <p style={{ fontSize: 11, color: '#6B7280', margin: '4px 0 0', fontStyle: 'italic' }}>{srv.maquinaria_notas}</p>}
         </div>
       )}
 
