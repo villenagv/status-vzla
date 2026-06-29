@@ -924,6 +924,36 @@ export default function EdificioDetalle() {
           </div>
         </div>
 
+        {/* ── BANNER CAMPAÑA: Ayúdanos a actualizar ── */}
+        <div className="rounded-2xl overflow-hidden mb-4" style={{ background: 'linear-gradient(135deg,#0D2B6B 0%,#1A3A8F 50%,#0D2B6B 100%)', border: '2px solid #D48C2E' }}>
+          <div className="p-5 text-center">
+            <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#F59E0B' }}>
+              📢 {t('Ayúdanos a actualizar la información', 'Help us update the information', 'Ajude-nos a atualizar as informações')}
+            </p>
+            <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(255,255,255,0.85)' }}>
+              {t(
+                'Comparte esta página en WhatsApp, Instagram o Twitter. Cada persona que reporte información puede salvar una vida.',
+                'Share this page on WhatsApp, Instagram or Twitter. Every person who reports information can save a life.',
+                'Compartilhe esta página no WhatsApp, Instagram ou Twitter. Cada pessoa que reportar pode salvar uma vida.'
+              )}
+            </p>
+            <div className="rounded-xl p-3 text-left mb-4 space-y-1.5" style={{ background: 'rgba(255,255,255,0.08)' }}>
+              <p className="text-xs" style={{ color: '#fff' }}>✅ {t('1. Toma captura de esta ficha o copia el enlace.', '1. Screenshot this page or copy the link.', '1. Tire um screenshot desta ficha ou copie o link.')}</p>
+              <p className="text-xs" style={{ color: '#fff' }}>✅ {t('2. Compártela en tus redes.', '2. Share it on your networks.', '2. Compartilhe nas suas redes.')}</p>
+              <p className="text-xs" style={{ color: '#fff' }}>✅ {t('3. Invita a reportar en:', '3. Invite others to report at:', '3. Convide outros a reportar em:')} <span style={{ color: '#F59E0B', fontWeight: 700 }}>statusvzla.com/edificios</span></p>
+            </div>
+            <a
+              href="https://statusvzla.com/edificios"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 font-black text-sm px-6 py-3 rounded-xl no-underline"
+              style={{ background: '#F59E0B', color: '#0D2B6B' }}
+            >
+              🏗️ {t('Ver todos los edificios →', 'See all buildings →', 'Ver todos os edifícios →')}
+            </a>
+          </div>
+        </div>
+
         <p className="text-[10px] text-gray-500 text-center leading-relaxed mb-4">
           {t('Esta plataforma es una herramienta ciudadana y no partidista. La información proviene de ciudadanos y no ha sido verificada de manera independiente.',
              'This platform is a citizen and non-partisan tool. Information comes from citizens and has not been independently verified.',

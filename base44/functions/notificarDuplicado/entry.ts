@@ -1,13 +1,44 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const APP_URL = 'https://statusvzla.com';
+const BANNER_URL = 'https://media.base44.com/images/public/6a3ddf29c9e933d4c38e9646/2d268252b_ChatGPTImageJun29202612_43_55AM.png';
+
+async function getBannerAttachment() {
+  try {
+    const res = await fetch(BANNER_URL);
+    if (!res.ok) return null;
+    const buffer = await res.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    return { filename: 'statusvzla_ayudanos_a_actualizar.jpg', content: base64, content_type: 'image/jpeg' };
+  } catch {
+    return null;
+  }
+}
+
+function buildCampaignBlock(es) {
+  return `
+<tr><td style="padding:0 28px 20px;">
+  <div style="background:linear-gradient(135deg,#0D2B6B 0%,#1A3A8F 50%,#0D2B6B 100%);border-radius:14px;padding:18px;text-align:center;border:2px solid #D48C2E;">
+    <p style="margin:0 0 6px;font-size:12px;font-weight:900;color:#F59E0B;text-transform:uppercase;letter-spacing:0.05em;">
+      ${es ? '📢 Ayúdanos a difundir en tus redes' : '📢 Help us spread the word'}
+    </p>
+    <p style="margin:0 0 12px;font-size:11px;color:rgba(255,255,255,0.85);line-height:1.5;">
+      ${es
+        ? 'Descarga la imagen adjunta y compártela. Más reportes = más información verificada.'
+        : 'Download the attached image and share it. More reports = more verified information.'}
+    </p>
+    <a href="${APP_URL}/edificios" style="display:inline-block;background:#F59E0B;color:#0D2B6B;text-decoration:none;font-size:12px;font-weight:900;padding:9px 20px;border-radius:10px;">
+      🏗️ ${es ? 'Ver edificios →' : 'See buildings →'}
+    </a>
+  </div>
+</td></tr>`;
+}
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
 
-    // Soporta llamada directa ({ persona_id, ... }) y payload de automatización de entidad ({ event, data })
     const persona_id = body.persona_id || body.event?.entity_id || body.data?.id;
     const nombre_completo = body.nombre_completo || body.data?.nombre_completo;
     const duplicado_de_id = body.duplicado_de_id || body.data?.duplicado_de_id;
@@ -16,16 +47,13 @@ Deno.serve(async (req) => {
     if (!persona_id) return Response.json({ error: 'persona_id requerido' }, { status: 400 });
 
     const es = lang !== 'en';
-    const nombre = nombre_completo || 'La persona buscada';
+    const nombre = nombre_completo || (es ? 'La persona buscada' : 'The searched person');
 
-    // Recopilar emails suscritos a esta ficha
     const emails = new Set();
-
     const [seguimiento, porCuenta] = await Promise.all([
       base44.asServiceRole.entities.SuscriptoresSeguimiento.filter({ reporte_id: persona_id, activo: true }),
       base44.asServiceRole.entities.Suscripciones.filter({ persona_id, activa: true }),
     ]);
-
     for (const s of seguimiento) {
       const email = s.telefono_whatsapp?.trim();
       if (email && email.includes('@')) emails.add(email);
@@ -33,21 +61,15 @@ Deno.serve(async (req) => {
     for (const s of porCuenta) {
       if (s.email_notificacion?.trim()) emails.add(s.email_notificacion.trim());
     }
-
-    // También buscar el contacto de notificación en la ficha misma (avisar_email)
     try {
       const persona = await base44.asServiceRole.entities.PersonasBuscadas.get(persona_id);
       if (persona?.avisar_email?.trim()) emails.add(persona.avisar_email.trim());
       if (persona?.contacto_email?.trim()) emails.add(persona.contacto_email.trim());
     } catch {}
 
-    if (emails.size === 0) {
-      return Response.json({ ok: true, enviados: 0, motivo: 'sin_suscriptores' });
-    }
+    if (emails.size === 0) return Response.json({ ok: true, enviados: 0, motivo: 'sin_suscriptores' });
 
-    const profileLink = duplicado_de_id
-      ? `${APP_URL}/persona?id=${duplicado_de_id}`
-      : `${APP_URL}/personas`;
+    const profileLink = duplicado_de_id ? `${APP_URL}/persona?id=${duplicado_de_id}` : `${APP_URL}/personas`;
 
     const asunto = es
       ? `StatusVzla | ${nombre} — Registro unificado (posible duplicado)`
@@ -55,14 +77,18 @@ Deno.serve(async (req) => {
 
     const html = `<!DOCTYPE html><html lang="${es ? 'es' : 'en'}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${asunto}</title></head>
-<body style="margin:0;padding:0;background:#F4F4F8;font-family:Arial,sans-serif;">
+<body style="margin:0;padding:0;background:#F4F4F8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F8;padding:24px 16px;">
 <tr><td align="center">
-<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<table width="100%" style="max-width:540px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+
+<!-- HEADER -->
 <tr><td style="background:#1A1F2E;padding:20px 28px;">
-  <p style="margin:0;color:#fff;font-size:20px;font-weight:900;">STATUS<span style="color:#D48C2E;">VZLA</span><span style="color:#D48C2E;font-size:14px;">.com</span></p>
+  <p style="margin:0;color:#fff;font-size:20px;font-weight:900;">STATUS<span style="color:#D48C2E;">VZLA</span></p>
   <p style="margin:4px 0 0;color:#9CA3AF;font-size:11px;">${es ? 'Sistema de respuesta a emergencias · Venezuela' : 'Emergency response system · Venezuela'}</p>
 </td></tr>
+
+<!-- CONTENIDO -->
 <tr><td style="padding:24px 28px 12px;">
   <div style="background:#FFF8EE;border:1px solid #E6C195;border-radius:12px;padding:18px;text-align:center;">
     <p style="margin:0;font-size:28px;">🔗</p>
@@ -72,27 +98,33 @@ Deno.serve(async (req) => {
     </span>
   </div>
 </td></tr>
+
 <tr><td style="padding:8px 28px 16px;">
   <p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">
     ${es
-      ? `Un moderador de <strong>StatusVzla</strong> identificó que la ficha de <strong>${nombre}</strong> aparecía duplicada en el sistema. Los dos registros han sido unificados para mostrar información más completa y precisa.`
-      : `A <strong>StatusVzla</strong> moderator identified that the record for <strong>${nombre}</strong> was duplicated in the system. Both records have been merged to show more complete and accurate information.`}
+      ? `Un moderador de <strong>StatusVzla</strong> identificó que la ficha de <strong>${nombre}</strong> aparecía duplicada. Los dos registros han sido unificados para mostrar información más completa y precisa.`
+      : `A <strong>StatusVzla</strong> moderator identified that the record for <strong>${nombre}</strong> was duplicated. Both records have been merged to show more complete and accurate information.`}
   </p>
 </td></tr>
+
 <tr><td style="padding:0 28px 16px;">
   <div style="background:#F0F4FD;border:1px solid #B0C4E8;border-radius:10px;padding:14px;">
     <p style="margin:0;font-size:13px;color:#1A3A6E;line-height:1.5;">
       ℹ️ ${es
-        ? 'Si tienes nueva información sobre esta persona, puedes seguir usando el enlace de abajo. Tus suscripciones anteriores siguen activas.'
-        : 'If you have new information about this person, you can continue using the link below. Your previous subscriptions remain active.'}
+        ? 'Si tienes nueva información, puedes seguir usando el enlace de abajo. Tus suscripciones anteriores siguen activas.'
+        : 'If you have new information, you can continue using the link below. Your previous subscriptions remain active.'}
     </p>
   </div>
 </td></tr>
-<tr><td style="padding:0 28px 16px;">
-  <a href="${profileLink}" style="display:block;background:#1A1F2E;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:10px;font-weight:700;font-size:14px;">
+
+<!-- BOTÓN -->
+<tr><td style="padding:0 28px 16px;text-align:center;">
+  <a href="${profileLink}" style="display:inline-block;background:#1A1F2E;color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:700;font-size:14px;">
     ${es ? '🔍 Ver ficha actualizada' : '🔍 View updated record'}
   </a>
 </td></tr>
+
+<!-- ANTI-FRAUDE -->
 <tr><td style="padding:0 28px 16px;">
   <div style="background:#FDF1F0;border:1px solid #E8B4B0;border-radius:10px;padding:12px;">
     <p style="margin:0;font-size:11px;color:#B83A52;line-height:1.5;">
@@ -102,22 +134,26 @@ Deno.serve(async (req) => {
     </p>
   </div>
 </td></tr>
+
+<!-- CAMPAÑA -->
+${buildCampaignBlock(es)}
+
+<!-- FOOTER -->
 <tr><td style="background:#F9FAFB;padding:16px 28px;border-top:1px solid #F3F4F6;">
   <p style="margin:0;font-size:11px;color:#9CA3AF;text-align:center;line-height:1.5;">
     ${es ? 'Mensaje automático de STATUSVZLA.com — Sistema de respuesta a emergencias.' : 'Automatic message from STATUSVZLA.com — Emergency response system.'}
   </p>
 </td></tr>
+
 </table></td></tr></table></body></html>`;
 
+    const attachment = await getBannerAttachment();
     let enviados = 0;
     for (const email of emails) {
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: email,
-          subject: asunto,
-          body: html,
-          from_name: 'StatusVzla',
-        });
+        const payload: any = { to: email, subject: asunto, body: html, from_name: 'StatusVzla' };
+        if (attachment) payload.attachments = [attachment];
+        await base44.asServiceRole.integrations.Core.SendEmail(payload);
         enviados++;
       } catch (e) {
         console.warn(`Error enviando a ${email}: ${e.message}`);
