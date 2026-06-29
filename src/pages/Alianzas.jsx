@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Copy, Check, Globe, Database, Mail, Code } from 'lucide-react';
+import { ChevronLeft, Copy, Check, Globe, Database, Mail, Code, MousePointerClick } from 'lucide-react';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
@@ -42,6 +42,8 @@ export default function Alianzas() {
   const [copiado, setCopiado] = useState(false);
   const [copiadoApi, setCopiadoApi] = useState('');
   const [copiadoWidget, setCopiadoWidget] = useState(false);
+  const [copiadoBtn, setCopiadoBtn] = useState(false);
+  const [copiadoBtnEs, setCopiadoBtnEs] = useState(false);
 
   const copiarApi = (texto, key) => {
     navigator.clipboard.writeText(texto);
@@ -53,6 +55,29 @@ export default function Alianzas() {
     navigator.clipboard.writeText(JS_WIDGET_CODE);
     setCopiadoWidget(true);
     setTimeout(() => setCopiadoWidget(false), 2000);
+  };
+
+  const WIDGET_BTN_SCRIPT = `<script src="https://statusvzla.com/widget-reportar.js"></script>`;
+  const WIDGET_BTN_HTML = `<!-- Botón de reporte — StatusVzla.com -->
+<a href="https://statusvzla.com/reportar-dano"
+   target="_blank"
+   rel="noopener noreferrer"
+   style="display:inline-flex;align-items:center;gap:7px;
+          background:#C0392B;color:#fff;padding:13px 20px;
+          border-radius:999px;text-decoration:none;font-weight:700;
+          font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,0.3);">
+  📍 Reportar edificio dañado
+</a>`;
+
+  const copiarBtnScript = () => {
+    navigator.clipboard.writeText(WIDGET_BTN_SCRIPT);
+    setCopiadoBtn(true);
+    setTimeout(() => setCopiadoBtn(false), 2000);
+  };
+  const copiarBtnHtml = () => {
+    navigator.clipboard.writeText(WIDGET_BTN_HTML);
+    setCopiadoBtnEs(true);
+    setTimeout(() => setCopiadoBtnEs(false), 2000);
   };
 
   const API_BASE = 'https://statusvzla.com/functions/apiMapa';
@@ -259,6 +284,99 @@ export default function Alianzas() {
             <div className="mt-4 rounded-lg px-4 py-3" style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.25)' }}>
               <p style={{ fontSize: 11, color: '#C4B5FD', lineHeight: 1.6, margin: 0 }}>
                 🤝 {t('Si quieres contribuir al código, abre un Pull Request en GitHub o escríbenos. Buscamos desarrolladores, diseñadores y analistas de datos comprometidos con Venezuela.', 'If you want to contribute to the code, open a Pull Request on GitHub or write to us. We\'re looking for developers, designers and data analysts committed to Venezuela.')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Botón de reporte embebible ── */}
+        <div className="mb-6 rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: '#111318' }}>
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex items-center gap-2 mb-1">
+              <MousePointerClick size={16} style={{ color: '#F87171' }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#F0F6FC' }}>
+                {t('Botón de reporte para tu sitio web', 'Report button for your website')}
+              </span>
+            </div>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)', margin: 0 }}>
+              {t('Agrega un botón flotante en tu web para que tus visitantes puedan reportar edificios dañados directamente.', 'Add a floating button on your site so visitors can report damaged buildings directly.')}
+            </p>
+          </div>
+
+          <div className="px-5 py-4">
+            {/* Preview del botón */}
+            <div className="mb-4 rounded-xl p-4 flex flex-col items-center gap-3" style={{ background: 'rgba(192,57,43,0.07)', border: '1px solid rgba(192,57,43,0.25)' }}>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: 0 }}>{t('Vista previa del botón', 'Button preview')}</p>
+              <a href="/reportar-dano" target="_blank" rel="noopener noreferrer" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                background: '#C0392B', color: '#fff', padding: '13px 20px',
+                borderRadius: 999, textDecoration: 'none', fontWeight: 700, fontSize: 13,
+                boxShadow: '0 4px 16px rgba(192,57,43,0.55)',
+              }}>
+                📍 {t('Reportar edificio dañado', 'Report damaged building')}
+              </a>
+              <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.30)', margin: 0 }}>Powered by StatusVzla.com</p>
+            </div>
+
+            {/* Opción 1: Script automático */}
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+              {t('Opción 1 — Script automático (recomendado)', 'Option 1 — Auto script (recommended)')}
+            </p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 8, lineHeight: 1.55 }}>
+              {t('Pega este código antes de cerrar la etiqueta', 'Paste this code before closing the')} <code style={{ color: '#93C5FD', fontSize: 10 }}>&lt;/body&gt;</code> {t('de tu sitio web. El botón flotante aparecerá automáticamente.', 'tag of your site. The floating button will appear automatically.')}
+            </p>
+            <div className="relative mb-5">
+              <pre style={{
+                background: '#0D1117', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10,
+                padding: '12px 16px', fontSize: 11, color: '#93C5FD', margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+              }}>
+                {`<script src="https://statusvzla.com/widget-reportar.js"></script>`}
+              </pre>
+              <button onClick={copiarBtnScript} style={{
+                position: 'absolute', top: 8, right: 8,
+                background: copiadoBtn ? 'rgba(111,207,151,0.15)' : 'rgba(255,255,255,0.08)',
+                border: `1px solid ${copiadoBtn ? 'rgba(111,207,151,0.40)' : 'rgba(255,255,255,0.15)'}`,
+                borderRadius: 7, padding: '5px 10px', cursor: 'pointer',
+                color: copiadoBtn ? '#6FCF97' : 'rgba(255,255,255,0.65)',
+                display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600,
+              }}>
+                {copiadoBtn ? <Check size={12} /> : <Copy size={12} />}
+                {copiadoBtn ? t('¡Copiado!', 'Copied!') : t('Copiar', 'Copy')}
+              </button>
+            </div>
+
+            {/* Opción 2: HTML puro */}
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+              {t('Opción 2 — HTML puro (sin script)', 'Option 2 — Plain HTML (no script)')}
+            </p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 8, lineHeight: 1.55 }}>
+              {t('Si prefieres no usar scripts externos, pega este enlace HTML directamente en tu página.', "If you prefer no external scripts, paste this HTML link directly in your page.")}
+            </p>
+            <div className="relative mb-4">
+              <pre style={{
+                background: '#0D1117', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10,
+                padding: '12px 16px', fontSize: 10, color: '#93C5FD', margin: 0,
+                whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 140, overflow: 'auto',
+              }}>
+                {WIDGET_BTN_HTML}
+              </pre>
+              <button onClick={copiarBtnHtml} style={{
+                position: 'absolute', top: 8, right: 8,
+                background: copiadoBtnEs ? 'rgba(111,207,151,0.15)' : 'rgba(255,255,255,0.08)',
+                border: `1px solid ${copiadoBtnEs ? 'rgba(111,207,151,0.40)' : 'rgba(255,255,255,0.15)'}`,
+                borderRadius: 7, padding: '5px 10px', cursor: 'pointer',
+                color: copiadoBtnEs ? '#6FCF97' : 'rgba(255,255,255,0.65)',
+                display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600,
+              }}>
+                {copiadoBtnEs ? <Check size={12} /> : <Copy size={12} />}
+                {copiadoBtnEs ? t('¡Copiado!', 'Copied!') : t('Copiar', 'Copy')}
+              </button>
+            </div>
+
+            <div className="rounded-lg px-4 py-3" style={{ background: 'rgba(111,207,151,0.07)', border: '1px solid rgba(111,207,151,0.20)' }}>
+              <p style={{ fontSize: 11, color: '#6FCF97', margin: 0, lineHeight: 1.55 }}>
+                📌 <strong>{t('Atribución requerida:', 'Attribution required:')}</strong>{' '}
+                {t('El botón debe mantener visible "Powered by StatusVzla.com". Ya está incluido en ambas opciones.', 'The button must keep "Powered by StatusVzla.com" visible. Already included in both options.')}
               </p>
             </div>
           </div>
