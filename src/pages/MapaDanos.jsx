@@ -23,6 +23,19 @@ const DANO_LABEL = {
 const DANO_PESO = { colapsado: 1.0, critico: 0.8, grave: 0.6, moderado: 0.4, leve: 0.2, no_evaluado: 0.1 };
 const ATRAPADOS_ALERTA = ['si', 'voces', 'posible'];
 
+// ── Helpers para alertas temporales de personas con vida ──
+function getAlertaVida(r) {
+  // Usamos ActualizacionesSitios no existe aquí; usamos updated_date del reporte
+  const ahora = Date.now();
+  const ultima = new Date(r.updated_date || r.created_date).getTime();
+  const horas = (ahora - ultima) / (1000 * 60 * 60);
+  // Solo aplica si hay personas atrapadas reportadas
+  if (!ATRAPADOS_ALERTA.includes(r.personas_atrapadas)) return null;
+  if (horas < 3) return 'reciente';   // < 3h: ? amarillo brillante
+  if (horas < 5) return 'advertencia'; // 3-5h: amarillo suave
+  return null; // >= 6h: sin alerta
+}
+
 const TIPO_ICONO = {
   edificio_residencial: '🏠', hospital: '🏥', escuela: '🏫',
   iglesia: '⛪', comercio: '🏪', calle_via: '🛣️', puente: '🌉',
@@ -300,13 +313,28 @@ export default function MapaDanos() {
         const c = getCoords(r);
         if (!c) return;
         const { color, peso } = getCapaData(r);
+        const alertaVida = getAlertaVida(r);
+        const markerColor = alertaVida === 'advertencia' ? '#FCD34D' : color;
         const marker = L.circleMarker(c, {
-          radius: 8, fillColor: color, color: '#fff',
-          weight: 1.5, opacity: 1, fillOpacity: 0.9,
-          _peso: peso, _color: color,
+          radius: alertaVida === 'reciente' ? 10 : 8,
+          fillColor: markerColor,
+          color: alertaVida ? '#F59E0B' : '#fff',
+          weight: alertaVida ? 2.5 : 1.5,
+          opacity: 1, fillOpacity: 0.9,
+          _peso: peso, _color: markerColor,
         });
         marker.bindPopup(buildPopup(r, es, capaActiva, estadoOpIndexRef.current[r.id]));
         marker.on('click', () => setReporteSeleccionado(r));
+        // Overlay ? amarillo para alertas recientes
+        if (alertaVida === 'reciente') {
+          const overlayIcon = L.divIcon({
+            html: `<div style="background:#F59E0B;color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border:2px solid #fff;box-shadow:0 0 6px rgba(245,158,11,0.8);animation:vidaPulse 1.5s infinite">?</div>`,
+            className: '', iconSize: [16, 16], iconAnchor: [8, 8],
+          });
+          const overlayMarker = L.marker(c, { icon: overlayIcon, zIndexOffset: 500 });
+          overlayMarker.on('click', () => setReporteSeleccionado(r));
+          clusterGroup.addLayer(overlayMarker);
+        }
         clusterGroup.addLayer(marker);
       });
       clusterGroup.addTo(map);
@@ -324,21 +352,25 @@ export default function MapaDanos() {
       }).slice(0, 200);
 
       visibles.forEach(r => {
-        const c = getCoords(r);
-        if (!c) return;
-        const { color } = getCapaData(r);
-        const icono = TIPO_ICONO[r.tipo_estructura] || '🏗️';
-        const atrapado = ATRAPADOS_ALERTA.includes(r.personas_atrapadas);
+      const c = getCoords(r);
+      if (!c) return;
+      const { color } = getCapaData(r);
+      const icono = TIPO_ICONO[r.tipo_estructura] || '🏗️';
+      const atrapado = ATRAPADOS_ALERTA.includes(r.personas_atrapadas);
+      const alertaVida = getAlertaVida(r);
+      const dotColor = alertaVida === 'advertencia' ? '#FCD34D' : alertaVida === 'reciente' ? '#F59E0B' : color;
+      const dotBorder = alertaVida ? '#F59E0B' : atrapado ? '#7c3aed' : 'rgba(255,255,255,0.7)';
 
-        const marker = L.marker(c, {
-          icon: L.divIcon({
-            html: `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
-              <span style="font-size:16px;line-height:1">${icono}</span>
-              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid ${atrapado ? '#7c3aed' : 'rgba(255,255,255,0.7)'}"></span>
-            </div>`,
-            className: '', iconSize: [24, 28], iconAnchor: [12, 28],
-          }),
-        });
+      const marker = L.marker(c, {
+        icon: L.divIcon({
+          html: `<div style="display:flex;flex-direction:column;align-items:center;gap:1px;position:relative">
+            <span style="font-size:16px;line-height:1">${icono}</span>
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dotColor};border:1.5px solid ${dotBorder}"></span>
+            ${alertaVida === 'reciente' ? `<span style="position:absolute;top:-8px;right:-8px;background:#F59E0B;color:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;border:1.5px solid #fff">?</span>` : ''}
+          </div>`,
+          className: '', iconSize: [24, 28], iconAnchor: [12, 28],
+        }),
+      });
         marker.bindPopup(buildPopup(r, es, capaActiva, estadoOpIndexRef.current[r.id]));
         marker.on('click', () => setReporteSeleccionado(r));
         markers.addLayer(marker);
@@ -370,6 +402,17 @@ export default function MapaDanos() {
               <span style={{ fontSize: 10, color: '#C0C8D2' }}>{l[es ? 'es' : 'en']}</span>
             </div>
           ))}
+          {/* Alerta personas con vida */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 6, paddingTop: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+              <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900, color: '#fff', flexShrink: 0 }}>?</div>
+              <span style={{ fontSize: 10, color: '#FCD34D' }}>{t('Personas — alerta &lt;3h', 'People alert <3h')}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FCD34D', border: '1.5px solid #F59E0B', flexShrink: 0 }} />
+              <span style={{ fontSize: 10, color: '#9BA5B0' }}>{t('Advertencia 3–5h', 'Warning 3–5h')}</span>
+            </div>
+          </div>
         </>
       );
     }
@@ -698,7 +741,10 @@ export default function MapaDanos() {
         </div>
       )}
 
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes vidaPulse { 0%, 100% { box-shadow: 0 0 4px rgba(245,158,11,0.8); } 50% { box-shadow: 0 0 12px rgba(245,158,11,1); transform: scale(1.15); } }
+  `}</style>
       <Footer />
     </div>
   );
@@ -709,6 +755,10 @@ function buildPopup(r, es, capa, eo) {
   const color = DANO_COLOR[r.nivel_dano] || '#6B7280';
   const atrapado = ATRAPADOS_ALERTA.includes(r.personas_atrapadas);
   const label = DANO_LABEL[r.nivel_dano]?.[es ? 'es' : 'en'] || r.nivel_dano;
+  const ahora = Date.now();
+  const ultima = new Date(r.updated_date || r.created_date).getTime();
+  const horasDesde = (ahora - ultima) / (1000 * 60 * 60);
+  const alertaVidaPopup = atrapado && horasDesde < 3 ? 'reciente' : atrapado && horasDesde < 5 ? 'advertencia' : null;
   const icono = TIPO_ICONO[r.tipo_estructura] || '🏗️';
   const foto = r.foto_urls?.[0] ? `<img src="${r.foto_urls[0]}" style="width:100%;height:70px;object-fit:cover;border-radius:6px;margin-bottom:6px" />` : '';
 
@@ -731,6 +781,8 @@ function buildPopup(r, es, capa, eo) {
     </div>
     <span style="display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${color};color:#fff;margin-bottom:4px">${label}</span>
     ${atrapado ? `<span style="display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#7c3aed;color:#fff;margin-left:4px">${es ? '🆘 Atrapados' : '🆘 Trapped'}</span>` : ''}
+    ${alertaVidaPopup === 'reciente' ? `<div style="margin-top:5px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:6px;padding:4px 8px;font-size:10px;color:#92400E;font-weight:700">⚠️ ${es ? 'Alerta de personas — hace menos de 3h' : 'People alert — less than 3h ago'}</div>` : ''}
+    ${alertaVidaPopup === 'advertencia' ? `<div style="margin-top:5px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:6px;padding:4px 8px;font-size:10px;color:#92400E">⏱ ${es ? 'Reporte de personas — entre 3 y 5h' : 'People report — 3 to 5h ago'}</div>` : ''}
     ${extras}
     <p style="font-size:10px;color:#666;margin:4px 0 0">📍 ${r.ciudad || ''}, ${r.estado_region || ''}</p>
     <a href="/edificio?id=${r.id}" style="display:block;margin-top:6px;font-size:10px;color:#2471A3;text-align:center;text-decoration:none;background:#f0f7ff;border-radius:6px;padding:4px 0;border:1px solid #bee3f8">
