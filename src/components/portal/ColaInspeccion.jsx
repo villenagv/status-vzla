@@ -4,6 +4,7 @@ import { Loader2, Camera, MapPin, CheckCircle, UserCheck, Clock } from 'lucide-r
 import { base44 } from '@/api/base44Client';
 import AccionesEspecialista from './AccionesEspecialista';
 import FormularioInspeccion from './FormularioInspeccion';
+import FichaAuditoriaInspeccion from './FichaAuditoriaInspeccion';
 import { MOTIVO_LABEL } from './MotivoPendiente';
 
 const RIESGO_CFG = {
@@ -99,6 +100,9 @@ function TarjetaInspeccion({ reporte, es, perfil, onActualizado, completada }) {
               {reporte.triage_por && <p className="text-[10px] text-gray-400 mt-1">— {reporte.triage_por}</p>}
             </div>
           )}
+
+          {/* Ficha completa del reporte — todas las preguntas, con lo faltante en amarillo */}
+          <FichaAuditoriaInspeccion reporte={reporte} es={es} />
 
           {/* Informe de inspección (si completada) */}
           {completada && (
