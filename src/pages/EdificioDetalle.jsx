@@ -7,7 +7,7 @@ import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import GaleriaFotos from '@/components/svzla/GaleriaFotos';
 import EstadoOperativo from '@/components/edificio/EstadoOperativo';
-import { NubePeligro, ModalSeguridadEdificio, getPreguntaPrioritaria } from '@/components/edificio/AlertaSeguridad';
+import { NubePeligro, ModalSeguridadEdificio, getPreguntaPrioritaria, InfoFaltanteInline } from '@/components/edificio/AlertaSeguridad';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
 import SeoMeta from '@/components/seo/SeoMeta';
@@ -491,6 +491,26 @@ export default function EdificioDetalle() {
             </div>
           </div>
         )}
+
+        {/* ── INFO FALTANTE: bloque amarillo siempre visible en ficha si hay campos incompletos ── */}
+        {edificio && (() => {
+          const faltante = [];
+          if (!edificio.personas_atrapadas || edificio.personas_atrapadas === 'no_sabe') faltante.push('atrapados');
+          if (!edificio.acceso_calle || edificio.acceso_calle === 'no_sabe' || edificio.acceso_calle === 'no_verificado') faltante.push('acceso_calle');
+          if (!edificio.gas || edificio.gas === 'no_confirmado') faltante.push('gas');
+          if (!edificio.electricidad || edificio.electricidad === 'no_confirmado') faltante.push('electricidad');
+          if (!edificio.agua || edificio.agua === 'no_confirmado') faltante.push('agua');
+          if (!edificio.foto_urls?.length) faltante.push('foto');
+          return faltante.length > 0 ? (
+            <InfoFaltanteInline
+              edificio={edificio}
+              edificioId={id}
+              es={es}
+              faltante={faltante}
+              onDatoGuardado={(data) => setEdificio(prev => ({ ...prev, ...data }))}
+            />
+          ) : null;
+        })()}
 
         {/* ── 3. ANTI-EXTORSIÓN ── */}
         <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mb-3">

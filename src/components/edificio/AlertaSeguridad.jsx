@@ -517,6 +517,229 @@ export function ModalSeguridadEdificio({ visible, onConfirmar, onCerrar, es, pre
   );
 }
 
+// ── Bloque amarillo inline en la ficha (sin modal) ──
+export function InfoFaltanteInline({ edificio, edificioId, es, faltante, onDatoGuardado }) {
+  const [respuestas, setRespuestas] = useState({});
+  const [guardando, setGuardando] = useState(false);
+  const [guardado, setGuardado] = useState(false);
+  const [fotoFile, setFotoFile] = useState(null);
+  const [expandido, setExpandido] = useState(false);
+
+  const setResp = (campo, valor) => setRespuestas(p => ({ ...p, [campo]: valor }));
+  const hayRespuesta = Object.keys(respuestas).length > 0 || fotoFile;
+
+  const guardar = async () => {
+    setGuardando(true);
+    try {
+      const updateData = {};
+      if (respuestas.atrapados) updateData.personas_atrapadas = respuestas.atrapados;
+      if (respuestas.acceso_calle) updateData.acceso_calle = respuestas.acceso_calle;
+      if (respuestas.gas) updateData.gas = respuestas.gas;
+      if (respuestas.electricidad) updateData.electricidad = respuestas.electricidad;
+      if (respuestas.agua) updateData.agua = respuestas.agua;
+      if (Object.keys(updateData).length > 0) {
+        await base44.entities.ReportesDano.update(edificioId, updateData);
+      }
+      if (fotoFile) {
+        (async () => {
+          try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file: fotoFile });
+            const ed = await base44.entities.ReportesDano.get(edificioId);
+            const existentes = ed?.foto_urls || [];
+            if (existentes.length < 5) {
+              const updated = await base44.entities.ReportesDano.update(edificioId, { foto_urls: [file_url, ...existentes].slice(0, 5) });
+              if (onDatoGuardado) onDatoGuardado({ foto_urls: updated.foto_urls });
+            }
+          } catch {}
+        })();
+      }
+      setGuardado(true);
+      if (onDatoGuardado) onDatoGuardado(updateData);
+      setTimeout(() => setGuardado(false), 4000);
+    } catch {}
+    setGuardando(false);
+  };
+
+  const ACCESO_OPTS = [
+    { val: 'normal', es: '✅ Libre', en: '✅ Clear' },
+    { val: 'dificultad', es: '⚠️ Dificultad', en: '⚠️ Difficult' },
+    { val: 'solo_peatonal', es: '🚶 Solo a pie', en: '🚶 On foot' },
+    { val: 'bloqueada', es: '🚫 Bloqueada', en: '🚫 Blocked' },
+    { val: 'no_sabe', es: '❓ No sé', en: '❓ Unknown' },
+  ];
+  const SERV_OPTS = [
+    { val: 'disponible', es: '✅ Sí', en: '✅ Yes' },
+    { val: 'no_disponible', es: '❌ No', en: '❌ No' },
+    { val: 'intermitente', es: '⚡ Intermitente', en: '⚡ Intermittent' },
+    { val: 'no_confirmado', es: '❓ No sé', en: '❓ Unknown' },
+  ];
+
+  return (
+    <div style={{
+      background: 'rgba(120,53,15,0.18)',
+      border: '2px solid rgba(251,146,60,0.55)',
+      borderRadius: 14,
+      marginBottom: 12,
+      overflow: 'hidden',
+    }}>
+      {/* Header siempre visible */}
+      <button onClick={() => setExpandido(v => !v)} style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 16px', background: 'transparent', border: 'none', cursor: 'pointer',
+        gap: 10,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 18 }}>📋</span>
+          <div style={{ textAlign: 'left' }}>
+            <p style={{ fontSize: 12, fontWeight: 900, color: '#FDE68A', margin: 0 }}>
+              {es ? `${faltante.length} campo${faltante.length > 1 ? 's' : ''} sin información` : `${faltante.length} field${faltante.length > 1 ? 's' : ''} missing`}
+            </p>
+            <p style={{ fontSize: 10, color: 'rgba(253,230,138,0.65)', margin: 0 }}>
+              {es ? '¿Puedes completarla? Ayuda a otros.' : 'Can you fill this in? Help others.'}
+            </p>
+          </div>
+        </div>
+        <span style={{ fontSize: 12, color: '#FDE68A', fontWeight: 700 }}>{expandido ? '▲' : '▼'}</span>
+      </button>
+
+      {/* Contenido expandible */}
+      {expandido && (
+        <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+          {faltante.includes('atrapados') && (
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+                🆘 {es ? '¿Hay personas atrapadas?' : 'Are people trapped?'}
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {[{ val: 'si', es: '🚨 Sí', en: '🚨 Yes' }, { val: 'voces', es: '👂 Voces/golpes', en: '👂 Voices' }, { val: 'no', es: '✅ No', en: '✅ No' }, { val: 'no_sabe', es: '❓ No sé', en: '❓ Unknown' }].map(o => (
+                  <button key={o.val} onClick={() => setResp('atrapados', o.val)} style={{
+                    padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    background: respuestas.atrapados === o.val ? '#C0392B' : 'rgba(255,255,255,0.07)',
+                    color: '#fff', border: `1.5px solid ${respuestas.atrapados === o.val ? '#C0392B' : 'rgba(251,146,60,0.30)'}`,
+                  }}>{es ? o.es : o.en}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {faltante.includes('acceso_calle') && (
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+                🚶 {es ? '¿Cómo está la calle?' : 'How is street access?'}
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {ACCESO_OPTS.map(o => (
+                  <button key={o.val} onClick={() => setResp('acceso_calle', o.val)} style={{
+                    padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    background: respuestas.acceso_calle === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
+                    color: '#fff', border: `1.5px solid ${respuestas.acceso_calle === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                  }}>{es ? o.es : o.en}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {faltante.includes('gas') && (
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+                💨 {es ? '¿Hay olor a gas?' : 'Gas smell?'}
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {[{ val: 'fuga_reportada', es: '🚨 Fuga', en: '🚨 Leak' }, { val: 'suspendido', es: '🔴 Suspendido', en: '🔴 Off' }, { val: 'disponible', es: '✅ Normal', en: '✅ OK' }, { val: 'no_confirmado', es: '❓ No sé', en: '❓ Unknown' }].map(o => (
+                  <button key={o.val} onClick={() => setResp('gas', o.val)} style={{
+                    padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    background: respuestas.gas === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
+                    color: '#fff', border: `1.5px solid ${respuestas.gas === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                  }}>{es ? o.es : o.en}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {faltante.includes('electricidad') && (
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+                ⚡ {es ? '¿Hay electricidad?' : 'Is there power?'}
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {SERV_OPTS.map(o => (
+                  <button key={o.val} onClick={() => setResp('electricidad', o.val)} style={{
+                    padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    background: respuestas.electricidad === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
+                    color: '#fff', border: `1.5px solid ${respuestas.electricidad === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                  }}>{es ? o.es : o.en}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {faltante.includes('agua') && (
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+                💧 {es ? '¿Hay agua?' : 'Is there water?'}
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {SERV_OPTS.map(o => (
+                  <button key={o.val} onClick={() => setResp('agua', o.val)} style={{
+                    padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    background: respuestas.agua === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
+                    color: '#fff', border: `1.5px solid ${respuestas.agua === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                  }}>{es ? o.es : o.en}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {faltante.includes('foto') && (
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+                📷 {es ? '¿Tienes foto del edificio?' : 'Do you have a building photo?'}
+              </p>
+              {!fotoFile ? (
+                <label style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  border: '1.5px dashed rgba(251,146,60,0.45)', borderRadius: 10,
+                  padding: '10px 0', cursor: 'pointer', fontSize: 11, color: '#FDE68A', fontWeight: 600,
+                  background: 'rgba(180,83,9,0.08)',
+                }}>
+                  <Camera size={14} />
+                  {es ? 'Subir foto (opcional)' : 'Upload photo (optional)'}
+                  <input type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) setFotoFile(e.target.files[0]); }} />
+                </label>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img src={URL.createObjectURL(fotoFile)} alt="" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8 }} />
+                  <p style={{ fontSize: 11, color: '#86EFAC', margin: 0, fontWeight: 600 }}>✅ {es ? 'Lista' : 'Ready'}</p>
+                  <button onClick={() => setFotoFile(null)} style={{ fontSize: 10, color: 'rgba(253,230,138,0.55)', background: 'none', border: 'none', cursor: 'pointer' }}>{es ? 'Quitar' : 'Remove'}</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {guardado ? (
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#86EFAC', textAlign: 'center', margin: 0 }}>
+              ✅ {es ? '¡Gracias! Guardado.' : 'Thanks! Saved.'}
+            </p>
+          ) : hayRespuesta && (
+            <button onClick={guardar} disabled={guardando} style={{
+              width: '100%', padding: '11px 0', borderRadius: 12,
+              fontSize: 12, fontWeight: 800, cursor: guardando ? 'default' : 'pointer',
+              background: guardando ? 'rgba(217,119,6,0.4)' : '#D97706',
+              color: '#fff', border: 'none',
+            }}>
+              {guardando ? (es ? 'Guardando...' : 'Saving...') : `📡 ${es ? 'Enviar información' : 'Send info'}`}
+            </button>
+          )}
+          <p style={{ fontSize: 10, color: 'rgba(253,230,138,0.40)', textAlign: 'center', margin: 0 }}>
+            {es ? '"No sé" también ayuda.' : '"Unknown" also helps.'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Helper fuera del componente para no recrear en cada render
 async function subirFotoBackground(file, id, setFotoOk) {
   try {
