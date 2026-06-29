@@ -328,6 +328,13 @@ export default function PortalVoluntario() {
                   <div><p className="text-xs font-bold text-purple-800">{t('Evaluar estructuras', 'Assess structures')}</p></div>
                 </button>
               )}
+              {(especialistaAprobado || isAdmin) && (
+                <Link to="/inspecciones" className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-3 py-3 no-underline hover:bg-blue-100 col-span-2">
+                  <span className="text-xl">📋</span>
+                  <div><p className="text-xs font-bold text-blue-800">{t('Dashboard de inspecciones', 'Inspections dashboard')}</p>
+                  <p className="text-[10px] text-blue-600 mt-0.5">{t('Solo ingenieros y arquitectos', 'Engineers & architects only')}</p></div>
+                </Link>
+              )}
             </div>
           </div>
         )}
