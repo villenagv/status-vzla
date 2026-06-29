@@ -253,6 +253,21 @@ export default function PortalVoluntario() {
               </div>
             </div>
           </div>
+          {/* Acceso directo al Dashboard de inspecciones (solo especialistas aprobados o admin) */}
+          {(especialistaAprobado || isAdmin) && (
+            <Link to="/inspecciones"
+              className="mt-3 flex items-center justify-between gap-2 bg-blue-600 hover:bg-blue-700 rounded-xl px-4 py-3 no-underline transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📋</span>
+                <div>
+                  <p className="text-sm font-bold text-white">{t('Dashboard de inspecciones', 'Inspections dashboard')}</p>
+                  <p className="text-[10px] text-blue-100">{t('Triaje y procesamiento técnico', 'Triage & technical processing')}</p>
+                </div>
+              </div>
+              <span className="text-white text-lg">→</span>
+            </Link>
+          )}
+
           {/* Aviso especialista pendiente */}
           {esEspecialista && perfil.estado_aprobacion === 'pendiente' && (
             <div className="mt-3 bg-yellow-900/40 border border-yellow-500/30 rounded-xl p-3">
