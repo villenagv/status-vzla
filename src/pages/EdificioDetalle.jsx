@@ -406,29 +406,29 @@ export default function EdificioDetalle() {
               {edificio.acceso_calle && edificio.acceso_calle !== 'no_verificado' && (
                 <p className="text-xs mt-1 flex items-center gap-1">
                   {{
-                    normal:        <span className="font-semibold" style={{ color: '#86EFAC' }}>✅ {t('Calle libre', 'Street clear', 'Rua livre')}</span>,
-                    dificultad:    <span className="font-semibold" style={{ color: '#FCD34D' }}>⚠️ {t('Acceso con dificultad', 'Access with difficulty', 'Acesso com dificuldade')}</span>,
-                    solo_peatonal: <span className="font-semibold" style={{ color: '#FCD34D' }}>🚶 {t('Solo a pie', 'On foot only', 'Somente a pé')}</span>,
-                    bloqueada:     <span className="font-semibold" style={{ color: '#FCA5A5' }}>🚫 {t('Calle bloqueada', 'Street blocked', 'Rua bloqueada')}</span>,
-                    insegura:      <span className="font-semibold" style={{ color: '#FCA5A5' }}>☠️ {t('Vía insegura', 'Dangerous road', 'Via perigosa')}</span>,
-                    no_sabe:       <span className="font-semibold" style={{ color: '#9BA5B0' }}>❓ {t('Acceso no confirmado', 'Access unknown', 'Acesso desconhecido')}</span>,
+                    normal:        <span className="font-semibold" style={{ color: '#15803D' }}>✅ {t('Calle libre', 'Street clear', 'Rua livre')}</span>,
+                    dificultad:    <span className="font-semibold" style={{ color: '#B45309' }}>⚠️ {t('Acceso con dificultad', 'Access with difficulty', 'Acesso com dificuldade')}</span>,
+                    solo_peatonal: <span className="font-semibold" style={{ color: '#B45309' }}>🚶 {t('Solo a pie', 'On foot only', 'Somente a pé')}</span>,
+                    bloqueada:     <span className="font-semibold" style={{ color: '#B91C1C' }}>🚫 {t('Calle bloqueada', 'Street blocked', 'Rua bloqueada')}</span>,
+                    insegura:      <span className="font-semibold" style={{ color: '#B91C1C' }}>☠️ {t('Vía insegura', 'Dangerous road', 'Via perigosa')}</span>,
+                    no_sabe:       <span className="font-semibold" style={{ color: '#6B7280' }}>❓ {t('Acceso no confirmado', 'Access unknown', 'Acesso desconhecido')}</span>,
                   }[edificio.acceso_calle] || null}
                 </p>
               )}
             </div>
             {/* Métricas rápidas */}
             <div className="flex flex-col items-end gap-1 flex-shrink-0 text-right">
-              <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: esCritico ? '#C0C8D2' : '#4B5563' }}>
+              <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: '#4B5563' }}>
                 <BarChart2 size={12} />{totalReportes} {t('reportes', 'reports', 'relatórios')}
               </div>
               {totalSuscriptores !== null && totalSuscriptores > 0 && (
-                <div className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: esCritico ? '#93C5FD' : '#2563EB' }}>
+                <div className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: '#2563EB' }}>
                   <Bell size={10} />{totalSuscriptores} {t('siguiendo', 'following', 'seguindo')}
                 </div>
               )}
-              <p className="text-[10px]" style={{ color: esCritico ? '#9BA5B0' : '#6B7280' }}>🕐 {tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
+              <p className="text-[10px]" style={{ color: '#6B7280' }}>🕐 {tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
               {edificio.nivel_verificacion === 'institucional' && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style={{ color: '#5EEAD4', background: 'rgba(20,184,166,0.15)', border: '1px solid rgba(20,184,166,0.35)' }}>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style={{ color: '#0F766E', background: '#CCFBF1', border: '1px solid #99F6E4' }}>
                   <Shield size={8} /> {t('Verificado', 'Verified', 'Verificado')}
                 </span>
               )}
@@ -455,24 +455,24 @@ export default function EdificioDetalle() {
 
           {/* Resumen contadores personas */}
           {(reportesAtrapados.length > 0 || reportesHeridos.length > 0 || reportesFallecidos.length > 0) && (
-            <div className="grid grid-cols-3 gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}>
+            <div className="grid grid-cols-3 gap-2 mt-3 pt-3" style={{ borderTop: '1px solid #E5E7EB' }}>
               <div className="text-center p-2 rounded-xl" style={{
-                background: reportesAtrapados.length > 0 ? 'rgba(220,38,38,0.18)' : 'rgba(255,255,255,0.05)',
-                border: `1px solid ${reportesAtrapados.length > 0 ? 'rgba(220,38,38,0.45)' : 'rgba(255,255,255,0.10)'}`,
+                background: reportesAtrapados.length > 0 ? '#FEF2F2' : '#F9FAFB',
+                border: `1px solid ${reportesAtrapados.length > 0 ? '#FECACA' : '#E5E7EB'}`,
               }}>
-                <p className="text-base font-black" style={{ color: '#FCA5A5' }}>{reportesAtrapados.length}</p>
-                <p className="text-[9px] leading-tight" style={{ color: '#FCA5A5' }}>{t('Atrapados', 'Trapped', 'Presos')}</p>
+                <p className="text-base font-black" style={{ color: reportesAtrapados.length > 0 ? '#B91C1C' : '#6B7280' }}>{reportesAtrapados.length}</p>
+                <p className="text-[9px] leading-tight" style={{ color: reportesAtrapados.length > 0 ? '#DC2626' : '#9CA3AF' }}>{t('Atrapados', 'Trapped', 'Presos')}</p>
               </div>
               <div className="text-center p-2 rounded-xl" style={{
-                background: reportesHeridos.length > 0 ? 'rgba(217,119,6,0.18)' : 'rgba(255,255,255,0.05)',
-                border: `1px solid ${reportesHeridos.length > 0 ? 'rgba(217,119,6,0.45)' : 'rgba(255,255,255,0.10)'}`,
+                background: reportesHeridos.length > 0 ? '#FFFBEB' : '#F9FAFB',
+                border: `1px solid ${reportesHeridos.length > 0 ? '#FCD34D' : '#E5E7EB'}`,
               }}>
-                <p className="text-base font-black" style={{ color: '#FCD34D' }}>{reportesHeridos.length}</p>
-                <p className="text-[9px] leading-tight" style={{ color: '#FCD34D' }}>{t('Heridos recup.', 'Injured recov.', 'Feridos recup.')}</p>
+                <p className="text-base font-black" style={{ color: reportesHeridos.length > 0 ? '#B45309' : '#6B7280' }}>{reportesHeridos.length}</p>
+                <p className="text-[9px] leading-tight" style={{ color: reportesHeridos.length > 0 ? '#D97706' : '#9CA3AF' }}>{t('Heridos recup.', 'Injured recov.', 'Feridos recup.')}</p>
               </div>
-              <div className="text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}>
-                <p className="text-base font-black" style={{ color: '#C0C8D2' }}>{reportesFallecidos.length}</p>
-                <p className="text-[9px] leading-tight" style={{ color: '#9BA5B0' }}>{t('Fallecidos recup.', 'Deceased recov.', 'Falecidos recup.')}</p>
+              <div className="text-center p-2 rounded-xl" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+                <p className="text-base font-black" style={{ color: '#374151' }}>{reportesFallecidos.length}</p>
+                <p className="text-[9px] leading-tight" style={{ color: '#6B7280' }}>{t('Fallecidos recup.', 'Deceased recov.', 'Falecidos recup.')}</p>
               </div>
             </div>
           )}
