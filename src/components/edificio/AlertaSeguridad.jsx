@@ -578,8 +578,8 @@ export function InfoFaltanteInline({ edificio, edificioId, es, faltante, onDatoG
 
   return (
     <div style={{
-      background: 'rgba(120,53,15,0.18)',
-      border: '2px solid rgba(251,146,60,0.55)',
+      background: '#f9fafb',
+      border: '1.5px solid #e5e7eb',
       borderRadius: 14,
       marginBottom: 12,
       overflow: 'hidden',
@@ -593,32 +593,33 @@ export function InfoFaltanteInline({ edificio, edificioId, es, faltante, onDatoG
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 18 }}>📋</span>
           <div style={{ textAlign: 'left' }}>
-            <p style={{ fontSize: 12, fontWeight: 900, color: '#FDE68A', margin: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 900, color: '#374151', margin: 0 }}>
               {es ? `${faltante.length} campo${faltante.length > 1 ? 's' : ''} sin información` : `${faltante.length} field${faltante.length > 1 ? 's' : ''} missing`}
             </p>
-            <p style={{ fontSize: 10, color: 'rgba(253,230,138,0.65)', margin: 0 }}>
+            <p style={{ fontSize: 10, color: '#6b7280', margin: 0 }}>
               {es ? '¿Puedes completarla? Ayuda a otros.' : 'Can you fill this in? Help others.'}
             </p>
           </div>
         </div>
-        <span style={{ fontSize: 12, color: '#FDE68A', fontWeight: 700 }}>{expandido ? '▲' : '▼'}</span>
+        <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 700 }}>{expandido ? '▲' : '▼'}</span>
       </button>
 
       {/* Contenido expandible */}
       {expandido && (
-        <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid #e5e7eb' }}>
 
           {faltante.includes('atrapados') && (
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+            <div style={{ paddingTop: 10 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', margin: '0 0 6px' }}>
                 🆘 {es ? '¿Hay personas atrapadas?' : 'Are people trapped?'}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {[{ val: 'si', es: '🚨 Sí', en: '🚨 Yes' }, { val: 'voces', es: '👂 Voces/golpes', en: '👂 Voices' }, { val: 'no', es: '✅ No', en: '✅ No' }, { val: 'no_sabe', es: '❓ No sé', en: '❓ Unknown' }].map(o => (
                   <button key={o.val} onClick={() => setResp('atrapados', o.val)} style={{
                     padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: respuestas.atrapados === o.val ? '#C0392B' : 'rgba(255,255,255,0.07)',
-                    color: '#fff', border: `1.5px solid ${respuestas.atrapados === o.val ? '#C0392B' : 'rgba(251,146,60,0.30)'}`,
+                    background: respuestas.atrapados === o.val ? '#dc2626' : '#ffffff',
+                    color: respuestas.atrapados === o.val ? '#fff' : '#374151',
+                    border: `1.5px solid ${respuestas.atrapados === o.val ? '#dc2626' : '#e5e7eb'}`,
                   }}>{es ? o.es : o.en}</button>
                 ))}
               </div>
@@ -627,15 +628,16 @@ export function InfoFaltanteInline({ edificio, edificioId, es, faltante, onDatoG
 
           {faltante.includes('acceso_calle') && (
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', margin: '0 0 6px' }}>
                 🚶 {es ? '¿Cómo está la calle?' : 'How is street access?'}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {ACCESO_OPTS.map(o => (
                   <button key={o.val} onClick={() => setResp('acceso_calle', o.val)} style={{
                     padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: respuestas.acceso_calle === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
-                    color: '#fff', border: `1.5px solid ${respuestas.acceso_calle === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                    background: respuestas.acceso_calle === o.val ? '#2563eb' : '#ffffff',
+                    color: respuestas.acceso_calle === o.val ? '#fff' : '#374151',
+                    border: `1.5px solid ${respuestas.acceso_calle === o.val ? '#2563eb' : '#e5e7eb'}`,
                   }}>{es ? o.es : o.en}</button>
                 ))}
               </div>
@@ -644,15 +646,16 @@ export function InfoFaltanteInline({ edificio, edificioId, es, faltante, onDatoG
 
           {faltante.includes('gas') && (
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', margin: '0 0 6px' }}>
                 💨 {es ? '¿Hay olor a gas?' : 'Gas smell?'}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {[{ val: 'fuga_reportada', es: '🚨 Fuga', en: '🚨 Leak' }, { val: 'suspendido', es: '🔴 Suspendido', en: '🔴 Off' }, { val: 'disponible', es: '✅ Normal', en: '✅ OK' }, { val: 'no_confirmado', es: '❓ No sé', en: '❓ Unknown' }].map(o => (
                   <button key={o.val} onClick={() => setResp('gas', o.val)} style={{
                     padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: respuestas.gas === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
-                    color: '#fff', border: `1.5px solid ${respuestas.gas === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                    background: respuestas.gas === o.val ? '#2563eb' : '#ffffff',
+                    color: respuestas.gas === o.val ? '#fff' : '#374151',
+                    border: `1.5px solid ${respuestas.gas === o.val ? '#2563eb' : '#e5e7eb'}`,
                   }}>{es ? o.es : o.en}</button>
                 ))}
               </div>
@@ -661,15 +664,16 @@ export function InfoFaltanteInline({ edificio, edificioId, es, faltante, onDatoG
 
           {faltante.includes('electricidad') && (
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', margin: '0 0 6px' }}>
                 ⚡ {es ? '¿Hay electricidad?' : 'Is there power?'}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {SERV_OPTS.map(o => (
                   <button key={o.val} onClick={() => setResp('electricidad', o.val)} style={{
                     padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: respuestas.electricidad === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
-                    color: '#fff', border: `1.5px solid ${respuestas.electricidad === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                    background: respuestas.electricidad === o.val ? '#2563eb' : '#ffffff',
+                    color: respuestas.electricidad === o.val ? '#fff' : '#374151',
+                    border: `1.5px solid ${respuestas.electricidad === o.val ? '#2563eb' : '#e5e7eb'}`,
                   }}>{es ? o.es : o.en}</button>
                 ))}
               </div>
@@ -678,15 +682,16 @@ export function InfoFaltanteInline({ edificio, edificioId, es, faltante, onDatoG
 
           {faltante.includes('agua') && (
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', margin: '0 0 6px' }}>
                 💧 {es ? '¿Hay agua?' : 'Is there water?'}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {SERV_OPTS.map(o => (
                   <button key={o.val} onClick={() => setResp('agua', o.val)} style={{
                     padding: '7px 11px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: respuestas.agua === o.val ? '#D97706' : 'rgba(255,255,255,0.07)',
-                    color: '#fff', border: `1.5px solid ${respuestas.agua === o.val ? '#D97706' : 'rgba(251,146,60,0.30)'}`,
+                    background: respuestas.agua === o.val ? '#2563eb' : '#ffffff',
+                    color: respuestas.agua === o.val ? '#fff' : '#374151',
+                    border: `1.5px solid ${respuestas.agua === o.val ? '#2563eb' : '#e5e7eb'}`,
                   }}>{es ? o.es : o.en}</button>
                 ))}
               </div>
@@ -695,15 +700,15 @@ export function InfoFaltanteInline({ edificio, edificioId, es, faltante, onDatoG
 
           {faltante.includes('foto') && (
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#FDE68A', margin: '0 0 6px' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', margin: '0 0 6px' }}>
                 📷 {es ? '¿Tienes foto del edificio?' : 'Do you have a building photo?'}
               </p>
               {!fotoFile ? (
                 <label style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  border: '1.5px dashed rgba(251,146,60,0.45)', borderRadius: 10,
-                  padding: '10px 0', cursor: 'pointer', fontSize: 11, color: '#FDE68A', fontWeight: 600,
-                  background: 'rgba(180,83,9,0.08)',
+                  border: '1.5px dashed #d1d5db', borderRadius: 10,
+                  padding: '10px 0', cursor: 'pointer', fontSize: 11, color: '#6b7280', fontWeight: 600,
+                  background: '#ffffff',
                 }}>
                   <Camera size={14} />
                   {es ? 'Subir foto (opcional)' : 'Upload photo (optional)'}
@@ -712,28 +717,28 @@ export function InfoFaltanteInline({ edificio, edificioId, es, faltante, onDatoG
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <img src={URL.createObjectURL(fotoFile)} alt="" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8 }} />
-                  <p style={{ fontSize: 11, color: '#86EFAC', margin: 0, fontWeight: 600 }}>✅ {es ? 'Lista' : 'Ready'}</p>
-                  <button onClick={() => setFotoFile(null)} style={{ fontSize: 10, color: 'rgba(253,230,138,0.55)', background: 'none', border: 'none', cursor: 'pointer' }}>{es ? 'Quitar' : 'Remove'}</button>
+                  <p style={{ fontSize: 11, color: '#16a34a', margin: 0, fontWeight: 600 }}>✅ {es ? 'Lista' : 'Ready'}</p>
+                  <button onClick={() => setFotoFile(null)} style={{ fontSize: 10, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}>{es ? 'Quitar' : 'Remove'}</button>
                 </div>
               )}
             </div>
           )}
 
           {guardado ? (
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#86EFAC', textAlign: 'center', margin: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', textAlign: 'center', margin: 0 }}>
               ✅ {es ? '¡Gracias! Guardado.' : 'Thanks! Saved.'}
             </p>
           ) : hayRespuesta && (
             <button onClick={guardar} disabled={guardando} style={{
               width: '100%', padding: '11px 0', borderRadius: 12,
               fontSize: 12, fontWeight: 800, cursor: guardando ? 'default' : 'pointer',
-              background: guardando ? 'rgba(217,119,6,0.4)' : '#D97706',
+              background: guardando ? '#93c5fd' : '#2563eb',
               color: '#fff', border: 'none',
             }}>
               {guardando ? (es ? 'Guardando...' : 'Saving...') : `📡 ${es ? 'Enviar información' : 'Send info'}`}
             </button>
           )}
-          <p style={{ fontSize: 10, color: 'rgba(253,230,138,0.40)', textAlign: 'center', margin: 0 }}>
+          <p style={{ fontSize: 10, color: '#9ca3af', textAlign: 'center', margin: 0 }}>
             {es ? '"No sé" también ayuda.' : '"Unknown" also helps.'}
           </p>
         </div>
