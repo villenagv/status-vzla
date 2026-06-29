@@ -12,6 +12,7 @@ import PersonasEnEdificio from '@/components/edificio/PersonasEnEdificio';
 import MascotasEnEdificio from '@/components/edificio/MascotasEnEdificio';
 import PanelRescate from '@/components/edificio/PanelRescate';
 import PanelRescateInline from '@/components/edificio/PanelRescateInline';
+import HistorialGestion from '@/components/edificio/HistorialGestion';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
 import SeoMeta from '@/components/seo/SeoMeta';
@@ -306,13 +307,15 @@ export default function EdificioDetalle() {
 
   const noEntrar = ['grave', 'critico', 'colapsado'].includes(edificio.nivel_dano);
   const esCritico = noEntrar || edificio.personas_atrapadas === 'si' || edificio.prioridad === 'critica';
+  // Excluimos notas de especialista del historial ciudadano — se muestran en HistorialGestion
+  const actualizacionesCiudadanas = actualizaciones.filter(a => a.fuente !== 'especialista');
   const totalReportes = actualizaciones.length + 1;
   const reportesPersonas = actualizaciones.filter(a => ['personas_atrapadas', 'persona_herida_recuperada', 'persona_fallecida_recuperada'].includes(a.tipo_accion));
   const reportesAtrapados = reportesPersonas.filter(a => a.tipo_accion === 'personas_atrapadas');
   const reportesHeridos = reportesPersonas.filter(a => a.tipo_accion === 'persona_herida_recuperada');
   const reportesFallecidos = reportesPersonas.filter(a => a.tipo_accion === 'persona_fallecida_recuperada');
   // Urgencias (atrapados/urgencia) primero en el historial
-  const actualizacionesOrdenadas = [...actualizaciones].sort((a, b) => {
+  const actualizacionesOrdenadas = [...actualizacionesCiudadanas].sort((a, b) => {
     const urgA = ['personas_atrapadas', 'reportar_urgencia'].includes(a.tipo_accion) ? 0 : 1;
     const urgB = ['personas_atrapadas', 'reportar_urgencia'].includes(b.tipo_accion) ? 0 : 1;
     if (urgA !== urgB) return urgA - urgB;
@@ -585,12 +588,15 @@ export default function EdificioDetalle() {
 
         {/* ── 6. (Foto de portada ya está en bloque #1 arriba) ── */}
 
-        {/* ── 7. HISTORIAL DE ACTUALIZACIONES ── */}
+        {/* ── 6b. HISTORIAL DE GESTIÓN E INSPECCIONES ── */}
+        <HistorialGestion edificio={edificio} es={es} />
+
+        {/* ── 7. HISTORIAL DE ACTUALIZACIONES CIUDADANAS ── */}
         <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
           <div className="flex items-center mb-3">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">🕐 {t('Historial de actualizaciones e información', 'Update history & info', 'Histórico de atualizações')}{actualizaciones.length > 0 ? ` (${actualizaciones.length})` : ''}</h2>
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">🕐 {t('Historial de actualizaciones e información', 'Update history & info', 'Histórico de atualizações')}{actualizacionesCiudadanas.length > 0 ? ` (${actualizacionesCiudadanas.length})` : ''}</h2>
           </div>
-          {actualizaciones.length === 0 ? (
+          {actualizacionesCiudadanas.length === 0 ? (
             <p className="text-xs text-gray-400 italic">{t('Sin actualizaciones registradas aún. Sé el primero en reportar.', 'No updates recorded yet. Be the first to report.', 'Sem atualizações registradas ainda. Seja o primeiro a reportar.')}</p>
           ) : (
           <div className="space-y-2">
