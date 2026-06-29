@@ -41,7 +41,7 @@ function ServicioChip({ icon: Icon, label, estado, es }) {
     <div className="flex items-center justify-between py-2.5 px-3 rounded-xl border" style={{ background: cfg.bg, borderColor: cfg.border }}>
       <div className="flex items-center gap-2">
         <Icon size={14} style={{ color: cfg.color }} />
-        <span className="text-xs font-semibold text-gray-700">{label}</span>
+        <span className="text-xs font-semibold" style={{ color: '#1F2937' }}>{label}</span>
       </div>
       <span className="text-xs font-bold" style={{ color: cfg.color }}>
         {cfg.dot} {es ? cfg.es : cfg.en}
@@ -125,7 +125,7 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
       {paso === 'danos' && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-gray-700">🏗️ {es ? '¿Qué tipo de daños tiene el edificio?' : 'What type of damage does the building have?'}</p>
-          <p className="text-[10px] text-gray-500 leading-relaxed">
+          <p className="text-[10px] leading-relaxed" style={{ color: '#4B5563' }}>
             {es ? 'Estéticos: pintura, vidrios, fachada. Estructurales: columnas, paredes, escaleras, grietas grandes.' : 'Cosmetic: paint, glass, facade. Structural: columns, walls, stairs, large cracks.'}
           </p>
           <div className="grid grid-cols-2 gap-1.5">
@@ -143,7 +143,7 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
       {paso === 'acceso' && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-gray-700">🚶 {es ? '¿Cómo está la calle para llegar al edificio?' : 'How is the street to reach the building?'}</p>
-          <p className="text-[10px] text-gray-500 leading-relaxed">
+          <p className="text-[10px] leading-relaxed" style={{ color: '#4B5563' }}>
             {es ? 'Cuéntanos si puedes llegar a pie sin problemas, si hay escombros u obstáculos.' : 'Tell us if you can reach it on foot, or if there are debris or obstacles.'}
           </p>
           <div className="flex flex-col gap-1.5">
@@ -156,7 +156,7 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
           </div>
           <input value={form.notas_acceso} onChange={e => set('notas_acceso', e.target.value)}
             placeholder={es ? 'Ej: Hay escombros en la entrada, la acera está rota...' : 'E.g.: Debris at entrance, sidewalk is broken...'}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500" />
         </div>
       )}
 
@@ -164,7 +164,7 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
       {paso === 'vehiculos' && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-gray-700">🚗 {es ? '¿Qué tipo de vehículo puede llegar hasta el edificio?' : 'What type of vehicle can reach the building?'}</p>
-          <p className="text-[10px] text-gray-500 leading-relaxed">
+          <p className="text-[10px] leading-relaxed" style={{ color: '#4B5563' }}>
             {es ? 'Esto ayuda a coordinar ambulancias, bomberos y camiones de rescate. Sé lo más preciso posible.' : 'This helps coordinate ambulances, firefighters and rescue trucks. Be as specific as possible.'}
           </p>
           <div className="flex flex-col gap-1.5">
@@ -189,7 +189,7 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-4">
           <div>
             <p className="text-xs font-bold text-gray-700">⚡ {es ? '¿Cómo están los servicios en este edificio?' : 'How are the services in this building?'}</p>
-            <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">
+            <p className="text-[10px] mt-0.5 leading-relaxed" style={{ color: '#4B5563' }}>
               {es ? 'Marca solo lo que sabes con certeza. Si no sabes, deja "No sé".' : 'Only mark what you know for sure. Leave "Unknown" if unsure.'}
             </p>
           </div>
@@ -250,7 +250,7 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
       {paso === 'racionamiento' && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-3">
           <p className="text-xs font-bold text-gray-700">🕐 {es ? 'Horarios de racionamiento' : 'Rationing schedules'}</p>
-          <p className="text-[10px] text-gray-500">{es ? 'Si hay cortes programados de agua, luz o gas, ingrésalos para que vecinos puedan organizarse.' : 'If there are scheduled cuts for water, electricity or gas, add them so neighbors can plan.'}</p>
+          <p className="text-[10px]" style={{ color: '#4B5563' }}>{es ? 'Si hay cortes programados de agua, luz o gas, ingrésalos para que vecinos puedan organizarse.' : 'If there are scheduled cuts for water, electricity or gas, add them so neighbors can plan.'}</p>
           {[
             { key: 'agua',          ratKey: 'racionamiento_agua',          horKey: 'horario_agua',          icon: '💧', es: 'Agua',         en: 'Water'       },
             { key: 'electricidad',  ratKey: 'racionamiento_electricidad',   horKey: 'horario_electricidad',  icon: '⚡', es: 'Electricidad', en: 'Electricity' },
@@ -268,13 +268,13 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
               {form[srv.ratKey] && (
                 <input value={form[srv.horKey]} onChange={e => set(srv.horKey, e.target.value)}
                   placeholder={es ? 'Ej: Lun, Mié, Vie — 6:00 AM a 10:00 AM' : 'E.g: Mon, Wed, Fri — 6:00 AM to 10:00 AM'}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               )}
             </div>
           ))}
           <textarea value={form.notas_racionamiento} onChange={e => set('notas_racionamiento', e.target.value)}
             rows={2} placeholder={es ? 'Notas adicionales sobre racionamiento...' : 'Additional notes about rationing...'}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs resize-none focus:outline-none" />
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:border-blue-500" />
         </div>
       )}
 
@@ -282,7 +282,7 @@ function FormActualizacion({ edificioId, es, onGuardado }) {
       {paso && (
         <input value={form.reportante_nombre} onChange={e => set('reportante_nombre', e.target.value)}
           placeholder={es ? 'Tu nombre (opcional, no se publica)' : 'Your name (optional, not published)'}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-white focus:outline-none" />
+          className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500" />
       )}
 
       {/* Botón guardar */}

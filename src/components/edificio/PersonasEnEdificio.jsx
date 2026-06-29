@@ -25,7 +25,7 @@ const RELACION_OPTS = [
   { val: 'otro',       es: 'Otro',              en: 'Other'           },
 ];
 
-const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-500 placeholder-gray-400";
+const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-400";
 
 // Estado preseleccionado por defecto: atrapada con vida (máxima urgencia)
 const FORM_INIT = {
@@ -73,23 +73,23 @@ function PersonaCard({ persona, es }) {
             </p>
           )}
           {persona.notas_publicas && (
-            <p style={{ fontSize: 11, color: '#374151', margin: '4px 0', background: '#F3F4F6', borderRadius: 8, padding: '6px 10px' }}>
+            <p style={{ fontSize: 11, color: '#111827', margin: '4px 0', background: '#F3F4F6', borderRadius: 8, padding: '6px 10px', lineHeight: 1.5 }}>
               {persona.notas_publicas}
             </p>
           )}
           {/* Contacto de aviso — visible solo si hay nombre (no datos sensibles) */}
           {persona.avisar_nombre && (
             <p style={{ fontSize: 11, color: '#374151', margin: '6px 0 2px' }}>
-              👤 {es ? 'Contacto familiar:' : 'Family contact:'} <strong>{persona.avisar_nombre}</strong>
-              {persona.avisar_relacion && <span style={{ color: '#9CA3AF' }}> ({persona.avisar_relacion})</span>}
+              👤 {es ? 'Contacto familiar:' : 'Family contact:'} <strong style={{ color: '#111827' }}>{persona.avisar_nombre}</strong>
+              {persona.avisar_relacion && <span style={{ color: '#6B7280' }}> ({persona.avisar_relacion})</span>}
             </p>
           )}
           {persona.fuente_inicial && (
-            <p style={{ fontSize: 10, color: '#9CA3AF', margin: '4px 0 0' }}>
+            <p style={{ fontSize: 10, color: '#6B7280', margin: '4px 0 0' }}>
               🔎 {es ? 'Fuente:' : 'Source:'} {persona.fuente_inicial}
             </p>
           )}
-          <p style={{ fontSize: 10, color: '#9CA3AF', margin: '4px 0 0' }}>
+          <p style={{ fontSize: 10, color: '#6B7280', margin: '4px 0 0' }}>
             🕐 {new Date(persona.created_date).toLocaleDateString(es ? 'es-VE' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
@@ -197,7 +197,7 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
               {t('Personas reportadas en este edificio', 'People reported in this building')}
             </p>
             {!cargando && personas.length > 0 && (
-              <p style={{ fontSize: 10, color: '#6B7280', margin: 0 }}>
+              <p style={{ fontSize: 10, color: '#4B5563', margin: 0 }}>
                 {personas.length} {t('registro(s)', 'record(s)')}
                 {totalUrgentes > 0 && <span style={{ color: '#DC2626', fontWeight: 700 }}> · {totalUrgentes} {t('urgente(s)', 'urgent')}</span>}
                 {totalASalvo > 0 && <span style={{ color: '#16A34A', fontWeight: 700 }}> · {totalASalvo} {t('a salvo', 'safe')}</span>}
@@ -244,7 +244,7 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
           <p style={{ fontSize: 13, fontWeight: 800, color: '#5B21B6', margin: '0 0 12px' }}>
             {t('Registrar persona en este edificio', 'Register a person in this building')}
           </p>
-          <p style={{ fontSize: 11, color: '#6B7280', margin: '0 0 12px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 11, color: '#4B5563', margin: '0 0 12px', lineHeight: 1.5 }}>
             {t('Solo registra lo que sabes con certeza. Los datos del familiar NO se muestran públicamente.',
                'Only register what you know for sure. Family contact data is NOT shown publicly.')}
           </p>
@@ -285,7 +285,7 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
               <textarea
                 rows={2} value={form.notas} onChange={e => setF('notas', e.target.value)}
                 placeholder={t('Notas adicionales (sin datos médicos ni documentos sensibles)', 'Additional notes (no medical data or sensitive documents)')}
-                style={{ width: '100%', border: '1px solid #D1D5DB', borderRadius: 8, padding: '8px 12px', fontSize: 13, background: '#fff', color: '#111', resize: 'none', fontFamily: 'inherit', outline: 'none' }}
+                style={{ width: '100%', border: '1px solid #D1D5DB', borderRadius: 8, padding: '8px 12px', fontSize: 13, background: '#fff', color: '#111827', resize: 'none', fontFamily: 'inherit', outline: 'none', lineHeight: 1.5 }}
               />
               <input
                 value={form.fuente} onChange={e => setF('fuente', e.target.value)}
@@ -311,7 +311,7 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
             <p style={{ fontSize: 11, fontWeight: 700, color: '#1E40AF', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {t('B · Familiar o responsable a notificar', 'B · Family / contact to notify')}
             </p>
-            <p style={{ fontSize: 10, color: '#3B82F6', margin: '0 0 10px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 10, color: '#1D4ED8', margin: '0 0 10px', lineHeight: 1.6, fontWeight: 500 }}>
               🔒 {t('Datos privados — no se muestran públicamente.', 'Private data — not shown publicly.')}<br />
               📧 {t('Si dejas un email, el familiar recibirá un mensaje de apoyo inmediato y quedará suscrito automáticamente a todas las actualizaciones de este edificio.',
                     'If you provide an email, the contact will receive an immediate support message and be automatically subscribed to all updates for this building.')}
@@ -355,7 +355,7 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
               <textarea
                 rows={2} value={form.avisar_mensaje} onChange={e => setF('avisar_mensaje', e.target.value)}
                 placeholder={t('Mensaje para el familiar (opcional, privado)', 'Message for family (optional, private)')}
-                style={{ width: '100%', border: '1px solid #BFDBFE', borderRadius: 8, padding: '8px 12px', fontSize: 13, background: '#fff', color: '#111', resize: 'none', fontFamily: 'inherit', outline: 'none' }}
+                style={{ width: '100%', border: '1px solid #BFDBFE', borderRadius: 8, padding: '8px 12px', fontSize: 13, background: '#fff', color: '#111827', resize: 'none', fontFamily: 'inherit', outline: 'none', lineHeight: 1.5 }}
               />
             </div>
           </div>
@@ -395,10 +395,10 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
         </div>
       ) : personas.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '16px 0' }}>
-          <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>
             {t('Sin personas registradas aún en este edificio.', 'No people registered yet in this building.')}
           </p>
-          <p style={{ fontSize: 11, color: '#C4B5FD', margin: '4px 0 0' }}>
+          <p style={{ fontSize: 11, color: '#7C3AED', margin: '4px 0 0' }}>
             {t('Si sabes de alguien aquí, usa el botón de arriba.', 'If you know someone here, use the button above.')}
           </p>
         </div>

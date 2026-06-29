@@ -392,7 +392,7 @@ export default function EdificioDetalle() {
                 </div>
               </div>
               {edificio.tipo_estructura && (
-                <p className="text-[11px] text-gray-400 capitalize ml-9">{edificio.tipo_estructura.replace(/_/g, ' ')}</p>
+                <p className="text-[11px] text-gray-500 capitalize ml-9">{edificio.tipo_estructura.replace(/_/g, ' ')}</p>
               )}
               {(edificio.direccion || edificio.ciudad) && (
                 <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
@@ -424,9 +424,9 @@ export default function EdificioDetalle() {
                   <Bell size={10} />{totalSuscriptores} {t('siguiendo', 'following', 'seguindo')}
                 </div>
               )}
-              <p className="text-[10px] text-gray-400">🕐 {tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
+              <p className="text-[10px] text-gray-500">🕐 {tiempoRelativo(edificio.updated_date || edificio.created_date, es)}</p>
               {edificio.nivel_verificacion === 'institucional' && (
-                <span className="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-300 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Shield size={8} /> {t('Verificado', 'Verified', 'Verificado')}
                 </span>
               )}
@@ -533,17 +533,17 @@ export default function EdificioDetalle() {
                 <span>{edificio.direccion}{edificio.ciudad ? ` · ${edificio.ciudad}` : ''}{edificio.estado_region ? `, ${edificio.estado_region}` : ''}</span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Clock size={12} className="flex-shrink-0" />
-              <span>{t('Reportado', 'Reported', 'Reportado')} {tiempoRelativo(edificio.created_date, es)}</span>
-              {edificio.fuente && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{edificio.fuente}</span>}
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Clock size={12} className="flex-shrink-0" />
+            <span>{t('Reportado', 'Reported', 'Reportado')} {tiempoRelativo(edificio.created_date, es)}</span>
+            {edificio.fuente && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{edificio.fuente}</span>}
             </div>
             {edificio.nivel_verificacion && (
               <div className="flex items-center gap-2">
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                  edificio.nivel_verificacion === 'institucional' ? 'bg-teal-50 text-teal-700 border-teal-200'
-                  : edificio.nivel_verificacion === 'comunidad' ? 'bg-blue-50 text-blue-700 border-blue-200'
-                  : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                  edificio.nivel_verificacion === 'institucional' ? 'bg-teal-50 text-teal-800 border-teal-300'
+                  : edificio.nivel_verificacion === 'comunidad' ? 'bg-blue-50 text-blue-800 border-blue-200'
+                  : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                   {edificio.nivel_verificacion === 'institucional' ? '🛡️ ' : '👥 '}
                   {edificio.nivel_verificacion === 'institucional' ? t('Verificado institucionalmente', 'Institutionally verified', 'Verificado institucionalmente')
                     : edificio.nivel_verificacion === 'comunidad' ? t('Reportado por comunidad', 'Community report', 'Relatório comunitário')
@@ -588,12 +588,12 @@ export default function EdificioDetalle() {
                     </div>
                     {a.descripcion && <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{a.descripcion}</p>}
                     {a.nivel_dano_anterior && a.nivel_dano_nuevo && a.nivel_dano_anterior !== a.nivel_dano_nuevo && (
-                      <p className="text-[10px] text-gray-400 mt-0.5">
-                        {t('Daño:', 'Damage:', 'Dano:')} {a.nivel_dano_anterior} → <strong>{a.nivel_dano_nuevo}</strong>
+                      <p className="text-[10px] text-gray-500 mt-0.5">
+                        {t('Daño:', 'Damage:', 'Dano:')} {a.nivel_dano_anterior} → <strong className="text-gray-700">{a.nivel_dano_nuevo}</strong>
                       </p>
                     )}
                     {a.reportante_nombre && (
-                      <p className="text-[10px] text-gray-400 mt-0.5">👤 {a.reportante_nombre}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">👤 {a.reportante_nombre}</p>
                     )}
                   </div>
                 </div>
@@ -745,14 +745,14 @@ export default function EdificioDetalle() {
               placeholder={['persona_herida_recuperada', 'persona_fallecida_recuperada'].includes(updateForm.tipo)
                 ? t('Describe sin datos sensibles: cuántas personas, quién las recuperó...', 'Describe without sensitive details: how many people, who recovered them...', 'Descreva sem dados sensíveis: quantas pessoas, quem as recuperou...')
                 : t('Describe lo que viste o sabes...', 'Describe what you saw or know...', 'Descreva o que você viu ou sabe...')}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none placeholder-gray-400 focus:outline-none focus:border-blue-400" />
+              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 resize-none placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
 
             {/* Datos contacto */}
             <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-2">
               <p className="text-xs font-bold text-gray-500">🔒 {t('Tus datos (privados, no se publican)', 'Your info (private, not published)', 'Seus dados (privados, não publicados)')}</p>
-              <input value={updateForm.nombre}   onChange={e => setUpdateForm(f => ({ ...f, nombre: e.target.value }))}   placeholder={t('Nombre (opcional)', 'Name (optional)', 'Nome (opcional)')}   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm placeholder-gray-400 bg-white focus:outline-none focus:border-blue-400" />
-              <input value={updateForm.telefono} onChange={e => setUpdateForm(f => ({ ...f, telefono: e.target.value }))} placeholder={t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)', 'Telefone / WhatsApp (opcional)')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm placeholder-gray-400 bg-white focus:outline-none focus:border-blue-400" />
-              <input value={updateForm.contacto} onChange={e => setUpdateForm(f => ({ ...f, contacto: e.target.value }))} placeholder={t('Email (opcional)', 'Email (optional)', 'Email (opcional)')} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm placeholder-gray-400 bg-white focus:outline-none focus:border-blue-400" />
+              <input value={updateForm.nombre}   onChange={e => setUpdateForm(f => ({ ...f, nombre: e.target.value }))}   placeholder={t('Nombre (opcional)', 'Name (optional)', 'Nome (opcional)')}   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+              <input value={updateForm.telefono} onChange={e => setUpdateForm(f => ({ ...f, telefono: e.target.value }))} placeholder={t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)', 'Telefone / WhatsApp (opcional)')} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+              <input value={updateForm.contacto} onChange={e => setUpdateForm(f => ({ ...f, contacto: e.target.value }))} placeholder={t('Email (opcional)', 'Email (optional)', 'Email (opcional)')} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
             </div>
 
             {/* Fotos */}
@@ -814,16 +814,16 @@ export default function EdificioDetalle() {
             </div>
           ) : (
             <div className="space-y-2">
-              <input value={subNombre} onChange={e => setSubNombre(e.target.value)} placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-gray-400" />
+              <input value={subNombre} onChange={e => setSubNombre(e.target.value)} placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')} className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
               <div className="flex gap-2">
-                <input value={subEmail} onChange={e => setSubEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && suscribirse()} placeholder={t('Tu email...', 'Your email...', 'Seu email...')} className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400" />
+                <input value={subEmail} onChange={e => setSubEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && suscribirse()} placeholder={t('Tu email...', 'Your email...', 'Seu email...')} className="flex-1 border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                 <button onClick={suscribirse} disabled={suscribiendo || !subEmail.trim()}
                   className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl disabled:opacity-40 cursor-pointer transition-colors flex items-center gap-1.5">
                   {suscribiendo ? <Loader2 size={13} className="animate-spin" /> : <Bell size={13} />}
                   {t('Avisarme', 'Notify me', 'Me avisar')}
                 </button>
               </div>
-              <p className="text-[10px] text-gray-400 leading-relaxed">
+              <p className="text-[10px] text-gray-500 leading-relaxed">
                 🔒 {t('Tu email no se muestra públicamente. Sin spam.', 'Your email is not shown publicly. No spam.', 'Seu email não é exibido publicamente. Sem spam.')}
               </p>
             </div>
@@ -899,7 +899,7 @@ export default function EdificioDetalle() {
           </div>
         </div>
 
-        <p className="text-[10px] text-gray-400 text-center leading-relaxed mb-4">
+        <p className="text-[10px] text-gray-500 text-center leading-relaxed mb-4">
           {t('Esta plataforma es una herramienta ciudadana y no partidista. La información proviene de ciudadanos y no ha sido verificada de manera independiente.',
              'This platform is a citizen and non-partisan tool. Information comes from citizens and has not been independently verified.',
              'Esta plataforma é uma ferramenta cidadã e apartidária. As informações vêm de cidadãos e não foram verificadas de forma independente.')}
