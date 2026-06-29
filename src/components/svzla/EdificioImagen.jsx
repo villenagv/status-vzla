@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLowBw } from '@/lib/LowBwContext';
 import ImagenProxy from '@/components/svzla/ImagenProxy';
+import SelloRiesgo, { selloKey } from '@/components/edificio/SelloRiesgo';
 
 // Iconos y colores por tipo de estructura cuando no hay foto
 const TIPO_VISUAL = {
@@ -41,7 +42,7 @@ const DANO_OVERLAY = {
  *  - mostrarMiniaturasExtra: bool — muestra miniaturas de fotos 2+ debajo (solo en vista grid)
  *  - fotoUrlsExtra: string[] — fotos adicionales para miniaturas (si se pasa, se usa en vez de fotoUrls[1:])
  */
-export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDano, height = 120, lang = 'es', sinFotoNudge = false, mostrarMiniaturasExtra = false, fotoUrlsExtra }) {
+export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDano, riesgo, height = 120, lang = 'es', sinFotoNudge = false, mostrarMiniaturasExtra = false, fotoUrlsExtra }) {
   const { lowBw } = useLowBw();
   const [idx, setIdx] = useState(0);
   const [cargada, setCargada] = useState(false);
@@ -52,6 +53,13 @@ export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDan
   const overlay = DANO_OVERLAY[nivelDano];
   const fotos = (fotoUrls || []).filter(Boolean);
   const hayFotos = fotos.length > 0;
+  // Sello oficial: aparece si el especialista ya clasificó el riesgo (o por nivel de daño)
+  const haySello = !!selloKey(riesgo, nivelDano);
+  const sello = haySello && !lowBw ? (
+    <div style={{ position: 'absolute', top: 4, left: 4, zIndex: 2 }}>
+      <SelloRiesgo riesgo={riesgo} nivelDano={nivelDano} size={Math.min(48, height * 0.42)} es={es} />
+    </div>
+  ) : null;
 
   // Placeholder
   if (!hayFotos || lowBw) {
@@ -60,6 +68,7 @@ export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDan
         style={{ height, background: visual.bg, position: 'relative', overflow: 'hidden', flexShrink: 0 }}
         className="w-full flex flex-col items-center justify-center gap-1"
       >
+        {sello}
         <span style={{ fontSize: height > 80 ? 32 : 20 }}>{visual.icon}</span>
         <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           {es ? visual.label.es : visual.label.en}
@@ -98,6 +107,7 @@ export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDan
   return (
     <>
       <div style={{ height, position: 'relative', overflow: 'hidden', flexShrink: 0, background: visual.bg }} className="w-full">
+        {sello}
         {/* Imagen */}
         {!error ? (
           <ImagenProxy

@@ -444,7 +444,7 @@ export default function Directorio() {
               <div className={`flex items-stretch hover:bg-gray-50 ${noEntrar ? 'border-l-4 border-l-red-500' : ''}`}
                 style={{ borderLeft: noEntrar ? `4px solid ${c.cardBorder}` : undefined }}>
                 <div onClick={irFicha} className="cursor-pointer flex-shrink-0" style={{ width: 72 }}>
-                  <EdificioImagen fotoUrls={fotos} tipoEstructura={e.tipo_estructura} nivelDano={e.nivel_dano} height={72} lang={lang} />
+                  <EdificioImagen fotoUrls={fotos} tipoEstructura={e.tipo_estructura} nivelDano={e.nivel_dano} riesgo={e.triage_riesgo} height={72} lang={lang} />
                 </div>
                 <div onClick={irFicha} className="flex-1 min-w-0 cursor-pointer px-3 py-2.5 flex flex-col justify-center gap-0.5">
                   <p className="font-bold text-sm text-[#1A1F2E] truncate leading-tight">{e._nombre}</p>
@@ -478,7 +478,7 @@ export default function Directorio() {
               <Link to={`/edificio?id=${e.id}`}
                 className="bg-white rounded-xl overflow-hidden no-underline hover:shadow-md transition-shadow flex flex-col"
                 style={{ border: `2px solid ${noEntrar ? c.cardBorder : '#E5E7EB'}` }}>
-                <EdificioImagen fotoUrls={fotos} tipoEstructura={e.tipo_estructura} nivelDano={e.nivel_dano} height={112} lang={lang} sinFotoNudge />
+                <EdificioImagen fotoUrls={fotos} tipoEstructura={e.tipo_estructura} nivelDano={e.nivel_dano} riesgo={e.triage_riesgo} height={112} lang={lang} sinFotoNudge />
                 <div className="p-3 flex-1 flex flex-col gap-1">
                   {noEntrar && (
                     <span className="self-start text-[9px] font-black text-white bg-red-600 px-1.5 py-0.5 rounded">

@@ -635,6 +635,7 @@ export default function Edificios() {
                           fotoUrls={r.foto_urls}
                           tipoEstructura={r.tipo_estructura}
                           nivelDano={r.nivel_dano}
+                          riesgo={r.triage_riesgo}
                           height={112}
                           lang={lang}
                           sinFotoNudge

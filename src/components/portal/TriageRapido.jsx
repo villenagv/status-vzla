@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, Camera, AlertTriangle, CheckCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import AccionesEspecialista from './AccionesEspecialista';
 
 // Opciones de triaje rápido — clasificación inicial online
 export const TRIAGE_OPTS = [
@@ -41,6 +42,7 @@ function TarjetaTriage({ reporte, es, perfil, onTriaged }) {
   const [notas, setNotas] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [verFotos, setVerFotos] = useState(false);
+  const [guardado, setGuardado] = useState(null); // datos tras guardar triaje
 
   const cfg = DANO_CONFIG[reporte.nivel_dano] || DANO_CONFIG.no_evaluado;
   const sel = TRIAGE_OPTS.find(o => o.val === riesgo);
@@ -73,10 +75,18 @@ function TarjetaTriage({ reporte, es, perfil, onTriaged }) {
         fuente: 'especialista',
         es_verificado: true,
       });
+      setGuardado({
+        triage_riesgo: riesgo,
+        requiere_inspeccion_presencial: reqInsp,
+        triage_estado: reqInsp ? 'en_cola_inspeccion' : 'clasificado',
+      });
       onTriaged(reporte.id, riesgo, reqInsp, sel.prioridad);
     } catch {}
     setEnviando(false);
   };
+
+  // Tras guardar, mezclamos lo guardado al reporte para las acciones del especialista
+  const reporteActual = guardado ? { ...reporte, ...guardado } : reporte;
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-3">
@@ -174,11 +184,23 @@ function TarjetaTriage({ reporte, es, perfil, onTriaged }) {
               placeholder={es ? 'Notas técnicas del triaje (opcional)...' : 'Technical triage notes (optional)...'}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-xs resize-none focus:outline-none focus:border-blue-400 mb-2" />
 
-            <button onClick={guardar} disabled={!riesgo || enviando}
-              className="w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold py-3 rounded-xl disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2">
-              {enviando ? <Loader2 size={13} className="animate-spin" /> : '✓'}
-              {es ? 'Guardar triaje' : 'Save triage'}
-            </button>
+            {guardado ? (
+              <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2 flex items-center gap-2">
+                <CheckCircle size={15} className="text-green-600" />
+                <p className="text-xs font-semibold text-green-700">{es ? 'Triaje guardado. El sello aparece en la ficha del edificio.' : 'Triage saved. The seal now shows on the building record.'}</p>
+              </div>
+            ) : (
+              <button onClick={guardar} disabled={!riesgo || enviando}
+                className="w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold py-3 rounded-xl disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2">
+                {enviando ? <Loader2 size={13} className="animate-spin" /> : '✓'}
+                {es ? 'Guardar triaje' : 'Save triage'}
+              </button>
+            )}
+          </div>
+
+          {/* Acciones del especialista: contacto, email, notas, inspección presencial */}
+          <div className="border-t border-gray-100 pt-3">
+            <AccionesEspecialista reporte={reporteActual} perfil={perfil} es={es} onActualizado={(id, d) => setGuardado(g => ({ ...g, ...d }))} />
           </div>
 
           <Link to={`/edificio?id=${reporte.id}`} className="block text-center text-xs text-blue-600 font-semibold no-underline hover:underline">

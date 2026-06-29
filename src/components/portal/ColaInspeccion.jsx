@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, Camera, MapPin, CheckCircle, UserCheck, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import AccionesEspecialista from './AccionesEspecialista';
 
 const RIESGO_CFG = {
   riesgo_colapso:  { icon: '💥', color: '#7F1D1D', bg: '#FEF2F2', border: '#FECACA', es: 'Riesgo de colapso', en: 'Collapse risk',   orden: 0 },
@@ -125,6 +126,9 @@ function TarjetaInspeccion({ reporte, es, perfil, onActualizado }) {
               {es ? 'Asignarme esta inspección' : 'Assign this inspection to me'}
             </button>
           ) : null}
+
+          {/* Acciones del especialista: contacto, email, notas, inspección presencial */}
+          <AccionesEspecialista reporte={reporte} perfil={perfil} es={es} onActualizado={onActualizado} />
 
           {/* Marcar inspeccionado */}
           {accion === 'inspeccionar' ? (
