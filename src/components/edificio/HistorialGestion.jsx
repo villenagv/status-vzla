@@ -115,6 +115,7 @@ export default function HistorialGestion({ edificio, es }) {
       ].filter(Boolean).join(' · '),
       autor: edificio.inspeccion_por,
       fecha: edificio.inspeccion_fecha,
+      pdfUrl: edificio.inspeccion_pdf_url || null,
     });
   }
 
@@ -170,6 +171,12 @@ export default function HistorialGestion({ edificio, es }) {
               </div>
               {ev.detalle && <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{ev.detalle}</p>}
               {ev.autor && <p className="text-[10px] text-gray-400 mt-0.5">👤 {ev.autor}</p>}
+              {ev.pdfUrl && (
+                <a href={ev.pdfUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 mt-2 bg-green-700 hover:bg-green-800 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg no-underline transition-colors">
+                  <FileText size={12} /> {es ? 'Descargar informe PDF' : 'Download PDF report'}
+                </a>
+              )}
             </div>
           </div>
         ))}

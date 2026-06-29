@@ -282,6 +282,32 @@
         "type": "string"
       }
     },
+    "inspeccion_detalle_fotos": {
+      "type": "array",
+      "description": "Detalle foto por foto de la inspecci\u00f3n presencial: cada foto con su \u00e1rea y nota t\u00e9cnica",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "nota": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "inspeccion_pdf_url": {
+      "type": "string",
+      "description": "URL p\u00fablica del informe t\u00e9cnico de inspecci\u00f3n en PDF, descargable desde la ficha"
+    },
+    "inspeccion_pdf_fecha": {
+      "type": "string",
+      "description": "Fecha ISO en que se gener\u00f3 el PDF del informe de inspecci\u00f3n"
+    },
     "inspeccion_fecha": {
       "type": "string",
       "description": "Fecha ISO de la inspecci\u00f3n presencial completada"

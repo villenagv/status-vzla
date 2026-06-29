@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Loader2, CheckCircle, Camera, X } from 'lucide-react';
+import { Loader2, CheckCircle, Camera, X, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { comprimirFoto, dataURLaFile } from '@/lib/comprimirFoto';
+import { AREAS_INSPECCION, GRUPOS_AREA, areaLabel } from './areasInspeccion';
 
 /**
  * FormularioInspeccion
@@ -9,25 +10,25 @@ import { comprimirFoto, dataURLaFile } from '@/lib/comprimirFoto';
  * Captura:
  *  - Severidad confirmada (leve / moderado / grave / crítico)
  *  - Tipo de daño (estético / estructural / ambos / sin daños)
- *  - Notas técnicas (informe)
- *  - Fotos de la inspección (comprimidas, máx 5)
+ *  - Notas técnicas generales (informe)
+ *  - Fotos de la inspección — cada una con su ÁREA y NOTA opcional (foto por foto)
  *
- * Al confirmar: marca triage_estado='inspeccionado', guarda los datos en
- * ReportesDano, deja un evento en la línea de tiempo y avisa a suscriptores.
+ * Al confirmar:
+ *   1. Sube cada foto y registra { url, area, nota } en inspeccion_detalle_fotos.
+ *   2. Marca triage_estado='inspeccionado', sincroniza el nivel de daño público
+ *      (lo que define el sello oficial automáticamente).
+ *   3. Genera el PDF del informe (backend), lo adjunta a la ficha y lo envía
+ *      por email al solicitante de la inspección (sin datos personales).
+ *   4. Avisa a suscriptores.
  *
- * Props:
- *  - reporte: ReportesDano
- *  - perfil: PerfilProfesional
- *  - es: idioma
- *  - onCancelar: () => void
- *  - onActualizado: (id, dataParcial) => void
+ * Props: reporte, perfil, es, onCancelar, onActualizado
  */
 
 const SEVERIDAD_OPTS = [
-  { val: 'leve',     es: '🟢 Leve',    en: '🟢 Minor',    color: 'green'  },
-  { val: 'moderado', es: '🟠 Moderado', en: '🟠 Moderate', color: 'orange' },
-  { val: 'grave',    es: '🔴 Grave',   en: '🔴 Severe',   color: 'red'    },
-  { val: 'critico',  es: '💥 Crítico', en: '💥 Critical', color: 'red'    },
+  { val: 'leve',     es: '🟢 Leve',    en: '🟢 Minor'    },
+  { val: 'moderado', es: '🟠 Moderado', en: '🟠 Moderate' },
+  { val: 'grave',    es: '🔴 Grave',   en: '🔴 Severe'   },
+  { val: 'critico',  es: '💥 Crítico', en: '💥 Critical' },
 ];
 
 const TIPO_DANO_OPTS = [
@@ -40,46 +41,65 @@ const TIPO_DANO_OPTS = [
 // Severidad → nivel_dano del edificio (para que el semáforo público quede coherente)
 const SEVERIDAD_A_NIVEL = { leve: 'leve', moderado: 'moderado', grave: 'grave', critico: 'critico' };
 
+const MAX_FOTOS = 12;
+
 export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, onActualizado }) {
   const [severidad, setSeveridad] = useState(reporte.inspeccion_severidad && reporte.inspeccion_severidad !== 'sin_definir' ? reporte.inspeccion_severidad : '');
   const [tipoDano, setTipoDano] = useState(reporte.inspeccion_tipo_dano && reporte.inspeccion_tipo_dano !== 'sin_definir' ? reporte.inspeccion_tipo_dano : '');
   const [notas, setNotas] = useState('');
-  const [fotos, setFotos] = useState([]); // [{ dataURL }]
+  // Cada foto: { id, dataURL, area, nota }
+  const [fotos, setFotos] = useState([]);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [progreso, setProgreso] = useState('');
   const [error, setError] = useState('');
 
   const puedeConfirmar = !!severidad && !!tipoDano;
 
   const agregarFotos = async (files) => {
-    const espacio = 5 - fotos.length;
+    const espacio = MAX_FOTOS - fotos.length;
     const archivos = Array.from(files).slice(0, Math.max(0, espacio));
     if (!archivos.length) return;
     setSubiendoFoto(true);
     for (const file of archivos) {
       try {
         const dataURL = await comprimirFoto(file, 1280, 0.7);
-        setFotos(prev => [...prev, { dataURL }]);
-      } catch { /* ignoramos la foto que falle */ }
+        setFotos(prev => [...prev, { id: Date.now() + Math.random(), dataURL, area: 'general', nota: '' }]);
+      } catch { /* ignorar foto que falle */ }
     }
     setSubiendoFoto(false);
   };
+
+  const actualizarFoto = (id, campo, valor) => {
+    setFotos(prev => prev.map(f => f.id === id ? { ...f, [campo]: valor } : f));
+  };
+
+  const eliminarFoto = (id) => setFotos(prev => prev.filter(f => f.id !== id));
 
   const confirmar = async () => {
     if (!puedeConfirmar) return;
     setEnviando(true);
     setError('');
     try {
-      // Subir fotos de la inspección
+      // 1) Subir cada foto y armar el detalle estructurado
+      setProgreso(es ? 'Subiendo fotos...' : 'Uploading photos...');
+      const detalle = [];
       const urls = [];
-      for (const f of fotos) {
+      for (let i = 0; i < fotos.length; i++) {
+        const f = fotos[i];
+        setProgreso(es ? `Subiendo foto ${i + 1} de ${fotos.length}...` : `Uploading photo ${i + 1} of ${fotos.length}...`);
         try {
-          const file = dataURLaFile(f.dataURL, `inspeccion_${Date.now()}.jpg`);
+          const file = dataURLaFile(f.dataURL, `inspeccion_${Date.now()}_${i}.jpg`);
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          if (file_url) urls.push(file_url);
-        } catch { /* seguimos */ }
+          if (file_url) {
+            detalle.push({ url: file_url, area: f.area || 'general', nota: (f.nota || '').trim() });
+            urls.push(file_url);
+          }
+        } catch { /* seguimos con la siguiente */ }
       }
 
+      // 2) Actualizar el reporte con el resultado de la inspección
+      setProgreso(es ? 'Guardando inspección...' : 'Saving inspection...');
       const ahora = new Date().toISOString();
       const inspector = perfil.user_nombre || perfil.user_email;
       const dataUpdate = {
@@ -95,16 +115,16 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
         nivel_verificacion: 'institucional',
         estado_verificacion: 'verificado',
       };
-      // Sincronizamos el nivel de daño público con la severidad confirmada
       if (SEVERIDAD_A_NIVEL[severidad]) dataUpdate.nivel_dano = SEVERIDAD_A_NIVEL[severidad];
-      // Adjuntamos las fotos de inspección a las del edificio (máx 5 visibles)
-      if (urls.length) {
+      if (detalle.length) {
+        dataUpdate.inspeccion_detalle_fotos = detalle;
         dataUpdate.inspeccion_fotos = urls;
         dataUpdate.foto_urls = [...(reporte.foto_urls || []), ...urls].slice(0, 5);
       }
 
       await base44.entities.ReportesDano.update(reporte.id, dataUpdate);
 
+      // 3) Línea de tiempo pública (sin datos personales)
       const tipoLbl = (TIPO_DANO_OPTS.find(o => o.val === tipoDano) || {})[es ? 'es' : 'en'] || tipoDano;
       const sevLbl = (SEVERIDAD_OPTS.find(o => o.val === severidad) || {})[es ? 'es' : 'en'] || severidad;
       await base44.entities.ActualizacionesSitios.create({
@@ -117,6 +137,11 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
         es_verificado: true,
       });
 
+      // 4) Generar PDF (backend) y enviar email al solicitante
+      setProgreso(es ? 'Generando informe PDF y enviando al solicitante...' : 'Generating PDF report and emailing requester...');
+      await base44.functions.invoke('generarInformeInspeccion', { reporte_id: reporte.id }).catch(() => {});
+
+      // 5) Avisar a suscriptores
       base44.functions.invoke('notificarSuscriptoresPublicacion', {
         edificio_id: reporte.id,
         mensaje: notas.trim() || (es ? `Inspección técnica completada. Severidad: ${sevLbl}. Daño: ${tipoLbl}.` : `Technical inspection completed. Severity: ${sevLbl}. Damage: ${tipoLbl}.`),
@@ -129,11 +154,16 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
       setError(es ? 'No se pudo guardar la inspección. Intenta de nuevo.' : 'Could not save the inspection. Try again.');
     }
     setEnviando(false);
+    setProgreso('');
   };
 
   return (
     <div className="bg-green-50 border border-green-200 rounded-xl p-3 space-y-3">
       <p className="text-xs font-bold text-green-800">✅ {es ? 'Declarar edificio inspeccionado' : 'Declare building inspected'}</p>
+      <p className="text-[11px] text-green-700 -mt-2 leading-relaxed">
+        {es ? 'Al confirmar, generaremos un informe PDF (sin tus datos personales ni los del solicitante) y lo enviaremos al correo de quien pidió la inspección. El PDF queda disponible en la ficha pública.'
+            : 'On confirm, we will generate a PDF report (no personal contact data) and email it to the inspection requester. The PDF will be available on the public record.'}
+      </p>
 
       {/* Severidad */}
       <div>
@@ -161,28 +191,64 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
         </div>
       </div>
 
-      {/* Notas técnicas */}
+      {/* Notas técnicas generales */}
       <div>
-        <p className="text-[11px] font-bold text-gray-600 mb-1.5">{es ? 'Informe técnico (opcional)' : 'Technical report (optional)'}</p>
+        <p className="text-[11px] font-bold text-gray-600 mb-1.5">{es ? 'Informe técnico general (opcional)' : 'General technical report (optional)'}</p>
         <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={3}
-          placeholder={es ? 'Describe los hallazgos: grietas, columnas, recomendaciones...' : 'Describe findings: cracks, columns, recommendations...'}
+          placeholder={es ? 'Hallazgos generales, recomendaciones, próximos pasos...' : 'General findings, recommendations, next steps...'}
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs resize-none focus:outline-none focus:border-green-500" />
       </div>
 
-      {/* Fotos de la inspección */}
+      {/* Fotos foto-por-foto con área + nota */}
       <div>
-        <p className="text-[11px] font-bold text-gray-600 mb-1.5">📷 {es ? 'Fotos de la inspección (opcional)' : 'Inspection photos (optional)'}</p>
-        <div className="flex flex-wrap gap-2">
+        <p className="text-[11px] font-bold text-gray-600 mb-1.5">📷 {es ? `Fotos por área (opcional, máx ${MAX_FOTOS})` : `Photos by area (optional, max ${MAX_FOTOS})`}</p>
+        <p className="text-[10px] text-gray-500 mb-2 leading-relaxed">
+          {es ? 'Para cada foto elige el área del edificio y, si quieres, una nota técnica corta. Las fotos sin nota también se incluyen en el informe.'
+              : 'For each photo choose the building area and, if you wish, a short technical note. Photos with no note are also included in the report.'}
+        </p>
+
+        <div className="space-y-2">
           {fotos.map((f, i) => (
-            <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
-              <img src={f.dataURL} alt="" className="w-full h-full object-cover" />
-              <button type="button" onClick={() => setFotos(p => p.filter((_, j) => j !== i))}
-                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer"><X size={8} /></button>
+            <div key={f.id} className="bg-white border border-gray-200 rounded-lg p-2 flex gap-2">
+              <div className="relative w-20 h-20 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                <img src={f.dataURL} alt="" className="w-full h-full object-cover" />
+                <button type="button" onClick={() => eliminarFoto(f.id)}
+                  className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer">
+                  <X size={10} />
+                </button>
+                <span className="absolute bottom-0.5 left-0.5 text-[9px] font-bold bg-black/60 text-white px-1 rounded">#{i + 1}</span>
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
+                <select value={f.area} onChange={e => actualizarFoto(f.id, 'area', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-[11px] focus:outline-none focus:border-green-500 cursor-pointer">
+                  {GRUPOS_AREA.map(g => (
+                    <optgroup key={g.val} label={es ? g.es : g.en}>
+                      {AREAS_INSPECCION.filter(a => a.grupo === g.val).map(a => (
+                        <option key={a.val} value={a.val}>{es ? a.es : a.en}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                <input type="text" value={f.nota} onChange={e => actualizarFoto(f.id, 'nota', e.target.value)}
+                  maxLength={200}
+                  placeholder={es ? 'Nota técnica de esta foto (opcional)' : 'Technical note for this photo (optional)'}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-[11px] focus:outline-none focus:border-green-500" />
+              </div>
             </div>
           ))}
-          {fotos.length < 5 && (
-            <label className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-green-400 hover:bg-green-50">
-              {subiendoFoto ? <Loader2 size={16} className="text-gray-400 animate-spin" /> : <Camera size={16} className="text-gray-400" />}
+
+          {fotos.length < MAX_FOTOS && (
+            <label className="block w-full border-2 border-dashed border-gray-300 rounded-lg p-3 text-center cursor-pointer hover:border-green-400 hover:bg-green-50">
+              {subiendoFoto ? (
+                <Loader2 size={18} className="text-gray-400 animate-spin mx-auto" />
+              ) : (
+                <>
+                  <Camera size={18} className="text-gray-400 mx-auto mb-1" />
+                  <span className="text-[11px] font-semibold text-gray-600">
+                    {es ? `Agregar fotos (${fotos.length}/${MAX_FOTOS})` : `Add photos (${fotos.length}/${MAX_FOTOS})`}
+                  </span>
+                </>
+              )}
               <input type="file" accept="image/*" multiple className="hidden"
                 onChange={e => { agregarFotos(e.target.files); e.target.value = ''; }} />
             </label>
@@ -191,16 +257,25 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
       </div>
 
       {error && <p className="text-xs text-red-600 text-center">{error}</p>}
+      {enviando && progreso && (
+        <p className="text-[11px] text-green-700 text-center flex items-center justify-center gap-1.5">
+          <Loader2 size={11} className="animate-spin" /> {progreso}
+        </p>
+      )}
 
       <button type="button" onClick={confirmar} disabled={!puedeConfirmar || enviando || subiendoFoto}
         className="w-full bg-green-700 hover:bg-green-800 text-white text-xs font-bold py-2.5 rounded-xl disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2">
-        {enviando ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle size={13} />}
-        {es ? 'Confirmar inspección completada' : 'Confirm inspection completed'}
+        {enviando ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
+        {es ? 'Confirmar y generar informe PDF' : 'Confirm and generate PDF report'}
       </button>
       {!puedeConfirmar && (
         <p className="text-[10px] text-gray-400 text-center -mt-1">{es ? 'Elige severidad y tipo de daño para confirmar.' : 'Choose severity and damage type to confirm.'}</p>
       )}
-      <button type="button" onClick={onCancelar} className="w-full text-xs text-gray-400 underline cursor-pointer">{es ? 'Cancelar' : 'Cancel'}</button>
+      <button type="button" onClick={onCancelar} disabled={enviando}
+        className="w-full text-xs text-gray-400 underline cursor-pointer disabled:opacity-40">{es ? 'Cancelar' : 'Cancel'}</button>
     </div>
   );
 }
+
+// Re-exporta el helper por compatibilidad con otros componentes que lo importan
+export { areaLabel };
