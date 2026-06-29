@@ -162,6 +162,8 @@ export default function GestionVoluntarios({ es }) {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(null);
   const [filtroPendientes, setFiltroPendientes] = useState(true);
+  const [aprobadoId, setAprobadoId] = useState(null);
+  const [errorId, setErrorId] = useState(null);
 
   // Nuevo token form
   const [showForm, setShowForm] = useState(false);
@@ -188,19 +190,29 @@ export default function GestionVoluntarios({ es }) {
 
   const aprobar = async (solicitud_id) => {
     setProcesando(solicitud_id);
+    setErrorId(null);
     try {
       await base44.functions.invoke('gestionarVoluntario', { accion: 'aprobar', solicitud_id });
       setSolicitudes(prev => prev.map(s => s.id === solicitud_id ? { ...s, estado: 'aprobado' } : s));
-    } catch {}
+      setAprobadoId(solicitud_id);
+      setTimeout(() => setAprobadoId(null), 3000);
+    } catch {
+      setErrorId(solicitud_id);
+      setTimeout(() => setErrorId(null), 4000);
+    }
     setProcesando(null);
   };
 
   const rechazar = async (solicitud_id, motivo) => {
     setProcesando(solicitud_id);
+    setErrorId(null);
     try {
       await base44.functions.invoke('gestionarVoluntario', { accion: 'rechazar', solicitud_id, motivo_rechazo: motivo });
       setSolicitudes(prev => prev.map(s => s.id === solicitud_id ? { ...s, estado: 'rechazado', motivo_rechazo: motivo } : s));
-    } catch {}
+    } catch {
+      setErrorId(solicitud_id);
+      setTimeout(() => setErrorId(null), 4000);
+    }
     setProcesando(null);
   };
 
@@ -267,7 +279,25 @@ export default function GestionVoluntarios({ es }) {
           ) : (
             <div className="space-y-3">
               {solFiltradas.map(sol => (
-                <SolicitudCard key={sol.id} sol={sol} es={es} onAprobar={aprobar} onRechazar={rechazar} procesando={procesando === sol.id} />
+                <div key={sol.id}>
+                  <SolicitudCard sol={sol} es={es} onAprobar={aprobar} onRechazar={rechazar} procesando={procesando === sol.id} />
+                  {aprobadoId === sol.id && (
+                    <div className="mt-1.5 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                      <CheckCircle size={14} className="text-green-600 flex-shrink-0" />
+                      <p className="text-xs font-semibold text-green-700">
+                        {es ? '✅ Aprobado. Se envió el correo de bienvenida.' : '✅ Approved. Welcome email sent.'}
+                      </p>
+                    </div>
+                  )}
+                  {errorId === sol.id && (
+                    <div className="mt-1.5 flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                      <XCircle size={14} className="text-red-500 flex-shrink-0" />
+                      <p className="text-xs font-semibold text-red-700">
+                        {es ? 'Error al procesar. Intenta de nuevo.' : 'Processing error. Please try again.'}
+                      </p>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}
