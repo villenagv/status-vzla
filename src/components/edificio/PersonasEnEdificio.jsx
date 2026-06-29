@@ -266,7 +266,7 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
               <textarea
                 rows={2} value={form.notas} onChange={e => setF('notas', e.target.value)}
                 placeholder={t('Notas adicionales (sin datos médicos ni documentos sensibles)', 'Additional notes (no medical data or sensitive documents)')}
-                style={{ ...Object.fromEntries([...new Set(['width','border','borderRadius','padding','fontSize','background','color','outline','resize','placeholder'].map(() => ''))].entries()), width: '100%', border: '1px solid #D1D5DB', borderRadius: 8, padding: '8px 12px', fontSize: 13, background: '#fff', color: '#111', resize: 'none', fontFamily: 'inherit' }}
+                style={{ width: '100%', border: '1px solid #D1D5DB', borderRadius: 8, padding: '8px 12px', fontSize: 13, background: '#fff', color: '#111', resize: 'none', fontFamily: 'inherit', outline: 'none' }}
               />
               <input
                 value={form.fuente} onChange={e => setF('fuente', e.target.value)}
