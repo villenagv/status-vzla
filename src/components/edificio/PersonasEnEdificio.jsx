@@ -8,12 +8,13 @@ import { Loader2, UserPlus, ChevronDown, ChevronUp, Phone, Mail, Users, AlertTri
 //   notas_publicas, fuente_inicial
 
 const ESTADO_OPTS = [
-  { val: 'estoy_aqui',       es: '📍 Estoy aquí / En este edificio', en: '📍 I am here / In this building', color: '#2563EB' },
-  { val: 'necesita_ayuda',   es: '🆘 Necesita rescate urgente',      en: '🆘 Needs urgent rescue',         color: '#DC2626' },
-  { val: 'atencion_urgente', es: '🚑 Necesita atención médica',      en: '🚑 Needs medical attention',     color: '#EA580C' },
-  { val: 'herido',           es: '🩹 Herido / lesionado',            en: '🩹 Injured',                     color: '#D97706' },
-  { val: 'a_salvo',          es: '✅ Fue rescatado / está a salvo',  en: '✅ Rescued / is safe',           color: '#16A34A' },
-  { val: 'informacion_incompleta', es: '❓ No confirmado / parcial', en: '❓ Unconfirmed / partial',       color: '#6B7280' },
+  { val: 'necesita_ayuda',         es: '🆘 Atrapada con vida — necesita rescate urgente', en: '🆘 Trapped alive — urgent rescue needed', color: '#DC2626', urgente: true },
+  { val: 'atencion_urgente',       es: '🚑 Atrapada / necesita atención médica urgente',  en: '🚑 Trapped / needs urgent medical care',   color: '#EA580C', urgente: true },
+  { val: 'herido',                 es: '🩹 Herida / lesionada — localización conocida',   en: '🩹 Injured — location known',               color: '#D97706', urgente: false },
+  { val: 'buscado_por_familiar',   es: '🔍 Atrapada desaparecida — sin contacto',         en: '🔍 Trapped missing — no contact',           color: '#7C3AED', urgente: true },
+  { val: 'estoy_aqui',             es: '📍 Estoy aquí — dentro del edificio',             en: '📍 I am here — inside the building',         color: '#2563EB', urgente: false },
+  { val: 'a_salvo',                es: '✅ Fue rescatada / está a salvo',                 en: '✅ Rescued / is safe',                       color: '#16A34A', urgente: false },
+  { val: 'informacion_incompleta', es: '❓ No confirmado / información parcial',          en: '❓ Unconfirmed / partial info',              color: '#6B7280', urgente: false },
 ];
 
 const RELACION_OPTS = [
@@ -26,8 +27,9 @@ const RELACION_OPTS = [
 
 const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-500 placeholder-gray-400";
 
+// Estado preseleccionado por defecto: atrapada con vida (máxima urgencia)
 const FORM_INIT = {
-  nombre: '', estado: '', ubicacion_dentro: '',
+  nombre: '', estado: 'necesita_ayuda', ubicacion_dentro: '',
   avisar_nombre: '', avisar_telefono: '', avisar_email: '', avisar_relacion: '', avisar_mensaje: '',
   notas: '', fuente: '',
 };
@@ -151,12 +153,24 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
         nivel_verificacion: 'sin_verificar',
       });
 
-      // Si hay email del familiar, suscribirlo al edificio automáticamente
+      // Siempre suscribir al familiar si dejó email
       if (form.avisar_email.trim()) {
         base44.functions.invoke('registrarSuscripcionEdificio', {
           edificio_id: edificioId,
           email: form.avisar_email.trim(),
           nombre: form.avisar_nombre.trim() || undefined,
+          lang: es ? 'es' : 'en',
+        }).catch(() => {});
+
+        // Enviar email de apoyo al familiar
+        base44.functions.invoke('emailApoyoFamiliar', {
+          email_familiar: form.avisar_email.trim(),
+          nombre_persona: form.nombre.trim() || undefined,
+          estado: form.estado,
+          edificio_id: edificioId,
+          nombre_edificio: edificio?.nombre_lugar,
+          direccion: edificio?.direccion,
+          ciudad: edificio?.ciudad,
           lang: es ? 'es' : 'en',
         }).catch(() => {});
       }
@@ -211,10 +225,15 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
 
       {/* Confirmación enviado */}
       {enviado && (
-        <div style={{ background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 10, padding: '10px 14px', marginBottom: 10, textAlign: 'center' }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#15803D', margin: 0 }}>
-            ✅ {t('Registro guardado. Si dejaste un email de familiar, quedará suscrito a actualizaciones de este edificio.',
-                  'Record saved. If you provided a family email, they will receive updates about this building.')}
+        <div style={{ background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 12, padding: '14px 16px', marginBottom: 10 }}>
+          <p style={{ fontSize: 14, fontWeight: 800, color: '#15803D', margin: '0 0 6px' }}>
+            ✅ {t('Registro guardado correctamente.', 'Record saved successfully.')}
+          </p>
+          <p style={{ fontSize: 12, color: '#166534', margin: 0, lineHeight: 1.6 }}>
+            📧 {t(
+              'El familiar registrado recibirá un email de apoyo y quedará suscrito automáticamente a las actualizaciones de este edificio. No estás solo/a — estamos ayudando.',
+              'The registered family contact will receive a support email and will be automatically subscribed to building updates. You are not alone — we are helping.'
+            )}
           </p>
         </div>
       )}
@@ -276,14 +295,26 @@ export default function PersonasEnEdificio({ edificioId, edificio, es }) {
             </div>
           </div>
 
+          {/* Banner urgente si es atrapada */}
+          {ESTADO_OPTS.find(e => e.val === form.estado)?.urgente && (
+            <div style={{ background: '#FEF2F2', border: '2px solid #FCA5A5', borderRadius: 10, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <span style={{ fontSize: 18, flexShrink: 0 }}>🆘</span>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#991B1B', margin: 0, lineHeight: 1.55 }}>
+                {t('Estado urgente seleccionado. El familiar recibirá un email de apoyo inmediato con actualizaciones automáticas.',
+                   'Urgent status selected. The family contact will receive an immediate support email with automatic updates.')}
+              </p>
+            </div>
+          )}
+
           {/* Sección B: Contacto familiar/responsable */}
           <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: '#1E40AF', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {t('B · Familiar o responsable a notificar', 'B · Family / contact to notify')}
             </p>
-            <p style={{ fontSize: 10, color: '#3B82F6', margin: '0 0 10px' }}>
-              🔒 {t('Datos privados — no se muestran públicamente. Si dejas un email, quedará inscrito para recibir actualizaciones.',
-                    'Private data — not shown publicly. If you provide an email, they will be subscribed to building updates.')}
+            <p style={{ fontSize: 10, color: '#3B82F6', margin: '0 0 10px', lineHeight: 1.6 }}>
+              🔒 {t('Datos privados — no se muestran públicamente.', 'Private data — not shown publicly.')}<br />
+              📧 {t('Si dejas un email, el familiar recibirá un mensaje de apoyo inmediato y quedará suscrito automáticamente a todas las actualizaciones de este edificio.',
+                    'If you provide an email, the contact will receive an immediate support message and be automatically subscribed to all updates for this building.')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <input
