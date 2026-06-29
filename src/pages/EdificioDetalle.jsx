@@ -7,7 +7,7 @@ import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import GaleriaFotos from '@/components/svzla/GaleriaFotos';
 import EstadoOperativo from '@/components/edificio/EstadoOperativo';
-import { NubePeligro, ModalSeguridadEdificio } from '@/components/edificio/AlertaSeguridad';
+import { NubePeligro, ModalSeguridadEdificio, getPreguntaPrioritaria } from '@/components/edificio/AlertaSeguridad';
 import EdificioImagen from '@/components/svzla/EdificioImagen';
 import { useLowBw } from '@/lib/LowBwContext';
 import SeoMeta from '@/components/seo/SeoMeta';
@@ -131,6 +131,7 @@ export default function EdificioDetalle() {
   const [solicitudes, setSolicitudes] = useState([]);
   const [modalSeguridad, setModalSeguridad] = useState(false);
   const [accionPendiente, setAccionPendiente] = useState(null);
+  const [respuestaPrioritaria, setRespuestaPrioritaria] = useState(null);
   const [conozco, setConozco] = useState(null);
   const [respConozco, setRespConozco] = useState({ nombre: '', desc: '' });
   const [enviandoResp, setEnviandoResp] = useState(false);
@@ -187,53 +188,84 @@ export default function EdificioDetalle() {
     setActualizaciones(prev => [{ id: Date.now(), tipo_accion: 'confirmo_mismo_estado', created_date: new Date().toISOString() }, ...prev]);
   };
 
-  const subirUpdateFoto = async (file) => {
+  const subirUpdateFoto = (file) => {
+    // Guardamos el file de inmediato para preview; la subida real ocurre en background al enviar
     const fid = Date.now();
-    setUpdateFotos(prev => [...prev, { id: fid, url: null, uploading: true }]);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setUpdateFotos(p => p.map(f => f.id === fid ? { ...f, url: file_url, uploading: false } : f));
-    } catch { setUpdateFotos(p => p.filter(f => f.id !== fid)); }
+    const previewUrl = URL.createObjectURL(file);
+    setUpdateFotos(prev => [...prev, { id: fid, file, previewUrl, url: null, uploading: false }]);
   };
 
   const handleUpdate = async () => {
     if (!id || !edificio || !updateForm.tipo) return;
     setEnviando(true);
+
+    // ── PASO 1: Envío de datos críticos INMEDIATO (no espera fotos) ──
     try {
+      // Incorporar respuesta prioritaria del modal si existe
+      const atrapados = respuestaPrioritaria?.atrapados || updateForm.atrapados || edificio.personas_atrapadas || 'no_sabe';
       const nivel = updateForm.nivel || edificio.nivel_dano;
-      const atrapados = updateForm.atrapados || edificio.personas_atrapadas || 'no_sabe';
       const prioridad = (nivel === 'critico' || nivel === 'colapsado' || atrapados === 'si' || atrapados === 'voces') ? 'critica' : nivel === 'grave' ? 'alta' : 'normal';
+
       await base44.entities.ActualizacionesSitios.create({
         sitio_id: id, tipo_sitio: 'edificio', tipo_accion: updateForm.tipo,
         descripcion: updateForm.desc,
         nivel_dano_anterior: edificio.nivel_dano, nivel_dano_nuevo: updateForm.nivel || undefined,
-        personas_atrapadas_anterior: edificio.personas_atrapadas, personas_atrapadas_nuevo: updateForm.atrapados || undefined,
+        personas_atrapadas_anterior: edificio.personas_atrapadas, personas_atrapadas_nuevo: atrapados !== edificio.personas_atrapadas ? atrapados : undefined,
         reportante_nombre: updateForm.nombre, reportante_contacto: updateForm.contacto || updateForm.telefono,
         es_sensible: ['persona_herida_recuperada', 'persona_fallecida_recuperada'].includes(updateForm.tipo),
         fuente: 'ciudadano',
       });
+
       const updateData = {};
       if (updateForm.nivel) updateData.nivel_dano = updateForm.nivel;
-      if (updateForm.atrapados) updateData.personas_atrapadas = updateForm.atrapados;
+      if (atrapados && atrapados !== edificio.personas_atrapadas) updateData.personas_atrapadas = atrapados;
       if (updateForm.gas) updateData.riesgo_gas = true;
       if (updateForm.elect) updateData.riesgo_electrico = true;
       if (updateForm.inc) updateData.riesgo_incendio = true;
       if (updateForm.accesoPie || updateForm.accesoVehiculos) {
-        await base44.entities.EstadoOperativoEdificio.create({ edificio_id: id, acceso_calle: updateForm.accesoPie || 'no_confirmado', acceso_vehiculos: updateForm.accesoVehiculos || 'no_confirmado', reportante_nombre: updateForm.nombre || undefined, fuente: 'ciudadano' }).catch(() => {});
+        base44.entities.EstadoOperativoEdificio.create({ edificio_id: id, acceso_calle: updateForm.accesoPie || 'no_confirmado', acceso_vehiculos: updateForm.accesoVehiculos || 'no_confirmado', reportante_nombre: updateForm.nombre || undefined, fuente: 'ciudadano' }).catch(() => {});
       }
       updateData.prioridad = prioridad;
       if (updateForm.desc) updateData.descripcion = updateForm.desc;
-      const fotosNuevas = updateFotos.filter(f => f.url).map(f => f.url);
-      if (fotosNuevas.length > 0) updateData.foto_urls = [...(edificio.foto_urls || []), ...fotosNuevas].slice(0, 5);
+
       const updated = await base44.entities.ReportesDano.update(id, updateData);
       setEdificio(updated);
       setActualizaciones(prev => [{ id: Date.now(), tipo_accion: updateForm.tipo, descripcion: updateForm.desc, nivel_dano_anterior: edificio.nivel_dano, nivel_dano_nuevo: updateForm.nivel, created_date: new Date().toISOString() }, ...prev]);
-      await base44.functions.invoke('notificarActualizacionEdificio', { edificio_id: id, tipo_accion: updateForm.tipo, nivel_dano: updateForm.nivel || edificio.nivel_dano, direccion: edificio.direccion, nombre_lugar: edificio.nombre_lugar, descripcion: updateForm.desc, reportante_nombre: updateForm.nombre || '', reportante_telefono: updateForm.telefono || '', telefono_contacto: updateForm.contacto || '', lang }).catch(() => {});
+
+      // Notificar en background sin bloquear
+      base44.functions.invoke('notificarActualizacionEdificio', { edificio_id: id, tipo_accion: updateForm.tipo, nivel_dano: updateForm.nivel || edificio.nivel_dano, direccion: edificio.direccion, nombre_lugar: edificio.nombre_lugar, descripcion: updateForm.desc, reportante_nombre: updateForm.nombre || '', reportante_telefono: updateForm.telefono || '', telefono_contacto: updateForm.contacto || '', lang }).catch(() => {});
+
+      // ── Confirmación inmediata al usuario ──
       setEditando(false);
       setUpdateOk(true);
+      setRespuestaPrioritaria(null);
+      const fotasPendientes = updateFotos.filter(f => f.file && !f.url);
+      const fotasYaSubidas = updateFotos.filter(f => f.url).map(f => f.url);
       setUpdateForm({ tipo: '', nivel: '', atrapados: '', gas: false, elect: false, inc: false, accesoPie: '', accesoVehiculos: '', desc: '', nombre: '', contacto: '', telefono: '', red_social: '' });
       setUpdateFotos([]);
-      setTimeout(() => setUpdateOk(false), 4000);
+      setTimeout(() => setUpdateOk(false), 5000);
+
+      // ── PASO 2: Subida de fotos EN BACKGROUND (no bloquea al usuario) ──
+      if (fotasYaSubidas.length > 0 || fotasPendientes.length > 0) {
+        const subirFotosBackground = async () => {
+          const urlsNuevas = [...fotasYaSubidas];
+          for (const f of fotasPendientes) {
+            try {
+              const { file_url } = await base44.integrations.Core.UploadFile({ file: f.file });
+              urlsNuevas.push(file_url);
+            } catch {}
+          }
+          if (urlsNuevas.length > 0) {
+            const edificioActual = await base44.entities.ReportesDano.get(id).catch(() => null);
+            const fotosActuales = edificioActual?.foto_urls || [];
+            const fotosFinal = [...fotosActuales, ...urlsNuevas].slice(0, 5);
+            const edActualizado = await base44.entities.ReportesDano.update(id, { foto_urls: fotosFinal }).catch(() => null);
+            if (edActualizado) setEdificio(edActualizado);
+          }
+        };
+        subirFotosBackground(); // fire-and-forget
+      }
+
     } catch { alert(es ? 'Error al enviar.' : 'Error sending.'); }
     setEnviando(false);
   };
@@ -313,6 +345,9 @@ export default function EdificioDetalle() {
       <ModalSeguridadEdificio
         visible={modalSeguridad}
         es={es}
+        preguntaPrioritaria={getPreguntaPrioritaria(edificio)}
+        edificioId={id}
+        onRespuestaPrioritaria={(resp) => setRespuestaPrioritaria(resp)}
         onConfirmar={() => { setModalSeguridad(false); if (accionPendiente) { accionPendiente(); setAccionPendiente(null); } }}
         onCerrar={() => { setModalSeguridad(false); setAccionPendiente(null); }}
       />
@@ -323,7 +358,12 @@ export default function EdificioDetalle() {
         </Link>
 
         {/* ── NUBE LATENTE DE PELIGRO ── */}
-        <NubePeligro nivel={edificio.nivel_dano} personas_atrapadas={edificio.personas_atrapadas} es={es} />
+        <NubePeligro
+          nivel={edificio.nivel_dano}
+          personas_atrapadas={edificio.personas_atrapadas}
+          sinFoto={!edificio.foto_urls?.length}
+          es={es}
+        />
 
         {/* ── 1. ENCABEZADO CON FOTO DE PORTADA ── */}
         <div className={`bg-white rounded-2xl overflow-hidden mb-3 border-2 ${esCritico ? 'border-red-300' : 'border-gray-200'}`}>
@@ -696,9 +736,8 @@ export default function EdificioDetalle() {
               <div className="flex flex-wrap gap-2">
                 {updateFotos.map(f => (
                   <div key={f.id} className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
-                    {f.url && <img src={f.url} alt="" className="w-full h-full object-cover" />}
-                    {f.uploading && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Loader2 size={14} className="animate-spin text-white" /></div>}
-                    {f.url && <button onClick={() => setUpdateFotos(p => p.filter(x => x.id !== f.id))} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer"><X size={8} /></button>}
+                    {(f.previewUrl || f.url) && <img src={f.previewUrl || f.url} alt="" className="w-full h-full object-cover" />}
+                    <button onClick={() => setUpdateFotos(p => p.filter(x => x.id !== f.id))} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer"><X size={8} /></button>
                   </div>
                 ))}
                 {updateFotos.length < 5 && (
@@ -710,10 +749,15 @@ export default function EdificioDetalle() {
               </div>
             </div>
 
-            <button onClick={handleUpdate} disabled={enviando || !updateForm.tipo || updateFotos.some(f => f.uploading)}
+            <button onClick={handleUpdate} disabled={enviando || !updateForm.tipo}
               className="w-full bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold py-3.5 rounded-2xl disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2 transition-colors">
               {enviando ? <Loader2 className="animate-spin" size={15} /> : '📡'} {t('Enviar actualización', 'Send update', 'Enviar atualização')}
             </button>
+            {updateFotos.length > 0 && (
+              <p className="text-[10px] text-gray-400 text-center mt-1">
+                📷 {t('Las fotos se subirán automáticamente en segundo plano.', 'Photos will upload automatically in the background.', 'As fotos serão enviadas em segundo plano.')}
+              </p>
+            )}
           </div>
         )}
 
