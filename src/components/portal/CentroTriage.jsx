@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import TriageRapido from './TriageRapido';
 import ColaInspeccion from './ColaInspeccion';
 import TareasEspecialista from './TareasEspecialista';
+import InspeccionCampo from './InspeccionCampo';
 
 export default function CentroTriage({ perfil, es }) {
   const [reportes, setReportes] = useState([]);
@@ -35,6 +36,7 @@ export default function CentroTriage({ perfil, es }) {
   const enCola = reportes.filter(r => r.requiere_inspeccion_presencial && r.triage_estado !== 'inspeccionado').length;
 
   const VISTAS = [
+    { key: 'campo',  es: '📵 Inspección de campo', en: '📵 Field inspection' },
     { key: 'triage', es: `🔍 Triaje rápido (${porTriar})`, en: `🔍 Quick triage (${porTriar})` },
     { key: 'cola',   es: `📋 Inspección presencial (${enCola})`, en: `📋 On-site inspection (${enCola})` },
     { key: 'eval',   es: '🏛️ Evaluación detallada', en: '🏛️ Detailed assessment' },
@@ -61,6 +63,7 @@ export default function CentroTriage({ perfil, es }) {
         <div className="text-center py-12"><Loader2 size={24} className="animate-spin text-gray-400 mx-auto" /></div>
       ) : (
         <>
+          {vista === 'campo' && <InspeccionCampo perfil={perfil} es={es} />}
           {vista === 'triage' && <TriageRapido perfil={perfil} es={es} reportes={reportes} onTriaged={onTriaged} />}
           {vista === 'cola' && <ColaInspeccion perfil={perfil} es={es} reportes={reportes} onActualizado={onActualizado} />}
           {vista === 'eval' && <TareasEspecialista perfil={perfil} es={es} />}
