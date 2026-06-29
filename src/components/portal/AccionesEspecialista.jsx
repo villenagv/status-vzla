@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Loader2, Mail, Phone, User, Send, FileText, CheckCircle, ClipboardList, ShieldAlert } from 'lucide-react';
+import { Loader2, Mail, Phone, User, Send, FileText, ClipboardList, ShieldAlert, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import SelloRiesgo from '@/components/edificio/SelloRiesgo';
+import MotivoPendiente, { MOTIVO_LABEL } from './MotivoPendiente';
 
 /**
  * AccionesEspecialista
@@ -18,7 +19,7 @@ import SelloRiesgo from '@/components/edificio/SelloRiesgo';
  *  - onActualizado: (id, dataParcial) => void
  */
 export default function AccionesEspecialista({ reporte, perfil, es, onActualizado }) {
-  const [panel, setPanel] = useState(null); // 'email' | 'nota' | null
+  const [panel, setPanel] = useState(null); // 'email' | 'nota' | 'pendiente' | null
   const [enviando, setEnviando] = useState(false);
   const [ok, setOk] = useState('');
 
@@ -29,7 +30,7 @@ export default function AccionesEspecialista({ reporte, perfil, es, onActualizad
   const [nota, setNota] = useState('');
 
   const tieneEmail = !!(reporte.reportante_email || '').trim();
-  const enCola = !!reporte.requiere_inspeccion_presencial && reporte.triage_estado !== 'inspeccionado';
+  const motivoActual = reporte.inspeccion_estado_pendiente && reporte.inspeccion_estado_pendiente !== 'ninguno' ? reporte.inspeccion_estado_pendiente : '';
 
   const enviarEmail = async () => {
     if (!mensaje.trim()) return;
@@ -73,28 +74,12 @@ export default function AccionesEspecialista({ reporte, perfil, es, onActualizad
     setEnviando(false);
   };
 
-  const toggleCola = async () => {
-    setEnviando(true);
-    const nuevo = !enCola;
-    try {
-      await base44.entities.ReportesDano.update(reporte.id, {
-        requiere_inspeccion_presencial: nuevo,
-        triage_estado: nuevo ? 'en_cola_inspeccion' : (reporte.triage_riesgo && reporte.triage_riesgo !== 'sin_clasificar' ? 'clasificado' : reporte.triage_estado),
-      });
-      onActualizado?.(reporte.id, {
-        requiere_inspeccion_presencial: nuevo,
-        triage_estado: nuevo ? 'en_cola_inspeccion' : 'clasificado',
-      });
-    } catch {}
-    setEnviando(false);
-  };
-
   return (
     <div className="space-y-3">
-      {/* Sello de riesgo actual (si ya está clasificado) */}
-      {(reporte.triage_riesgo && reporte.triage_riesgo !== 'sin_clasificar') && (
+      {/* Sello de riesgo: SOLO visible cuando ya fue inspeccionado en persona */}
+      {reporte.triage_estado === 'inspeccionado' && (
         <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-3">
-          <SelloRiesgo riesgo={reporte.triage_riesgo} size={52} es={es} />
+          <SelloRiesgo reporte={reporte} size={52} es={es} />
           <div>
             <p className="text-[10px] font-bold text-gray-400 uppercase">{es ? 'Sello asignado' : 'Assigned seal'}</p>
             <p className="text-xs text-gray-600">{es ? 'Visible en la ficha pública del edificio' : 'Visible on the public building record'}</p>
@@ -138,13 +123,27 @@ export default function AccionesEspecialista({ reporte, perfil, es, onActualizad
         </button>
       </div>
 
-      <button onClick={toggleCola} disabled={enviando}
-        className={`w-full flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 rounded-xl cursor-pointer border disabled:opacity-40 ${enCola ? 'bg-orange-50 border-orange-300 text-orange-700' : 'bg-blue-700 border-blue-700 text-white hover:bg-blue-800'}`}>
-        {enviando ? <Loader2 size={13} className="animate-spin" /> : enCola ? <CheckCircle size={13} /> : <ClipboardList size={13} />}
-        {enCola
-          ? (es ? 'En cola de inspección presencial — quitar' : 'In on-site queue — remove')
-          : (es ? 'Marcar para inspección presencial' : 'Mark for on-site inspection')}
-      </button>
+      {/* Motivo de pendencia — cuando aún no se inspecciona */}
+      {reporte.triage_estado !== 'inspeccionado' && (
+        <>
+          {motivoActual && panel !== 'pendiente' && (
+            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+              <Clock size={13} className="text-amber-600 flex-shrink-0" />
+              <p className="text-xs text-amber-800 flex-1">
+                <span className="font-bold">{es ? 'Pendiente:' : 'Pending:'}</span> {MOTIVO_LABEL(motivoActual, es)}
+                {reporte.inspeccion_motivo_pendiente ? ` — ${reporte.inspeccion_motivo_pendiente}` : ''}
+              </p>
+            </div>
+          )}
+          <button onClick={() => setPanel(panel === 'pendiente' ? null : 'pendiente')}
+            className="w-full flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 rounded-xl cursor-pointer border bg-white border-amber-300 text-amber-700 hover:bg-amber-50">
+            <ClipboardList size={13} /> {motivoActual ? (es ? 'Cambiar motivo de pendencia' : 'Change pending reason') : (es ? 'Marcar motivo de pendencia' : 'Set pending reason')}
+          </button>
+          {panel === 'pendiente' && (
+            <MotivoPendiente reporte={reporte} perfil={perfil} es={es} onActualizado={onActualizado} />
+          )}
+        </>
+      )}
 
       {/* Panel de email */}
       {panel === 'email' && (

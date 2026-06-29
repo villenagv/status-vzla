@@ -247,6 +247,67 @@
       "description": "Marcado cuando el triaje determina que necesita visita t\u00e9cnica en persona",
       "default": false
     },
+    "inspeccion_severidad": {
+      "type": "string",
+      "description": "Resultado de la inspecci\u00f3n presencial: nivel de severidad del da\u00f1o",
+      "enum": [
+        "sin_definir",
+        "leve",
+        "moderado",
+        "grave",
+        "critico"
+      ],
+      "default": "sin_definir"
+    },
+    "inspeccion_tipo_dano": {
+      "type": "string",
+      "description": "Tipo de da\u00f1o confirmado en la inspecci\u00f3n presencial",
+      "enum": [
+        "sin_definir",
+        "estetico",
+        "estructural",
+        "ambos",
+        "sin_danos"
+      ],
+      "default": "sin_definir"
+    },
+    "inspeccion_notas": {
+      "type": "string",
+      "description": "Informe t\u00e9cnico de la inspecci\u00f3n presencial"
+    },
+    "inspeccion_fotos": {
+      "type": "array",
+      "description": "Fotos tomadas durante la inspecci\u00f3n presencial",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inspeccion_fecha": {
+      "type": "string",
+      "description": "Fecha ISO de la inspecci\u00f3n presencial completada"
+    },
+    "inspeccion_por": {
+      "type": "string",
+      "description": "Nombre o email del especialista que hizo la inspecci\u00f3n presencial"
+    },
+    "inspeccion_estado_pendiente": {
+      "type": "string",
+      "description": "Por qu\u00e9 la inspecci\u00f3n sigue pendiente (cuando aplica)",
+      "enum": [
+        "ninguno",
+        "sin_contacto",
+        "acceso_no_autorizado",
+        "zona_insegura",
+        "reprogramada",
+        "esperando_maquinaria",
+        "otro"
+      ],
+      "default": "ninguno"
+    },
+    "inspeccion_motivo_pendiente": {
+      "type": "string",
+      "description": "Detalle libre del motivo por el que la inspecci\u00f3n est\u00e1 pendiente"
+    },
     "voluntario_asignado_id": {
       "type": "string",
       "description": "ID del usuario voluntario/especialista asignado a la inspecci\u00f3n presencial"

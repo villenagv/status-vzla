@@ -29,23 +29,33 @@ export const SELLOS = {
   },
 };
 
-// Respaldo: nivel_dano → sello, cuando el triaje aún no lo clasificó por riesgo
-const NIVEL_A_SELLO = {
+// Mapea la severidad confirmada en la inspección presencial → sello
+const SEVERIDAD_A_SELLO = {
   leve: 'solo_estetico',
   moderado: 'riesgo_moderado',
   grave: 'riesgo_colapso',
   critico: 'riesgo_colapso',
-  colapsado: 'riesgo_colapso',
 };
 
-export function selloKey(riesgo, nivelDano) {
-  if (riesgo && SELLOS[riesgo]) return riesgo;
-  if (nivelDano && NIVEL_A_SELLO[nivelDano]) return NIVEL_A_SELLO[nivelDano];
+/**
+ * El sello solo se calcula cuando el edificio fue REALMENTE inspeccionado
+ * (triage_estado === 'inspeccionado'). Antes de eso no hay insignia, aunque
+ * exista una clasificación de triaje rápido o un nivel de daño reportado.
+ *
+ * @param {object} reporte - el reporte completo de ReportesDano
+ */
+export function selloKey(reporte) {
+  if (!reporte || reporte.triage_estado !== 'inspeccionado') return null;
+  // 1º preferimos la severidad confirmada en la inspección presencial
+  const sev = reporte.inspeccion_severidad;
+  if (sev && SEVERIDAD_A_SELLO[sev]) return SEVERIDAD_A_SELLO[sev];
+  // 2º si no, el riesgo del triaje rápido
+  if (reporte.triage_riesgo && SELLOS[reporte.triage_riesgo]) return reporte.triage_riesgo;
   return null;
 }
 
-export default function SelloRiesgo({ riesgo, nivelDano, size = 72, es = true, mostrarTexto = false }) {
-  const key = selloKey(riesgo, nivelDano);
+export default function SelloRiesgo({ reporte, size = 72, es = true, mostrarTexto = false }) {
+  const key = selloKey(reporte);
   if (!key) return null;
   const sello = SELLOS[key];
 

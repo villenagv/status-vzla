@@ -41,8 +41,9 @@ const DANO_OVERLAY = {
  *  - sinFotoNudge: bool — muestra aviso de "subir fachada" si true y no hay fotos
  *  - mostrarMiniaturasExtra: bool — muestra miniaturas de fotos 2+ debajo (solo en vista grid)
  *  - fotoUrlsExtra: string[] — fotos adicionales para miniaturas (si se pasa, se usa en vez de fotoUrls[1:])
+ *  - reporte: object — reporte completo; el sello solo aparece si fue inspeccionado
  */
-export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDano, riesgo, height = 120, lang = 'es', sinFotoNudge = false, mostrarMiniaturasExtra = false, fotoUrlsExtra }) {
+export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDano, reporte, height = 120, lang = 'es', sinFotoNudge = false, mostrarMiniaturasExtra = false, fotoUrlsExtra }) {
   const { lowBw } = useLowBw();
   const [idx, setIdx] = useState(0);
   const [cargada, setCargada] = useState(false);
@@ -53,11 +54,11 @@ export default function EdificioImagen({ fotoUrls = [], tipoEstructura, nivelDan
   const overlay = DANO_OVERLAY[nivelDano];
   const fotos = (fotoUrls || []).filter(Boolean);
   const hayFotos = fotos.length > 0;
-  // Sello oficial: aparece si el especialista ya clasificó el riesgo (o por nivel de daño)
-  const haySello = !!selloKey(riesgo, nivelDano);
+  // Sello oficial: aparece SOLO si el edificio fue inspeccionado presencialmente
+  const haySello = !!selloKey(reporte);
   const sello = haySello && !lowBw ? (
     <div style={{ position: 'absolute', top: 4, left: 4, zIndex: 2 }}>
-      <SelloRiesgo riesgo={riesgo} nivelDano={nivelDano} size={Math.min(48, height * 0.42)} es={es} />
+      <SelloRiesgo reporte={reporte} size={Math.min(48, height * 0.42)} es={es} />
     </div>
   ) : null;
 
