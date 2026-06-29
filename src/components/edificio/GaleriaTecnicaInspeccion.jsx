@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight, Images } from 'lucide-react';
 import ImagenProxy from '@/components/svzla/ImagenProxy';
 import { AREAS_INSPECCION, GRUPOS_AREA, areaLabel } from '@/components/portal/areasInspeccion';
@@ -25,7 +24,7 @@ const grupoDeArea = (val) => (AREAS_INSPECCION.find(a => a.val === val)?.grupo) 
 export default function GaleriaTecnicaInspeccion({ edificio, es }) {
   const [lightbox, setLightbox] = useState(null); // { lista: [{url,area,nota}], idx }
 
-  const { grupos, complementarias, totalInspeccion } = useMemo(() => {
+  const { grupos, complementarias, totalInspeccion, todas } = useMemo(() => {
     const detalle = Array.isArray(edificio.inspeccion_detalle_fotos) ? edificio.inspeccion_detalle_fotos.filter(f => f?.url) : [];
 
     // Agrupar el detalle por grupo de área, preservando el orden de captura dentro de cada uno
@@ -45,7 +44,13 @@ export default function GaleriaTecnicaInspeccion({ edificio, es }) {
     const urlsDetalle = new Set(detalle.map(f => f.url));
     const complementarias = (edificio.foto_urls || []).filter(url => url && !urlsDetalle.has(url));
 
-    return { grupos, complementarias, totalInspeccion: detalle.length };
+    // Lista consolidada de TODAS las fotos del edificio (inspección + edificio), sin duplicar
+    const vistas = new Set();
+    const todas = [];
+    detalle.forEach(f => { if (!vistas.has(f.url)) { vistas.add(f.url); todas.push({ url: f.url, area: f.area, nota: f.nota }); } });
+    (edificio.foto_urls || []).forEach(url => { if (url && !vistas.has(url)) { vistas.add(url); todas.push({ url }); } });
+
+    return { grupos, complementarias, totalInspeccion: detalle.length, todas };
   }, [edificio.inspeccion_detalle_fotos, edificio.foto_urls]);
 
   // Si no hay nada que mostrar, no renderizamos la sección
@@ -114,12 +119,12 @@ export default function GaleriaTecnicaInspeccion({ edificio, es }) {
         </div>
       )}
 
-      {/* Ver todas las fotos del edificio en la ficha pública */}
-      {edificio.id && (
-        <Link to={`/edificio?id=${edificio.id}`}
-          className="mt-4 w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl no-underline transition-colors">
-          <Images size={14} /> {es ? 'Ver todas las fotos del edificio' : 'View all building photos'}
-        </Link>
+      {/* Ver todas las fotos del edificio — visor interno, sin salir del módulo */}
+      {todas.length > 1 && (
+        <button onClick={() => abrir(todas, 0)}
+          className="mt-4 w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl transition-colors cursor-pointer">
+          <Images size={14} /> {es ? `Ver todas las fotos (${todas.length})` : `View all photos (${todas.length})`}
+        </button>
       )}
 
       {/* Lightbox */}
