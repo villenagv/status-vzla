@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { X, ChevronLeft, ChevronRight, Images } from 'lucide-react';
 import ImagenProxy from '@/components/svzla/ImagenProxy';
 import { AREAS_INSPECCION, GRUPOS_AREA, areaLabel } from '@/components/portal/areasInspeccion';
 
@@ -111,6 +112,14 @@ export default function GaleriaTecnicaInspeccion({ edificio, es }) {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Ver todas las fotos del edificio en la ficha pública */}
+      {edificio.id && (
+        <Link to={`/edificio?id=${edificio.id}`}
+          className="mt-4 w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl no-underline transition-colors">
+          <Images size={14} /> {es ? 'Ver todas las fotos del edificio' : 'View all building photos'}
+        </Link>
       )}
 
       {/* Lightbox */}
