@@ -14,6 +14,7 @@ import VoluntariosDetalle from '@/components/admin/VoluntariosDetalle';
 import GeocodificarPanel from '@/components/admin/GeocodificarPanel';
 import ImportacionVzla from '@/components/admin/ImportacionVzla';
 import CargaFotosDrive from '@/components/admin/CargaFotosDrive';
+import AdminEmailLogs from '@/components/admin/AdminEmailLogs';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
@@ -59,6 +60,7 @@ const AdminDashboard = () => {
   
   const tabs = [
       { key: 'analytics',   label: '📊 Analítica'           },
+      { key: 'emails',      label: '📧 Emails'              },
       { key: 'usuarios',    label: '👥 Usuarios'            },
       { key: 'voluntarios', label: '🤝 Voluntarios'         },
       { key: 'centros',     label: '🏥 Centros'             },
@@ -91,6 +93,7 @@ const AdminDashboard = () => {
 
         <div className="py-8">
             {tab === 'analytics' && <AdminStats />}
+            {tab === 'emails' && <AdminEmailLogs />}
             {tab === 'usuarios' && <GestionUsuarios es={true} />}
             {tab === 'voluntarios' && (
               <div className="space-y-8">
