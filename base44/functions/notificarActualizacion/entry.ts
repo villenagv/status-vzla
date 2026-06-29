@@ -113,6 +113,14 @@ Deno.serve(async (req) => {
         console.warn(`Error enviando a ${email}: ${e.message}`);
       }
     }
+    try {
+      await base44.asServiceRole.entities.LogNotificaciones.create({
+        tipo: 'persona', entidad_id: persona_id, entidad_nombre: nombre || '',
+        emails_enviados: enviados, accion: 'actualizacion',
+        detalles: `${subject} | estado: ${estadoLabel}`,
+      });
+    } catch {}
+
     return Response.json({ ok: true, notificados: enviados, total: emails.size });
   } catch (error) {
     console.error('Error en notificarActualizacion:', error.message);

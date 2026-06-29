@@ -102,6 +102,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    try {
+      await base44.asServiceRole.entities.LogNotificaciones.create({
+        tipo: 'edificio', entidad_id: edificio_id, entidad_nombre: nombreEdificio,
+        emails_enviados: enviados, accion: 'notificacion_publicacion',
+        detalles: `${asuntoEmail}${remitente_nombre ? ` | por: ${remitente_nombre}` : ''}`,
+      });
+    } catch {}
+
     return Response.json({ enviados, total_suscriptores: suscriptores.length, errores });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

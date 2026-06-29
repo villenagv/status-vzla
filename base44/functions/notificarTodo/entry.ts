@@ -160,6 +160,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    try {
+      await asServiceRole.entities.LogNotificaciones.create({
+        tipo, entidad_id, entidad_nombre: nombre || '',
+        emails_enviados: enviados, accion: 'notificacion_general',
+        detalles: `${asunto}${estado_label ? ` | estado: ${estado_label}` : ''}`,
+      });
+    } catch {}
+
     return Response.json({
       ok: true, enviados, total: emails.size, asunto,
     });

@@ -98,9 +98,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true, sent_to: enviados }), { status: 200 });
+    try {
+      await serviceRoleClient.entities.LogNotificaciones.create({
+        tipo: 'persona', entidad_id, entidad_nombre: datos?.nombre || '',
+        emails_enviados: enviados, accion: tipo_notificacion === 'nueva_coincidencia_persona' ? 'notificacion_coincidencia' : 'actualizacion',
+        detalles: `${subject}${datos?.estado ? ` | estado: ${datos.estado}` : ''}`,
+      });
+    } catch {}
 
-    return new Response(JSON.stringify({ success: true, sent_to: subs.length }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, sent_to: enviados }), { status: 200 });
 
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });

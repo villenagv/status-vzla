@@ -126,6 +126,14 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.integrations.Core.SendEmail(payload);
 
+    try {
+      await base44.asServiceRole.entities.LogNotificaciones.create({
+        tipo: 'persona', entidad_id: persona_id || '', entidad_nombre: nombre_persona || '',
+        emails_enviados: 1, accion: 'email_aviso_familiar',
+        detalles: `email: ${email_destino}${relacion ? ` | relación: ${relacion}` : ''}${codigo_cris ? ` | CRIS: ${codigo_cris}` : ''}`,
+      });
+    } catch {}
+
     return Response.json({ ok: true, enviado_a: email_destino });
   } catch (error) {
     return Response.json({ error: 'Error enviando el aviso. Intenta de nuevo.' }, { status: 500 });
