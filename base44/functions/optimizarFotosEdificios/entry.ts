@@ -4,9 +4,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 // Cada lote es pequeño (~25 edificios, ~125 fotos) para mantener la respuesta rápida.
 // NO actualiza la BD — solo devuelve las URLs subidas.
 
-const PARALELO = 10;   // descargas simultáneas
+const PARALELO = 4;    // descargas simultáneas — reducido para evitar 504
 const MAX_FOTOS_POR_EDIFICIO = 5;
-const TIMEOUT_MS = 30_000; // 30s por foto
+const TIMEOUT_MS = 20_000; // 20s por foto
 
 async function fetchConTimeout(url, ms) {
   const ctrl = new AbortController();

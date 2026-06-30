@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import * as XLSX from 'xlsx';
 
 const FOTO_LIMITE = 5;
-const EDIFICIOS_POR_LOTE = 25;
+const EDIFICIOS_POR_LOTE = 5;   // lotes pequeños para evitar timeout 504
 const STORAGE_KEY = 'cris_fotos_progreso';
 
 // Extrae el folder_id de un link de Google Drive
@@ -20,9 +20,9 @@ function extraerFolderId(url) {
 
 function StatCard({ icon, label, val, color }) {
   return (
-    <div style={{ background: '#1C2128', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 14px', textAlign: 'center' }}>
-      <p style={{ fontSize: 22, fontWeight: 800, color: color || '#fff', margin: 0 }}>{val}</p>
-      <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', margin: '4px 0 0' }}>{icon} {label}</p>
+    <div style={{ background: '#f8f9fa', border: '1px solid #e5e7eb', borderRadius: 12, padding: '12px 14px', textAlign: 'center' }}>
+      <p style={{ fontSize: 22, fontWeight: 800, color: color || '#111827', margin: 0 }}>{val}</p>
+      <p style={{ fontSize: 10, color: '#6b7280', margin: '4px 0 0' }}>{icon} {label}</p>
     </div>
   );
 }
@@ -30,25 +30,25 @@ function StatCard({ icon, label, val, color }) {
 function LogRow({ item }) {
   return (
     <div style={{
-      background: item.status === 'ok' ? 'rgba(21,128,61,0.08)' : 'rgba(185,28,28,0.10)',
-      border: `1px solid ${item.status === 'ok' ? 'rgba(34,197,94,0.20)' : 'rgba(239,68,68,0.25)'}`,
+      background: item.status === 'ok' ? '#f0fdf4' : '#fef2f2',
+      border: `1px solid ${item.status === 'ok' ? '#bbf7d0' : '#fecaca'}`,
       borderRadius: 8, padding: '8px 10px', display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start',
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {item.nombre_edificio || item.edificio_id}
         </p>
-        <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.40)', margin: '2px 0 0' }}>
+        <p style={{ fontSize: 9, color: '#6b7280', margin: '2px 0 0' }}>
           🏗️ {item.edificio_id?.slice(0, 12)}…
-          {item.nuevas > 0 && <span style={{ color: '#93C5FD' }}> · {item.nuevas} fotos</span>}
-          {item.total_fotos > 0 && <span style={{ color: '#86EFAC' }}> · {item.total_fotos} total</span>}
+          {item.nuevas > 0 && <span style={{ color: '#2563eb' }}> · {item.nuevas} fotos</span>}
+          {item.total_fotos > 0 && <span style={{ color: '#16a34a' }}> · {item.total_fotos} total</span>}
         </p>
-        {item.status !== 'ok' && <p style={{ fontSize: 9, color: '#FCA5A5', margin: '2px 0 0' }}>{item.error}</p>}
+        {item.status !== 'ok' && <p style={{ fontSize: 9, color: '#dc2626', margin: '2px 0 0' }}>{item.error}</p>}
       </div>
       <span style={{
         fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20, flexShrink: 0,
-        background: item.status === 'ok' ? 'rgba(34,197,94,0.20)' : 'rgba(239,68,68,0.20)',
-        color: item.status === 'ok' ? '#86EFAC' : '#FCA5A5',
+        background: item.status === 'ok' ? '#dcfce7' : '#fee2e2',
+        color: item.status === 'ok' ? '#15803d' : '#dc2626',
       }}>
         {item.status === 'ok' ? '✅ OK' : item.status === 'pendiente' ? '⏳' : '❌ Error'}
       </span>
@@ -349,15 +349,15 @@ export default function CargaFotosDrive() {
           <FileSpreadsheet size={20} color="#fff" />
         </div>
         <div>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#fff', margin: 0 }}>🖼️ Carga masiva de fotos</h2>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', margin: '4px 0 0', lineHeight: 1.5 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: 0 }}>🖼️ Carga masiva de fotos</h2>
+          <p style={{ fontSize: 12, color: '#6b7280', margin: '4px 0 0', lineHeight: 1.5 }}>
             Procesa en lotes de {EDIFICIOS_POR_LOTE} edificios. Pausa y reanuda cuando quieras. Las fotos duplicadas se omiten automáticamente.
           </p>
         </div>
       </div>
 
       {/* Selector de modo */}
-      <div style={{ display: 'flex', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)' }}>
+      <div style={{ display: 'flex', borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f9fafb' }}>
         {[
           { k: 'excel', icon: <FileSpreadsheet size={14} />, label: 'Excel con índice' },
           { k: 'drive', icon: <FolderOpen size={14} />, label: '📁 Link de carpeta Drive' },
@@ -365,7 +365,7 @@ export default function CargaFotosDrive() {
           <button key={m.k} onClick={() => setModo(m.k)}
             style={{ flex: 1, border: 'none', cursor: 'pointer', padding: '11px 0', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               background: modo === m.k ? '#1D4ED8' : 'transparent',
-              color: modo === m.k ? '#fff' : 'rgba(255,255,255,0.45)',
+              color: modo === m.k ? '#fff' : '#6b7280',
             }}>
             {m.icon} {m.label}
           </button>
@@ -375,8 +375,8 @@ export default function CargaFotosDrive() {
       {/* ── MODO DRIVE: pegar link de carpeta ── */}
       {modo === 'drive' && estado === 'idle' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ background: 'rgba(37,99,235,0.10)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 10, padding: '10px 14px' }}>
-            <p style={{ fontSize: 11, color: '#93C5FD', margin: 0, lineHeight: 1.6 }}>
+          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '10px 14px' }}>
+            <p style={{ fontSize: 11, color: '#1e40af', margin: 0, lineHeight: 1.6 }}>
               <strong>📁 Cómo usar:</strong><br />
               1. Ve a Google Drive y abre la carpeta con las fotos de los edificios.<br />
               2. Copia el link de la carpeta (el URL del navegador).<br />
@@ -386,55 +386,54 @@ export default function CargaFotosDrive() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.65)', marginBottom: 6 }}>
-              <Link size={12} style={{ display: 'inline', marginRight: 4 }} />
-              Link de carpeta de Google Drive <span style={{ color: '#F87171' }}>*</span>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+              Link de carpeta de Google Drive <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <input
               type="url"
               value={driveLink}
               onChange={e => { setDriveLink(e.target.value); setDriveError(''); setDriveArchivos([]); }}
               placeholder="https://drive.google.com/drive/folders/1ABCxyz..."
-              style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: `1px solid ${driveLink ? 'rgba(34,197,94,0.40)' : 'rgba(255,255,255,0.14)'}`, borderRadius: 10, padding: '10px 12px', fontSize: 12, color: '#fff', cursor: 'text', boxSizing: 'border-box', outline: 'none' }}
+              style={{ width: '100%', background: '#fff', border: `1.5px solid ${driveLink ? '#16a34a' : '#d1d5db'}`, borderRadius: 10, padding: '10px 12px', fontSize: 12, color: '#111827', boxSizing: 'border-box', outline: 'none' }}
             />
             {driveLink && extraerFolderId(driveLink) && (
-              <p style={{ fontSize: 10, color: '#86EFAC', marginTop: 4 }}>✅ ID detectado: {extraerFolderId(driveLink)}</p>
+              <p style={{ fontSize: 10, color: '#16a34a', marginTop: 4 }}>✅ ID detectado: {extraerFolderId(driveLink)}</p>
             )}
             {driveLink && !extraerFolderId(driveLink) && (
-              <p style={{ fontSize: 10, color: '#FCA5A5', marginTop: 4 }}>⚠️ No se reconoce como link de carpeta Drive</p>
+              <p style={{ fontSize: 10, color: '#dc2626', marginTop: 4 }}>⚠️ No se reconoce como link de carpeta Drive</p>
             )}
           </div>
 
           {driveError && (
-            <div style={{ background: 'rgba(220,38,38,0.10)', border: '1px solid rgba(239,68,68,0.30)', borderRadius: 10, padding: '10px 14px' }}>
-              <p style={{ fontSize: 12, color: '#FCA5A5', margin: 0 }}>⚠️ {driveError}</p>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px' }}>
+              <p style={{ fontSize: 12, color: '#dc2626', margin: 0 }}>⚠️ {driveError}</p>
             </div>
           )}
 
           <button onClick={leerCarpetaDrive} disabled={!driveLink || driveCargando || !extraerFolderId(driveLink)}
-            style={{ background: driveLink && extraerFolderId(driveLink) ? '#1D4ED8' : 'rgba(255,255,255,0.08)', color: '#fff', border: 'none', borderRadius: 12, padding: '13px 0', fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: !driveLink || driveCargando ? 0.6 : 1 }}>
+            style={{ background: driveLink && extraerFolderId(driveLink) ? '#1D4ED8' : '#e5e7eb', color: driveLink && extraerFolderId(driveLink) ? '#fff' : '#9ca3af', border: 'none', borderRadius: 12, padding: '13px 0', fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             {driveCargando ? <Loader2 size={16} className="animate-spin" /> : <FolderOpen size={16} />}
             {driveCargando ? 'Leyendo carpeta...' : 'Leer fotos de la carpeta'}
           </button>
 
           {/* Lista de archivos encontrados */}
           {driveArchivos.length > 0 && (
-            <div style={{ background: 'rgba(21,128,61,0.08)', border: '1px solid rgba(34,197,94,0.20)', borderRadius: 12, padding: '14px 16px' }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#86EFAC', margin: '0 0 10px' }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '14px 16px' }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#15803d', margin: '0 0 10px' }}>
                 📸 {driveArchivos.length} imágenes encontradas en la carpeta
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
                 {driveArchivos.slice(0, 30).map((f, i) => (
-                  <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '5px 9px', fontSize: 10, color: 'rgba(255,255,255,0.65)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div key={i} style={{ background: '#fff', border: '1px solid #d1fae5', borderRadius: 8, padding: '5px 9px', fontSize: 10, color: '#374151', display: 'flex', alignItems: 'center', gap: 4 }}>
                     🖼️ {f.nombre.length > 25 ? f.nombre.slice(0, 22) + '…' : f.nombre}
                   </div>
                 ))}
                 {driveArchivos.length > 30 && (
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', padding: '5px 9px' }}>+{driveArchivos.length - 30} más...</div>
+                  <div style={{ fontSize: 10, color: '#6b7280', padding: '5px 9px' }}>+{driveArchivos.length - 30} más...</div>
                 )}
               </div>
-              <p style={{ fontSize: 11, color: 'rgba(134,239,172,0.70)', margin: '10px 0 0', lineHeight: 1.5 }}>
-                ⚠️ Para asociar estas fotos a edificios específicos necesitas un Excel con las columnas <strong>edificio_id</strong> y <strong>nombre_archivo</strong>. Cambia al modo <strong>"Excel con índice"</strong> y usa estos nombres de archivo como referencia.
+              <p style={{ fontSize: 11, color: '#15803d', margin: '10px 0 0', lineHeight: 1.5 }}>
+                ⚠️ Para asociar estas fotos a edificios necesitas un Excel con columnas <strong>edificio_id</strong> y <strong>nombre_archivo</strong>. Cambia al modo <strong>"Excel con índice"</strong>.
               </p>
             </div>
           )}
@@ -443,12 +442,12 @@ export default function CargaFotosDrive() {
 
       {/* Instrucciones modo Excel */}
       {modo === 'excel' && (
-        <div style={{ background: 'rgba(37,99,235,0.10)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 10, padding: '10px 14px' }}>
-          <p style={{ fontSize: 11, color: '#93C5FD', margin: 0, lineHeight: 1.6 }}>
+        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '10px 14px' }}>
+          <p style={{ fontSize: 11, color: '#1e40af', margin: 0, lineHeight: 1.6 }}>
             <strong>📋 Formato Excel:</strong> columnas <em>edificio_id, url_original, tipo_foto (MAIN/MEDIA)</em><br />
-            <strong>⚡ Procesamiento por lotes:</strong> {EDIFICIOS_POR_LOTE} edificios por llamada — cada lote tarda segundos. Sin timeout.<br />
+            <strong>⚡ Procesamiento por lotes:</strong> {EDIFICIOS_POR_LOTE} edificios por llamada — rápido y sin timeout.<br />
             <strong>⏸️ Reanudable:</strong> si cierras la ventana, puedes continuar desde donde quedó.<br />
-            <strong>🔁 Anti-duplicados:</strong> fotos ya existentes en cada edificio se omiten automáticamente.<br />
+            <strong>🔁 Anti-duplicados:</strong> fotos ya existentes se omiten automáticamente.<br />
             <strong>Límite:</strong> {FOTO_LIMITE} fotos por edificio (priorizando MAIN).
           </p>
         </div>
@@ -458,21 +457,21 @@ export default function CargaFotosDrive() {
       {modo === 'excel' && (estado === 'idle' || estado === 'error') && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.65)', marginBottom: 6 }}>
-              📄 Excel con índice de fotos <span style={{ color: '#F87171' }}>*</span>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+              📄 Excel con índice de fotos <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               onChange={e => { setArchivo(e.target.files[0] || null); setErrMsg(''); setEstado('idle'); }}
-              style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: `1px solid ${archivo ? 'rgba(34,197,94,0.40)' : 'rgba(255,255,255,0.14)'}`, borderRadius: 10, padding: '10px 12px', fontSize: 12, color: 'rgba(255,255,255,0.70)', cursor: 'pointer', boxSizing: 'border-box' }} />
-            {archivo && <p style={{ fontSize: 10, color: '#86EFAC', marginTop: 4 }}>✅ {archivo.name} · {(archivo.size / 1024).toFixed(0)} KB</p>}
+              style={{ width: '100%', background: '#fff', border: `1.5px solid ${archivo ? '#16a34a' : '#d1d5db'}`, borderRadius: 10, padding: '10px 12px', fontSize: 12, color: '#111827', cursor: 'pointer', boxSizing: 'border-box' }} />
+            {archivo && <p style={{ fontSize: 10, color: '#16a34a', marginTop: 4 }}>✅ {archivo.name} · {(archivo.size / 1024).toFixed(0)} KB</p>}
           </div>
           {errMsg && (
-            <div style={{ background: 'rgba(220,38,38,0.10)', border: '1px solid rgba(239,68,68,0.30)', borderRadius: 10, padding: '10px 14px' }}>
-              <p style={{ fontSize: 12, color: '#FCA5A5', margin: 0 }}>⚠️ {errMsg}</p>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px' }}>
+              <p style={{ fontSize: 12, color: '#dc2626', margin: 0 }}>⚠️ {errMsg}</p>
             </div>
           )}
           <button onClick={analizarExcel} disabled={!archivo}
-            style={{ background: archivo ? '#1D4ED8' : 'rgba(255,255,255,0.08)', color: '#fff', border: 'none', borderRadius: 12, padding: '13px 0', fontWeight: 800, fontSize: 14, cursor: archivo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: archivo ? 1 : 0.5 }}>
+            style={{ background: archivo ? '#1D4ED8' : '#e5e7eb', color: archivo ? '#fff' : '#9ca3af', border: 'none', borderRadius: 12, padding: '13px 0', fontWeight: 800, fontSize: 14, cursor: archivo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <Eye size={16} /> Analizar archivo de fotos
           </button>
         </div>
@@ -481,8 +480,8 @@ export default function CargaFotosDrive() {
       {/* ANALIZANDO */}
       {estado === 'analizando' && (
         <div style={{ textAlign: 'center', padding: '32px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <Loader2 size={28} color="#60A5FA" className="animate-spin" />
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>Analizando archivo Excel…</p>
+          <Loader2 size={28} color="#1D4ED8" className="animate-spin" />
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0 }}>Analizando archivo Excel…</p>
         </div>
       )}
 
@@ -491,18 +490,17 @@ export default function CargaFotosDrive() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
             <StatCard icon="🏗️" label="Edificios" val={fotosData.totalEdificios} />
-            <StatCard icon="🖼️" label="Fotos totales" val={fotosData.totalFotos} color="#93C5FD" />
-            <StatCard icon="📸" label="Con foto principal" val={fotosData.edificiosConMain} color="#FCD34D" />
+            <StatCard icon="🖼️" label="Fotos totales" val={fotosData.totalFotos} color="#1D4ED8" />
+            <StatCard icon="📸" label="Con foto principal" val={fotosData.edificiosConMain} color="#d97706" />
           </div>
-          <div style={{ background: 'rgba(21,128,61,0.08)', border: '1px solid rgba(34,197,94,0.20)', borderRadius: 10, padding: '12px 14px' }}>
-            <p style={{ fontSize: 12, color: '#86EFAC', margin: 0, lineHeight: 1.5 }}>
-              ✅ Archivo analizado: <strong>{fotosData.totalEdificios}</strong> edificios, <strong>{fotosData.totalFotos}</strong> fotos.<br />
-              Se procesará en lotes de <strong>{EDIFICIOS_POR_LOTE}</strong> edificios (≈{Math.ceil(fotosData.totalEdificios / EDIFICIOS_POR_LOTE)} llamadas al backend).<br />
-              Puedes pausar y reanudar cuando quieras. El progreso se guarda automáticamente.
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px' }}>
+            <p style={{ fontSize: 12, color: '#15803d', margin: 0, lineHeight: 1.5 }}>
+              ✅ <strong>{fotosData.totalEdificios}</strong> edificios, <strong>{fotosData.totalFotos}</strong> fotos detectadas.<br />
+              Se procesará en <strong>{Math.ceil(fotosData.totalEdificios / EDIFICIOS_POR_LOTE)} lotes</strong> de {EDIFICIOS_POR_LOTE} edificios. Puedes pausar y reanudar en cualquier momento.
             </p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={reset} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.60)', cursor: 'pointer' }}>
+            <button onClick={reset} style={{ flex: 1, background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
               Cancelar
             </button>
             <button onClick={procesarLotes}
@@ -516,21 +514,21 @@ export default function CargaFotosDrive() {
       {/* PAUSADO_REANUDABLE */}
       {estado === 'pausado_reanudable' && fotosData && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.30)', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <RefreshCw size={20} color="#FCD34D" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <RefreshCw size={20} color="#d97706" style={{ flexShrink: 0, marginTop: 2 }} />
             <div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#FCD34D', margin: 0 }}>⏸️ Progreso guardado</p>
-              <p style={{ fontSize: 12, color: 'rgba(252,211,77,0.80)', margin: '4px 0 0' }}>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#92400e', margin: 0 }}>⏸️ Progreso guardado</p>
+              <p style={{ fontSize: 12, color: '#78350f', margin: '4px 0 0' }}>
                 {fotosSubidas.length} fotos ya subidas de {fotosData.totalFotos}. Progreso: {progreso}%.<br />
                 Puedes reanudar desde donde quedó o empezar de nuevo.
               </p>
             </div>
           </div>
-          <div className="progress-bar" style={{ height: 8 }}>
-            <div className="progress-fill" style={{ width: `${progreso}%` }} />
+          <div style={{ height: 10, background: '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${progreso}%`, background: '#1D4ED8', borderRadius: 99, transition: 'width 300ms' }} />
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={reset} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.60)', cursor: 'pointer' }}>
+            <button onClick={reset} style={{ flex: 1, background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
               Empezar de nuevo
             </button>
             <button onClick={reanudar}
@@ -544,20 +542,20 @@ export default function CargaFotosDrive() {
       {/* ERROR_PAUSA */}
       {estado === 'error_pausa' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(239,68,68,0.30)', borderRadius: 12, padding: '14px 16px' }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#FCA5A5', margin: 0 }}>⚠️ Error en el lote</p>
-            <p style={{ fontSize: 12, color: 'rgba(252,165,165,0.80)', margin: '4px 0 0' }}>{errMsg}</p>
-            <p style={{ fontSize: 11, color: 'rgba(252,165,165,0.60)', margin: '6px 0 0' }}>
-              {fotosSubidas.length} fotos ya subidas. El progreso se ha guardado.
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 16px' }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#991b1b', margin: 0 }}>⚠️ Error en el lote — puedes reintentar</p>
+            <p style={{ fontSize: 12, color: '#b91c1c', margin: '4px 0 0' }}>{errMsg}</p>
+            <p style={{ fontSize: 11, color: '#6b7280', margin: '6px 0 0' }}>
+              {fotosSubidas.length} fotos ya subidas. El progreso se guardó — al reintentar continúa desde el lote fallido.
             </p>
           </div>
           {progreso > 0 && (
-            <div className="progress-bar" style={{ height: 6 }}>
-              <div className="progress-fill" style={{ width: `${progreso}%` }} />
+            <div style={{ height: 8, background: '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${progreso}%`, background: '#dc2626', borderRadius: 99 }} />
             </div>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={reset} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.60)', cursor: 'pointer' }}>
+            <button onClick={reset} style={{ flex: 1, background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
               Empezar de nuevo
             </button>
             <button onClick={reanudar}
@@ -572,24 +570,24 @@ export default function CargaFotosDrive() {
       {estado === 'procesando' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ textAlign: 'center', padding: '8px 0' }}>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0 }}>
               {pausado ? '⏸️ Pausado' : '⚙️ Procesando...'}
             </p>
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.40)', marginTop: 4 }}>{progresoDetalle}</p>
+            <p style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{progresoDetalle}</p>
           </div>
-          <div className="progress-bar" style={{ height: 10 }}>
-            <div className="progress-fill" style={{ width: `${progreso}%` }} />
+          <div style={{ height: 12, background: '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${progreso}%`, background: pausado ? '#d97706' : '#1D4ED8', borderRadius: 99, transition: 'width 300ms' }} />
           </div>
-          <p style={{ textAlign: 'center', fontSize: 11, color: 'rgba(255,255,255,0.30)', margin: 0 }}>
-            {fotosSubidas.length} fotos subidas hasta ahora
+          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#374151', margin: 0 }}>
+            {progreso}% — {fotosSubidas.length} fotos subidas
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={cancelar}
-              style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.60)', cursor: 'pointer' }}>
+              style={{ flex: 1, background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
               Cancelar
             </button>
             <button onClick={togglePausa}
-              style={{ flex: 1, background: pausado ? '#1D4ED8' : 'rgba(234,179,8,0.15)', border: `1px solid ${pausado ? 'rgba(59,130,246,0.40)' : 'rgba(234,179,8,0.30)'}`, borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: pausado ? '#93C5FD' : '#FCD34D', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              style={{ flex: 1, background: pausado ? '#1D4ED8' : '#fffbeb', border: `1px solid ${pausado ? '#3b82f6' : '#fde68a'}`, borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 13, color: pausado ? '#fff' : '#92400e', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               {pausado ? <PlayCircle size={16} /> : <PauseCircle size={16} />}
               {pausado ? 'Reanudar' : 'Pausar'}
             </button>
@@ -599,10 +597,10 @@ export default function CargaFotosDrive() {
 
       {/* CANCELADO */}
       {estado === 'cancelado' && (
-        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.60)', margin: 0 }}>⏹️ Proceso cancelado</p>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '4px 0 10px' }}>{fotosSubidas.length} fotos subidas no se vincularon a edificios.</p>
-          <button onClick={reset} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 0', fontWeight: 600, fontSize: 12, color: 'rgba(255,255,255,0.60)', cursor: 'pointer', width: '100%' }}>
+        <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#374151', margin: 0 }}>⏹️ Proceso cancelado</p>
+          <p style={{ fontSize: 11, color: '#6b7280', margin: '4px 0 10px' }}>{fotosSubidas.length} fotos subidas no se vincularon a edificios.</p>
+          <button onClick={reset} style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 0', fontWeight: 600, fontSize: 12, color: '#374151', cursor: 'pointer', width: '100%' }}>
             Iniciar nuevo proceso
           </button>
         </div>
@@ -612,30 +610,30 @@ export default function CargaFotosDrive() {
       {estado === 'listo' && resumen && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-            <StatCard icon="✅" label="Completos" val={resumen.ok} color="#86EFAC" />
-            <StatCard icon="⚠️" label="Parciales" val={resumen.parcial} color="#FCD34D" />
-            <StatCard icon="❌" label="Errores" val={resumen.errors} color="#FCA5A5" />
+            <StatCard icon="✅" label="Completos" val={resumen.ok} color="#16a34a" />
+            <StatCard icon="⚠️" label="Parciales" val={resumen.parcial} color="#d97706" />
+            <StatCard icon="❌" label="Errores" val={resumen.errors} color="#dc2626" />
           </div>
 
-          <div style={{ background: 'rgba(21,128,61,0.15)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <CheckCircle size={20} color="#86EFAC" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <CheckCircle size={20} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
             <div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#86EFAC', margin: 0 }}>✅ Carga completada</p>
-              <p style={{ fontSize: 12, color: 'rgba(134,239,172,0.80)', margin: '4px 0 0' }}>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#15803d', margin: 0 }}>✅ Carga completada</p>
+              <p style={{ fontSize: 12, color: '#166534', margin: '4px 0 0' }}>
                 {resumen.ok} edificios completos, {resumen.parcial} parciales, {resumen.errors} con errores. Total: {resumen.total} edificios — {fotosSubidas.length} fotos subidas.
               </p>
-              {errMsg && <p style={{ fontSize: 11, color: '#FCA5A5', margin: '6px 0 0' }}>⚠️ {errMsg}</p>}
+              {errMsg && <p style={{ fontSize: 11, color: '#dc2626', margin: '6px 0 0' }}>⚠️ {errMsg}</p>}
             </div>
           </div>
 
           {resultados.length > 0 && (
             <div>
               <button onClick={() => setLogExpandido(v => !v)}
-                style={{ width: '100%', background: 'transparent', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10, padding: '10px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.60)' }}>
+                style={{ width: '100%', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
                   📋 Ver detalle por edificio ({resultados.length})
                 </span>
-                <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>{logExpandido ? '▲' : '▼'}</span>
+                <span style={{ color: '#9ca3af', fontSize: 11 }}>{logExpandido ? '▲' : '▼'}</span>
               </button>
               {logExpandido && (
                 <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 5, maxHeight: 400, overflowY: 'auto' }}>
@@ -645,7 +643,7 @@ export default function CargaFotosDrive() {
             </div>
           )}
 
-          <button onClick={reset} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 0', fontWeight: 600, fontSize: 12, color: 'rgba(255,255,255,0.60)', cursor: 'pointer' }}>
+          <button onClick={reset} style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 0', fontWeight: 600, fontSize: 12, color: '#374151', cursor: 'pointer' }}>
             Procesar otro archivo
           </button>
         </div>
