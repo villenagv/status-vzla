@@ -1,11 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
-import { Upload, FileSpreadsheet, Loader2, CheckCircle, AlertTriangle, Eye, PauseCircle, PlayCircle, RefreshCw } from 'lucide-react';
+import { Upload, FileSpreadsheet, Loader2, CheckCircle, AlertTriangle, Eye, PauseCircle, PlayCircle, RefreshCw, FolderOpen, Link } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import * as XLSX from 'xlsx';
 
 const FOTO_LIMITE = 5;
 const EDIFICIOS_POR_LOTE = 25;
 const STORAGE_KEY = 'cris_fotos_progreso';
+
+// Extrae el folder_id de un link de Google Drive
+function extraerFolderId(url) {
+  const m = url.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m2) return m2[1];
+  // Si es solo el ID directo
+  if (/^[a-zA-Z0-9_-]{20,}$/.test(url.trim())) return url.trim();
+  return null;
+}
 
 function StatCard({ icon, label, val, color }) {
   return (
@@ -46,7 +57,12 @@ function LogRow({ item }) {
 }
 
 export default function CargaFotosDrive() {
+  const [modo, setModo] = useState('excel'); // 'excel' | 'drive'
   const [archivo, setArchivo] = useState(null);
+  const [driveLink, setDriveLink] = useState('');
+  const [driveArchivos, setDriveArchivos] = useState([]);
+  const [driveCargando, setDriveCargando] = useState(false);
+  const [driveError, setDriveError] = useState('');
   const [fotosData, setFotosData] = useState(null);
   const [estado, setEstado] = useState('idle');
   const [progreso, setProgreso] = useState(0);
@@ -59,6 +75,24 @@ export default function CargaFotosDrive() {
   const [fotosSubidas, setFotosSubidas] = useState([]);
   const pausaRef = useRef(false);
   const activoRef = useRef(false);
+
+  const leerCarpetaDrive = async () => {
+    const folderId = extraerFolderId(driveLink);
+    if (!folderId) { setDriveError('No se pudo extraer el ID de la carpeta. Pega el link completo de Drive.'); return; }
+    setDriveCargando(true);
+    setDriveError('');
+    setDriveArchivos([]);
+    try {
+      const resp = await base44.functions.invoke('leerCarpetaDrive', { folder_id: folderId });
+      if (resp.data?.error) throw new Error(resp.data.error);
+      const archivos = resp.data?.archivos || [];
+      setDriveArchivos(archivos);
+      if (archivos.length === 0) setDriveError('No se encontraron imágenes en esa carpeta. Verifica que la carpeta tenga imágenes y esté compartida.');
+    } catch (e) {
+      setDriveError(e.message || 'Error al leer la carpeta');
+    }
+    setDriveCargando(false);
+  };
 
   // Restaurar progreso al montar
   useEffect(() => {
@@ -315,25 +349,113 @@ export default function CargaFotosDrive() {
           <FileSpreadsheet size={20} color="#fff" />
         </div>
         <div>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#fff', margin: 0 }}>🖼️ Carga masiva de fotos desde Drive</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#fff', margin: 0 }}>🖼️ Carga masiva de fotos</h2>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', margin: '4px 0 0', lineHeight: 1.5 }}>
-            Sube el Excel con el índice. El proceso se divide en lotes de {EDIFICIOS_POR_LOTE} edificios para evitar tiempos de espera. Puedes pausar y reanudar. Los datos se guardan automáticamente.
+            Procesa en lotes de {EDIFICIOS_POR_LOTE} edificios. Pausa y reanuda cuando quieras. Las fotos duplicadas se omiten automáticamente.
           </p>
         </div>
       </div>
 
-      {/* Instrucciones */}
-      <div style={{ background: 'rgba(37,99,235,0.10)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 10, padding: '10px 14px' }}>
-        <p style={{ fontSize: 11, color: '#93C5FD', margin: 0, lineHeight: 1.6 }}>
-          <strong>📋 Formato Excel:</strong> columnas <em>edificio_id, url_original, tipo_foto (MAIN/MEDIA)</em><br />
-          <strong>⚡ Procesamiento por lotes:</strong> {EDIFICIOS_POR_LOTE} edificios por llamada — cada lote tarda segundos. Sin timeout.<br />
-          <strong>⏸️ Reanudable:</strong> si cierras la ventana, puedes continuar desde donde quedó.<br />
-          <strong>Límite:</strong> {FOTO_LIMITE} fotos por edificio (priorizando MAIN).
-        </p>
+      {/* Selector de modo */}
+      <div style={{ display: 'flex', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)' }}>
+        {[
+          { k: 'excel', icon: <FileSpreadsheet size={14} />, label: 'Excel con índice' },
+          { k: 'drive', icon: <FolderOpen size={14} />, label: '📁 Link de carpeta Drive' },
+        ].map(m => (
+          <button key={m.k} onClick={() => setModo(m.k)}
+            style={{ flex: 1, border: 'none', cursor: 'pointer', padding: '11px 0', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              background: modo === m.k ? '#1D4ED8' : 'transparent',
+              color: modo === m.k ? '#fff' : 'rgba(255,255,255,0.45)',
+            }}>
+            {m.icon} {m.label}
+          </button>
+        ))}
       </div>
 
-      {/* IDLE / ERROR */}
-      {(estado === 'idle' || estado === 'error') && (
+      {/* ── MODO DRIVE: pegar link de carpeta ── */}
+      {modo === 'drive' && estado === 'idle' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ background: 'rgba(37,99,235,0.10)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 10, padding: '10px 14px' }}>
+            <p style={{ fontSize: 11, color: '#93C5FD', margin: 0, lineHeight: 1.6 }}>
+              <strong>📁 Cómo usar:</strong><br />
+              1. Ve a Google Drive y abre la carpeta con las fotos de los edificios.<br />
+              2. Copia el link de la carpeta (el URL del navegador).<br />
+              3. Pégalo aquí — el sistema listará las imágenes disponibles.<br />
+              <strong>⚠️ La carpeta debe estar compartida</strong> con la cuenta de Drive conectada en la plataforma.
+            </p>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.65)', marginBottom: 6 }}>
+              <Link size={12} style={{ display: 'inline', marginRight: 4 }} />
+              Link de carpeta de Google Drive <span style={{ color: '#F87171' }}>*</span>
+            </label>
+            <input
+              type="url"
+              value={driveLink}
+              onChange={e => { setDriveLink(e.target.value); setDriveError(''); setDriveArchivos([]); }}
+              placeholder="https://drive.google.com/drive/folders/1ABCxyz..."
+              style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: `1px solid ${driveLink ? 'rgba(34,197,94,0.40)' : 'rgba(255,255,255,0.14)'}`, borderRadius: 10, padding: '10px 12px', fontSize: 12, color: '#fff', cursor: 'text', boxSizing: 'border-box', outline: 'none' }}
+            />
+            {driveLink && extraerFolderId(driveLink) && (
+              <p style={{ fontSize: 10, color: '#86EFAC', marginTop: 4 }}>✅ ID detectado: {extraerFolderId(driveLink)}</p>
+            )}
+            {driveLink && !extraerFolderId(driveLink) && (
+              <p style={{ fontSize: 10, color: '#FCA5A5', marginTop: 4 }}>⚠️ No se reconoce como link de carpeta Drive</p>
+            )}
+          </div>
+
+          {driveError && (
+            <div style={{ background: 'rgba(220,38,38,0.10)', border: '1px solid rgba(239,68,68,0.30)', borderRadius: 10, padding: '10px 14px' }}>
+              <p style={{ fontSize: 12, color: '#FCA5A5', margin: 0 }}>⚠️ {driveError}</p>
+            </div>
+          )}
+
+          <button onClick={leerCarpetaDrive} disabled={!driveLink || driveCargando || !extraerFolderId(driveLink)}
+            style={{ background: driveLink && extraerFolderId(driveLink) ? '#1D4ED8' : 'rgba(255,255,255,0.08)', color: '#fff', border: 'none', borderRadius: 12, padding: '13px 0', fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: !driveLink || driveCargando ? 0.6 : 1 }}>
+            {driveCargando ? <Loader2 size={16} className="animate-spin" /> : <FolderOpen size={16} />}
+            {driveCargando ? 'Leyendo carpeta...' : 'Leer fotos de la carpeta'}
+          </button>
+
+          {/* Lista de archivos encontrados */}
+          {driveArchivos.length > 0 && (
+            <div style={{ background: 'rgba(21,128,61,0.08)', border: '1px solid rgba(34,197,94,0.20)', borderRadius: 12, padding: '14px 16px' }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#86EFAC', margin: '0 0 10px' }}>
+                📸 {driveArchivos.length} imágenes encontradas en la carpeta
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
+                {driveArchivos.slice(0, 30).map((f, i) => (
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '5px 9px', fontSize: 10, color: 'rgba(255,255,255,0.65)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    🖼️ {f.nombre.length > 25 ? f.nombre.slice(0, 22) + '…' : f.nombre}
+                  </div>
+                ))}
+                {driveArchivos.length > 30 && (
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', padding: '5px 9px' }}>+{driveArchivos.length - 30} más...</div>
+                )}
+              </div>
+              <p style={{ fontSize: 11, color: 'rgba(134,239,172,0.70)', margin: '10px 0 0', lineHeight: 1.5 }}>
+                ⚠️ Para asociar estas fotos a edificios específicos necesitas un Excel con las columnas <strong>edificio_id</strong> y <strong>nombre_archivo</strong>. Cambia al modo <strong>"Excel con índice"</strong> y usa estos nombres de archivo como referencia.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Instrucciones modo Excel */}
+      {modo === 'excel' && (
+        <div style={{ background: 'rgba(37,99,235,0.10)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 10, padding: '10px 14px' }}>
+          <p style={{ fontSize: 11, color: '#93C5FD', margin: 0, lineHeight: 1.6 }}>
+            <strong>📋 Formato Excel:</strong> columnas <em>edificio_id, url_original, tipo_foto (MAIN/MEDIA)</em><br />
+            <strong>⚡ Procesamiento por lotes:</strong> {EDIFICIOS_POR_LOTE} edificios por llamada — cada lote tarda segundos. Sin timeout.<br />
+            <strong>⏸️ Reanudable:</strong> si cierras la ventana, puedes continuar desde donde quedó.<br />
+            <strong>🔁 Anti-duplicados:</strong> fotos ya existentes en cada edificio se omiten automáticamente.<br />
+            <strong>Límite:</strong> {FOTO_LIMITE} fotos por edificio (priorizando MAIN).
+          </p>
+        </div>
+      )}
+
+      {/* IDLE / ERROR — solo si modo Excel */}
+      {modo === 'excel' && (estado === 'idle' || estado === 'error') && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.65)', marginBottom: 6 }}>
