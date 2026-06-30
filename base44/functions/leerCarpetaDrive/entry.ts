@@ -6,21 +6,40 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+
+    // Verificar auth — puede fallar si el token expiró
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch (e) {
+      return Response.json({ error: `Auth error: ${e.message}` }, { status: 401 });
+    }
     if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'No autorizado' }, { status: 403 });
+      return Response.json({ error: `No autorizado. Role recibido: ${user?.role || 'ninguno'}` }, { status: 403 });
     }
 
-    const { folder_id, page_token } = await req.json();
+    const body = await req.json();
+    const { folder_id, page_token } = body;
     if (!folder_id) {
       return Response.json({ error: 'folder_id es requerido' }, { status: 400 });
     }
 
     // Obtener token de acceso de Google Drive desde el conector
-    const conn = await base44.asServiceRole.connectors.getConnection('googledrive');
-    if (!conn?.access_token) {
-      return Response.json({ error: 'Google Drive no está conectado. Conecta el conector en la configuración.' }, { status: 403 });
+    let conn = null;
+    try {
+      conn = await base44.asServiceRole.connectors.getConnection('googledrive');
+    } catch (e) {
+      return Response.json({ error: `Error al obtener conector Drive: ${e.message}` }, { status: 500 });
     }
+    if (!conn?.access_token) {
+      return Response.json({ error: 'Google Drive no está conectado. Ve a Configuración → Conectores y conecta Google Drive.' }, { status: 403 });
+    }
+
+    // Diagnóstico: confirmar scopes disponibles
+    const connScopes = conn.scopes || conn.scope || 'no disponible';
+    const hasReadScope = typeof connScopes === 'string'
+      ? (connScopes.includes('drive.readonly') || connScopes.includes('drive') || connScopes.includes('drive.file'))
+      : true;
 
     const accessToken = conn.access_token;
 
@@ -41,7 +60,10 @@ Deno.serve(async (req) => {
 
     if (!driveResp.ok) {
       const errText = await driveResp.text();
-      return Response.json({ error: `Error de Drive: ${driveResp.status} — ${errText}` }, { status: driveResp.status });
+      return Response.json({
+        error: `Error de Drive API: ${driveResp.status} — ${errText}`,
+        debug: { folder_id, conn_scopes: connScopes, has_read_scope: hasReadScope }
+      }, { status: driveResp.status });
     }
 
     const driveData = await driveResp.json();
