@@ -570,7 +570,7 @@ export default function EdificioDetalle() {
             {edificio.fuente && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{edificio.fuente}</span>}
             </div>
             {edificio.nivel_verificacion && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                   edificio.nivel_verificacion === 'institucional' ? 'bg-teal-50 text-teal-800 border-teal-300'
                   : edificio.nivel_verificacion === 'comunidad' ? 'bg-blue-50 text-blue-800 border-blue-200'
@@ -580,6 +580,26 @@ export default function EdificioDetalle() {
                     : edificio.nivel_verificacion === 'comunidad' ? t('Reportado por comunidad', 'Community report', 'Relatório comunitário')
                     : t('Sin verificar', 'Unverified', 'Sem verificar')}
                 </span>
+                {/* Badge auto-reportado: visible cuando viene de base de datos y no tiene inspección */}
+                {edificio.fuente && edificio.fuente !== 'web_publica' && edificio.fuente !== 'ciudadano' && edificio.triage_estado !== 'inspeccionado' && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-amber-50 text-amber-800 border-amber-300 flex items-center gap-1">
+                    🗃️ {t('Estado auto-reportado (base de datos)', 'Auto-reported status (database)', 'Estado auto-reportado (banco de dados)')}
+                  </span>
+                )}
+              </div>
+            )}
+            {/* Banner informativo cuando el estado viene de importación y no hay inspección presencial */}
+            {edificio.fuente && edificio.fuente !== 'web_publica' && edificio.fuente !== 'ciudadano' && edificio.triage_estado !== 'inspeccionado' && (
+              <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                <span className="text-amber-500 text-base flex-shrink-0">⚠️</span>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  <strong>{t('Datos importados de base de datos.', 'Data imported from database.', 'Dados importados de banco de dados.')}</strong>{' '}
+                  {t(
+                    'Este estado fue cargado automáticamente y no ha sido verificado con una inspección presencial.',
+                    'This status was automatically loaded and has not been verified by an on-site inspection.',
+                    'Este estado foi carregado automaticamente e não foi verificado por uma inspeção presencial.'
+                  )}
+                </p>
               </div>
             )}
             {edificio.descripcion && (
