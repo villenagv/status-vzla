@@ -361,6 +361,41 @@
     "voluntario_asignado_nombre": {
       "type": "string"
     },
+    "tipo_evaluacion": {
+      "type": "string",
+      "description": "Estado del panel de voluntarios/profesionales: c\u00f3mo se est\u00e1 evaluando este reporte",
+      "enum": [
+        "pendiente_asignacion",
+        "evaluacion_digital",
+        "evaluacion_presencial",
+        "no_concluyente",
+        "urgente",
+        "cerrado"
+      ],
+      "default": "pendiente_asignacion"
+    },
+    "comentarios_tecnicos": {
+      "type": "array",
+      "description": "Comentarios t\u00e9cnicos de voluntarios/profesionales sobre el reporte",
+      "items": {
+        "type": "object",
+        "properties": {
+          "texto": {
+            "type": "string"
+          },
+          "autor": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "derivacion_recomendada": {
+      "type": "string",
+      "description": "Autoridad u organizaci\u00f3n a la que el especialista recomienda derivar el caso"
+    },
     "reportante_nombre": {
       "type": "string"
     },

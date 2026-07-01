@@ -6,9 +6,10 @@ import ColaInspeccion from './ColaInspeccion';
 import TareasEspecialista from './TareasEspecialista';
 import InspeccionCampo from './InspeccionCampo';
 import CargaFotosInspector from './CargaFotosInspector';
+import PanelEspecialista from './PanelEspecialista';
 import TriajeMasivo from '@/components/admin/TriajeMasivo';
 
-export default function CentroTriage({ perfil, es, vistaInicial = 'triage', isAdmin = false }) {
+export default function CentroTriage({ perfil, es, vistaInicial = 'panel', isAdmin = false }) {
   const [reportes, setReportes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [vista, setVista] = useState(vistaInicial);
@@ -38,6 +39,7 @@ export default function CentroTriage({ perfil, es, vistaInicial = 'triage', isAd
   const enCola = reportes.filter(r => r.requiere_inspeccion_presencial && r.triage_estado !== 'inspeccionado').length;
 
   const VISTAS = [
+    { key: 'panel',  es: '🗂️ Panel de voluntarios', en: '🗂️ Volunteers panel' },
     { key: 'campo',  es: '📵 Inspección de campo', en: '📵 Field inspection' },
     { key: 'triage', es: `🔍 Triaje rápido (${porTriar})`, en: `🔍 Quick triage (${porTriar})` },
     { key: 'cola',   es: `📋 Inspección presencial (${enCola})`, en: `📋 On-site inspection (${enCola})` },
@@ -67,6 +69,7 @@ export default function CentroTriage({ perfil, es, vistaInicial = 'triage', isAd
         <div className="text-center py-12"><Loader2 size={24} className="animate-spin text-gray-400 mx-auto" /></div>
       ) : (
         <>
+          {vista === 'panel' && <PanelEspecialista perfil={perfil} es={es} reportes={reportes} onActualizado={onActualizado} />}
           {vista === 'campo' && <InspeccionCampo perfil={perfil} es={es} />}
           {vista === 'triage' && <TriageRapido perfil={perfil} es={es} reportes={reportes} onTriaged={onTriaged} />}
           {vista === 'cola' && <ColaInspeccion perfil={perfil} es={es} reportes={reportes} onActualizado={onActualizado} />}

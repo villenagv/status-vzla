@@ -112,7 +112,7 @@ export default function Inspecciones() {
         <CentroTriage
           perfil={perfil ? { ...perfil, user_id: perfil.user_id || user?.id } : { tipo_perfil: 'admin', user_id: user?.id, user_nombre: user?.full_name, user_email: user?.email }}
           es={es}
-          vistaInicial="cola"
+          vistaInicial="panel"
           isAdmin={isAdmin}
         />
       </div>
