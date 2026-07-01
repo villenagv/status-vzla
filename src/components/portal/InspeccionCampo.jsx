@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useInspeccionQueue } from '@/lib/useInspeccionQueue';
 import InspeccionOfflineForm from './InspeccionOfflineForm';
 import CajaSalidaInspecciones from './CajaSalidaInspecciones';
+import CargaFotosInspector from './CargaFotosInspector';
 
 export default function InspeccionCampo({ perfil, es }) {
   const queue = useInspeccionQueue();
@@ -28,15 +29,19 @@ export default function InspeccionCampo({ perfil, es }) {
           className={`flex-1 text-xs font-bold px-3 py-2 rounded-xl border transition-colors cursor-pointer ${vista === 'nueva' ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-gray-600 border-gray-300'}`}>
           {es ? '➕ Nueva inspección' : '➕ New inspection'}
         </button>
+        <button onClick={() => setVista('fotos')}
+          className={`flex-1 text-xs font-bold px-3 py-2 rounded-xl border transition-colors cursor-pointer ${vista === 'fotos' ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-gray-600 border-gray-300'}`}>
+          {es ? '📷 Fotos a edificio existente' : '📷 Photos to existing building'}
+        </button>
         <button onClick={() => setVista('caja')}
           className={`flex-1 text-xs font-bold px-3 py-2 rounded-xl border transition-colors cursor-pointer ${vista === 'caja' ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-gray-600 border-gray-300'}`}>
           {es ? `📥 Caja de salida (${queue.pendientes.length})` : `📥 Outbox (${queue.pendientes.length})`}
         </button>
       </div>
 
-      {vista === 'nueva'
-        ? <InspeccionOfflineForm es={es} perfil={perfil} onGuardar={guardar} />
-        : <CajaSalidaInspecciones es={es} queue={queue} />}
+      {vista === 'nueva' && <InspeccionOfflineForm es={es} perfil={perfil} onGuardar={guardar} />}
+      {vista === 'fotos' && <CargaFotosInspector perfil={perfil} es={es} />}
+      {vista === 'caja' && <CajaSalidaInspecciones es={es} queue={queue} />}
     </div>
   );
 }

@@ -81,12 +81,25 @@ export default function CajaSalidaInspecciones({ es, queue }) {
             detalle.push({ url: file_url, area, nota, piso: '', privada: false });
           }
         }
-        // 2) Crear el reporte de daño con las URLs (galería pública limitada a 5)
+        // 2) Crear el reporte de daño con las URLs (galería pública limitada a 5) y los datos
+        //    de la planilla mapeados a los campos que usa el informe de inspección
+        const NIVEL_A_TIPO_DANO = { leve: 'estetico', moderado: 'estructural', critico: 'estructural', grave: 'estructural' };
         const creado = await base44.entities.ReportesDano.create({
           ...item.data,
           foto_urls: urls.slice(0, 5),
           inspeccion_fotos: urls,
           inspeccion_detalle_fotos: detalle,
+          inspeccion_severidad: item.data.nivel_dano && item.data.nivel_dano !== 'no_evaluado' ? item.data.nivel_dano : 'sin_definir',
+          inspeccion_tipo_dano: NIVEL_A_TIPO_DANO[item.data.nivel_dano] || 'sin_definir',
+          inspeccion_notas: item.data.descripcion || '',
+          inspeccion_por: item.data.triage_por || '',
+          inspeccion_fecha: item.data.triage_fecha || new Date().toISOString(),
+          // La inspección de campo ES la inspección presencial: la marcamos como completada
+          // para que la ficha pública muestre el resultado y el enlace de descarga del PDF.
+          triage_estado: 'inspeccionado',
+          requiere_inspeccion_presencial: false,
+          nivel_verificacion: 'institucional',
+          estado_verificacion: 'verificado',
         });
         // 3) Registrar evento de línea de tiempo
         await base44.entities.ActualizacionesSitios.create({
@@ -98,6 +111,8 @@ export default function CajaSalidaInspecciones({ es, queue }) {
           fuente: 'inspeccion_campo',
           es_verificado: true,
         }).catch(() => {});
+        // 4) Generar el informe PDF (planilla + miniaturas de fotos) y publicarlo en la ficha
+        await base44.functions.invoke('generarInformeInspeccion', { reporte_id: creado.id }).catch(() => {});
         marcar(item.id, 'sincronizado');
       } catch (err) {
         marcar(item.id, 'error', es ? 'No se pudo subir. Reintenta.' : 'Upload failed. Retry.');
