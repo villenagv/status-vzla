@@ -63,6 +63,24 @@ export default function ContadoresEntrada() {
       label: t('Puntos abiertos', 'Open centers', 'Pontos abertos'),
       color: 'text-teal-700', bg: 'bg-teal-50', border: 'border-teal-100',
     },
+    {
+      val: datos.inspecciones,
+      icon: '📋',
+      label: t('Inspecciones', 'Inspections', 'Inspeções'),
+      color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-100',
+    },
+    {
+      val: datos.con_danos,
+      icon: '🧱',
+      label: t('Con daños', 'Damaged', 'Com danos'),
+      color: 'text-amber-800', bg: 'bg-amber-50', border: 'border-amber-100',
+    },
+    {
+      val: datos.colapsados,
+      icon: '💥',
+      label: t('Colapsados', 'Collapsed', 'Colapsados'),
+      color: 'text-red-800', bg: 'bg-red-50', border: 'border-red-200', pulse: datos.colapsados > 0,
+    },
   ];
 
   return (

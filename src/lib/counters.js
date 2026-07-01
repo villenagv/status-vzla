@@ -3,7 +3,7 @@
 import { base44 } from '@/api/base44Client';
 import { getCached, setCached } from './cache';
 
-export const COUNTERS_CACHE_KEY = 'contadores_globales_v4';
+export const COUNTERS_CACHE_KEY = 'contadores_globales_v5';
 // TTL del caché local: 2 minutos (evita recarga en cada navigate)
 const CACHE_TTL_MS = 2 * 60 * 1000;
 
@@ -29,6 +29,9 @@ export async function getContadores() {
   const atrapados = edificios.filter(r =>
     ['si', 'voces', 'posible'].includes(r.personas_atrapadas)
   ).length;
+  const inspecciones = edificios.filter(r => r.triage_estado === 'inspeccionado').length;
+  const colapsados = edificios.filter(r => r.nivel_dano === 'colapsado').length;
+  const conDanos = edificios.filter(r => ['leve', 'moderado', 'grave', 'critico', 'colapsado'].includes(r.nivel_dano)).length;
 
   // ── Puntos de ayuda ────────────────────────────────────────────────────────
   const puntosAbiertos = puntos.filter(p =>
@@ -53,6 +56,9 @@ export async function getContadores() {
     criticos,
     graves,
     atrapados,
+    inspecciones,
+    colapsados,
+    con_danos: conDanos,
     // Personas
     personas_buscando: personasBuscando,
     personas_registradas: personasRegistradas.length,

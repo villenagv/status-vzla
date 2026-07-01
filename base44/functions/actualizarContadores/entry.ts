@@ -35,6 +35,9 @@ Deno.serve(async (req) => {
       { clave: 'graves',                    valor: edificios.filter(r => r.nivel_dano === 'grave').length },
       { clave: 'personas_atrapadas',        valor: edificios.filter(r => ['si','voces','posible'].includes(r.personas_atrapadas)).length },
       { clave: 'atrapados',                 valor: edificios.filter(r => ['si','voces','posible'].includes(r.personas_atrapadas)).length },
+      { clave: 'inspecciones',              valor: edificios.filter(r => r.triage_estado === 'inspeccionado').length },
+      { clave: 'colapsados',                valor: edificios.filter(r => r.nivel_dano === 'colapsado').length },
+      { clave: 'con_danos',                 valor: edificios.filter(r => ['leve','moderado','grave','critico','colapsado'].includes(r.nivel_dano)).length },
       // Personas
       { clave: 'busquedas_activas',         valor: personasBuscando + personasEncontradasTotal },
       { clave: 'busquedas_activas_total',   valor: personasBuscando + personasEncontradasTotal },
