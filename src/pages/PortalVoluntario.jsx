@@ -56,8 +56,8 @@ function FichaPersonaRegistrada({ ficha, es, onActualizar }) {
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cl.color}`}>{es ? cl.es : cl.en}</span>
-          <button onClick={() => setEditando(v => !v)} className="text-gray-400 hover:text-gray-700 p-1">
-            {editando ? <X size={13} /> : <Edit3 size={13} />}
+          <button onClick={() => setEditando(v => !v)} className="text-gray-400 hover:text-gray-700 p-2.5 -m-1">
+            {editando ? <X size={15} /> : <Edit3 size={15} />}
           </button>
         </div>
       </div>
@@ -117,7 +117,7 @@ function FichaPersonaBuscada({ persona, es, onUpdateEstado }) {
           <button onClick={() => setEditEstado(v => !v)} className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.color}`}>
             {es ? st.es : st.en}
           </button>
-          <Link to={`/persona?id=${persona.id}`} className="text-gray-400 hover:text-gray-700 p-1"><ExternalLink size={13} /></Link>
+          <Link to={`/persona?id=${persona.id}`} className="text-gray-400 hover:text-gray-700 p-2.5 -m-1"><ExternalLink size={15} /></Link>
         </div>
       </div>
       {editEstado && (
