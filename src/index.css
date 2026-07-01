@@ -107,7 +107,14 @@
      Como la mayoría de formularios usan fondo blanco, esto volvía el texto casi invisible.
      Forzamos texto oscuro y legible por defecto; las clases text-white explícitas lo sobreescriben. */
   input, textarea, select {
-    color: #141414;
+    color: #141414 !important;
+    -webkit-text-fill-color: #141414;
+  }
+  /* Asegurar contraste en todos los contextos, incluyendo modo oscuro del OS */
+  input::placeholder, textarea::placeholder {
+    color: #6B7280 !important;
+    -webkit-text-fill-color: #6B7280;
+    opacity: 1;
   }
   body {
     font-family: var(--font-body);

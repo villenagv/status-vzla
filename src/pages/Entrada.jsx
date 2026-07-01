@@ -68,6 +68,7 @@ const PILARES = [
     badgeColor: '#B45309',
     es: { badge: 'EDIFICIOS', title: 'Estado de edificios', sub: '¿Puedo entrar? · Daños · Servicios' },
     en: { badge: 'BUILDINGS', title: 'Building status', sub: 'Can I enter? · Damage · Services' },
+    pt: { badge: 'EDIFÍCIOS', title: 'Estado dos edifícios', sub: 'Posso entrar? · Danos · Serviços' },
   },
   {
     to: '/directorio',
@@ -77,6 +78,7 @@ const PILARES = [
     badgeColor: '#4B5563',
     es: { badge: 'DIRECTORIO', title: 'Directorio completo', sub: 'Organizaciones · Contactos · Recursos' },
     en: { badge: 'DIRECTORY', title: 'Full directory', sub: 'Organizations · Contacts · Resources' },
+    pt: { badge: 'DIRETÓRIO', title: 'Diretório completo', sub: 'Organizações · Contatos · Recursos' },
   },
   {
     to: '/aliados',
@@ -86,6 +88,7 @@ const PILARES = [
     badgeColor: '#15803D',
     es: { badge: 'ALIADOS', title: 'Organizaciones aliadas', sub: 'ONGs · Voluntarios · Instituciones' },
     en: { badge: 'PARTNERS', title: 'Partner organizations', sub: 'NGOs · Volunteers · Institutions' },
+    pt: { badge: 'PARCEIROS', title: 'Organizações parceiras', sub: 'ONGs · Voluntários · Instituições' },
   },
 ];
 

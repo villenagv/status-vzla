@@ -152,24 +152,28 @@ export default function Directorio() {
       <TopBar />
       <div className="max-w-5xl mx-auto w-full px-4 py-5">
         <Link to="/" className="flex items-center gap-1 text-sm text-gray-500 mb-4 hover:text-[#1A1F2E]">
-          <ChevronLeft size={16} /> {es ? 'Volver' : 'Go back'}
+          <ChevronLeft size={16} /> {t('Volver', 'Go back', 'Voltar')}
         </Link>
 
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
-          📂 {es ? 'Directorio' : 'Directory'}
+          📂 {t('Directorio', 'Directory', 'Diretório')}
         </h1>
         <p className="text-xs text-gray-500 mb-2 leading-relaxed">
-          {es
-            ? 'Toca cualquier ficha para ver detalles, enviar una actualización o suscribirte a novedades.'
-            : 'Tap any card to view details, send an update, or subscribe to alerts.'}
+          {t(
+            'Toca cualquier ficha para ver detalles, enviar una actualización o suscribirte a novedades.',
+            'Tap any card to view details, send an update, or subscribe to alerts.',
+            'Toque qualquer ficha para ver detalhes, enviar uma atualização ou se inscrever em novidades.'
+          )}
         </p>
         {/* Instrucción de emergencia */}
         <div className="flex gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-4">
           <span className="text-red-500 text-sm flex-shrink-0">⚡</span>
           <p className="text-[11px] text-red-800 leading-snug font-medium">
-            {es
-              ? 'En emergencia activa: usa el buscador para encontrar rápido. No necesitas cuenta para consultar.'
-              : 'Active emergency: use the search bar to find quickly. No account needed to browse.'}
+            {t(
+              'En emergencia activa: usa el buscador para encontrar rápido. No necesitas cuenta para consultar.',
+              'Active emergency: use the search bar to find quickly. No account needed to browse.',
+              'Em emergência ativa: use o buscador para encontrar rapidamente. Não precisa de conta para consultar.'
+            )}
           </p>
         </div>
 
@@ -344,16 +348,16 @@ export default function Directorio() {
         {/* Acciones rápidas al fondo */}
         <div className="grid grid-cols-2 gap-2 mt-6">
           <Link to="/buscar-persona" className="flex items-center justify-center gap-1 bg-[#B83A52] text-white font-bold py-3.5 rounded-2xl text-xs no-underline">
-            + {es ? 'Reportar desaparecido' : 'Report missing'}
+            + {t('Reportar desaparecido', 'Report missing', 'Reportar desaparecido')}
           </Link>
           <Link to="/reportar-encontrado" className="flex items-center justify-center gap-1 bg-[#1A7A4A] text-white font-bold py-3.5 rounded-2xl text-xs no-underline">
-            🙋 {es ? 'Encontré a alguien' : 'I found someone'}
+            🙋 {t('Encontré a alguien', 'I found someone', 'Encontrei alguém')}
           </Link>
           <Link to="/reportar-dano" className="flex items-center justify-center gap-1 bg-[#C0392B] text-white font-bold py-3.5 rounded-2xl text-xs no-underline">
-            🏗️ {es ? 'Reportar edificio' : 'Report building'}
+            🏗️ {t('Reportar edificio', 'Report building', 'Reportar edifício')}
           </Link>
           <Link to="/estoy-aqui" className="flex items-center justify-center gap-1 bg-[#784212] text-white font-bold py-3.5 rounded-2xl text-xs no-underline">
-            📍 {es ? 'Estoy aquí' : 'I am here'}
+            📍 {t('Estoy aquí', 'I am here', 'Estou aqui')}
           </Link>
         </div>
       </div>

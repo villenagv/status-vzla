@@ -26,7 +26,7 @@ const TIPO_LUGAR = [
   { val: 'otro',          es: '📍 Otro',              en: '📍 Other' },
 ];
 
-const inputCls = "w-full border-2 border-[#EDEBE8] rounded-xl px-4 py-3 text-base bg-white focus:outline-none focus:border-[#1A1F2E] placeholder-gray-400";
+const inputCls = "w-full border-2 border-[#EDEBE8] rounded-xl px-4 py-3 text-base text-gray-900 bg-white focus:outline-none focus:border-[#1A1F2E] placeholder-gray-400";
 
 function FieldLabel({ label, required, hint }) {
   return (
@@ -43,6 +43,8 @@ export default function ReportarEncontrado() {
   const { lang } = useLang();
   const { lowBw } = useLowBw();
   const es = lang === 'es';
+  const pt = lang === 'pt';
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
   const [busquedaNombre, setBusquedaNombre] = useState('');
   const [posiblesCoincidencias, setPosiblesCoincidencias] = useState([]);
@@ -175,22 +177,22 @@ export default function ReportarEncontrado() {
       <div className="max-w-lg mx-auto w-full px-4 py-8 space-y-5">
         <div className="text-center space-y-3">
           <div className="text-6xl">✅</div>
-          <h2 className="text-2xl font-black text-[#1A1F2E]">{es ? 'Gracias. Tu reporte fue enviado.' : 'Thank you. Your report was submitted.'}</h2>
+          <h2 className="text-2xl font-black text-[#1A1F2E]">{t('Gracias. Tu reporte fue enviado.', 'Thank you. Your report was submitted.', 'Obrigado. Seu relatório foi enviado.')}</h2>
           <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">
             {personaVinculada
-              ? (es ? `Los familiares de ${personaVinculada.nombre_completo} serán notificados por email de inmediato.` : `${personaVinculada.nombre_completo}'s family will be notified by email immediately.`)
-              : (es ? 'Tu reporte fue registrado en el directorio de personas encontradas y puede ayudar a reunir familias.' : 'Your report was added to the found people directory and can help reunite families.')}
+              ? t(`Los familiares de ${personaVinculada.nombre_completo} serán notificados por email de inmediato.`, `${personaVinculada.nombre_completo}'s family will be notified by email immediately.`, `Os familiares de ${personaVinculada.nombre_completo} serão notificados por email imediatamente.`)
+              : t('Tu reporte fue registrado en el directorio de personas encontradas y puede ayudar a reunir familias.', 'Your report was added to the found people directory and can help reunite families.', 'Seu relatório foi registrado no diretório de pessoas encontradas e pode ajudar a reunir famílias.')}
           </p>
           <Link
             to="/directorio-encontrados"
             className="block w-full text-center bg-[#D48C2E] text-white font-black py-4 rounded-2xl text-base"
           >
-            📋 {es ? 'Ver directorio de encontrados' : 'View found people directory'}
+            📋 {t('Ver directorio de encontrados', 'View found people directory', 'Ver diretório de encontrados')}
           </Link>
         </div>
         {mostrarLogin && <PostReporteLogin es={es} onSkip={() => setMostrarLogin(false)} />}
         <Link to="/" className="block text-center bg-[#1A1F2E] text-white px-6 py-4 rounded-2xl font-bold text-base">
-          {es ? 'Volver al inicio' : 'Back to home'}
+          {t('Volver al inicio', 'Back to home', 'Voltar ao início')}
         </Link>
       </div>
     </div>
@@ -201,16 +203,18 @@ export default function ReportarEncontrado() {
       <TopBar />
       <div className="max-w-lg mx-auto w-full px-4 py-5">
         <Link to="/" className="flex items-center gap-1 text-sm text-gray-500 mb-4 cursor-pointer hover:text-[#1A1F2E]">
-          <ChevronLeft size={16} /> {es ? 'Volver' : 'Go back'}
+          <ChevronLeft size={16} /> {t('Volver', 'Go back', 'Voltar')}
         </Link>
 
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
-          🙋 {es ? 'Encontré a alguien' : 'I found someone'}
+          🙋 {t('Encontré a alguien', 'I found someone', 'Encontrei alguém')}
         </h1>
         <p className="text-sm text-gray-500 mb-4 leading-relaxed">
-          {es
-            ? 'Usa este formulario si encontraste o tienes información real sobre una persona. Escribe datos verificables. No publiques rumores.'
-            : 'Use this form if you found or have real information about a person. Write verifiable data. Do not post rumors.'}
+          {t(
+            'Usa este formulario si encontraste o tienes información real sobre una persona. Escribe datos verificables. No publiques rumores.',
+            'Use this form if you found or have real information about a person. Write verifiable data. Do not post rumors.',
+            'Use este formulário se encontrou ou tem informação real sobre uma pessoa. Escreva dados verificáveis. Não publique rumores.'
+          )}
         </p>
 
         <div className="flex rounded-2xl overflow-hidden border-2 border-[#EDEBE8] mb-4 bg-white">
@@ -218,23 +222,25 @@ export default function ReportarEncontrado() {
             type="button"
             onClick={() => setModoRapido(true)}
             className={`flex-1 py-3 text-sm font-bold transition-colors cursor-pointer ${modoRapido ? 'bg-[#1A1F2E] text-white' : 'text-gray-500'}`}
-          >⚡ {es ? 'Modo rápido' : 'Quick mode'}</button>
+          >⚡ {t('Modo rápido', 'Quick mode', 'Modo rápido')}</button>
           <button
             type="button"
             onClick={() => setModoRapido(false)}
             className={`flex-1 py-3 text-sm font-bold transition-colors cursor-pointer ${!modoRapido ? 'bg-[#1A1F2E] text-white' : 'text-gray-500'}`}
-          >📋 {es ? 'Modo completo' : 'Full mode'}</button>
+          >📋 {t('Modo completo', 'Full mode', 'Modo completo')}</button>
         </div>
 
         {/* Anti-extorsión */}
         <div className="flex gap-3 bg-[#FDF1F0] border-2 border-[#E8B4B0] rounded-2xl p-4 mb-5">
           <ShieldAlert size={18} className="text-[#B83A52] flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-bold text-[#B83A52] mb-0.5">{es ? 'Alerta de seguridad' : 'Security alert'}</p>
+            <p className="text-sm font-bold text-[#B83A52] mb-0.5">{t('Alerta de seguridad', 'Security alert', 'Alerta de segurança')}</p>
             <p className="text-xs text-[#B83A52] leading-relaxed">
-              {es
-                ? 'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados.'
-                : 'Never send money in exchange for information. This platform does not authorize payments or private rescue fees.'}
+              {t(
+                'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados.',
+                'Never send money in exchange for information. This platform does not authorize payments or private rescue fees.',
+                'Nunca envie dinheiro por informações. Esta plataforma não autoriza pagamentos ou resgates privados.'
+              )}
             </p>
           </div>
         </div>
