@@ -285,6 +285,14 @@ function TarjetaEdificio({ edificio, idx, total, onAccion, onSaltar, procesando 
             </div>
           )}
 
+          {/* Badge de estado triaje */}
+          {edificio.triage_estado && edificio.triage_estado !== 'pendiente_triage' && (
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '6px 10px', marginBottom: 8, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#166534' }}>✅ Ya clasificado: {edificio.triage_estado?.replace(/_/g, ' ')}</span>
+              {edificio.triage_por && <span style={{ fontSize: 9, color: '#4ade80' }}>· por {edificio.triage_por}</span>}
+            </div>
+          )}
+
           {/* Link ficha */}
           <a href={`/edificio?id=${edificio.id}`} target="_blank" rel="noreferrer"
             style={{ fontSize: 10, color: '#6b7280', display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', marginTop: 4 }}
@@ -330,11 +338,8 @@ export default function TriajeMasivo() {
     setIdx(0);
     setStats({ colapsado: 0, danos_visibles: 0, sin_danos: 0, saltado: 0 });
     try {
-      const todos = await base44.entities.ReportesDano.filter(
-        { triage_estado: 'pendiente_triage' },
-        '-created_date',
-        300
-      );
+      // Cargar TODOS los edificios sin importar su estado de triaje
+      const todos = await base44.entities.ReportesDano.list('-created_date', 300);
       const lista = (todos || []);
       const filtrados = filtroFuente
         ? lista.filter(e => e.fuente === filtroFuente || (!e.fuente && filtroFuente === 'importacion_masiva'))
@@ -519,7 +524,7 @@ export default function TriajeMasivo() {
       {cargando ? (
         <div style={{ textAlign: 'center', padding: '60px 0' }}>
           <Loader2 size={28} style={{ color: '#9ca3af' }} className="animate-spin" />
-          <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 12 }}>Cargando edificios pendientes...</p>
+          <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 12 }}>Cargando todos los edificios...</p>
         </div>
 
       ) : total === 0 ? (
