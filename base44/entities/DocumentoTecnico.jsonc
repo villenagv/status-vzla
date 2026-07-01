@@ -1,0 +1,56 @@
+{
+  "name": "DocumentoTecnico",
+  "type": "object",
+  "properties": {
+    "tipo_documento": {
+      "type": "string",
+      "enum": [
+        "planilla_funvisis",
+        "informe_tecnico",
+        "foto_inspeccion",
+        "otro"
+      ],
+      "default": "planilla_funvisis"
+    },
+    "nombre_lugar": {
+      "type": "string",
+      "description": "Nombre o direcci\u00f3n del edificio/sitio al que corresponde el documento"
+    },
+    "edificio_id": {
+      "type": "string",
+      "description": "ID del reporte de edificio (ReportesDano) si est\u00e1 vinculado, opcional"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado_region": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "subido_por_nombre": {
+      "type": "string"
+    },
+    "subido_por_contacto": {
+      "type": "string",
+      "description": "Tel\u00e9fono o email del remitente, privado, no se muestra p\u00fablicamente"
+    },
+    "estado_revision": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "revisado",
+        "publicado"
+      ],
+      "default": "pendiente"
+    }
+  },
+  "required": [
+    "tipo_documento",
+    "file_url"
+  ]
+}

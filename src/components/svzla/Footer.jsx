@@ -16,6 +16,7 @@ const LINKS = [
   { to: '/centros-apoyo',   es: 'Centros de apoyo',   en: 'Help centers'    },
   { to: '/directorio',      es: 'Directorio',         en: 'Directory'       },
   { to: '/guia-plataforma', es: 'Guía de uso',        en: 'User guide'      },
+  { to: '/recursos-tecnicos', es: 'Recursos técnicos', en: 'Technical resources' },
   { to: '/contactanos',     es: 'Contáctanos',        en: 'Contact us'      },
   { to: '/sobre',           es: 'Sobre nosotros',     en: 'About us'        },
   { to: '/aliados',         es: 'Aliados',            en: 'Partners'        },
