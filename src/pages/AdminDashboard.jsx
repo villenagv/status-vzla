@@ -16,6 +16,7 @@ import ImportacionVzla from '@/components/admin/ImportacionVzla';
 import CargaFotosDrive from '@/components/admin/CargaFotosDrive';
 import AdminEmailLogs from '@/components/admin/AdminEmailLogs';
 import TriajeMasivo from '@/components/admin/TriajeMasivo';
+import AdminReportes from '@/components/admin/reportes/AdminReportes';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
@@ -61,6 +62,7 @@ const AdminDashboard = () => {
   
   const tabs = [
       { key: 'analytics',   label: '📊 Analítica'           },
+      { key: 'reportes',    label: '🚨 Reportes'            },
       { key: 'emails',      label: '📧 Emails'              },
       { key: 'usuarios',    label: '👥 Usuarios'            },
       { key: 'voluntarios', label: '🤝 Voluntarios'         },
@@ -95,6 +97,7 @@ const AdminDashboard = () => {
 
         <div className="py-8">
             {tab === 'analytics' && <AdminStats />}
+            {tab === 'reportes' && <AdminReportes es={true} />}
             {tab === 'emails' && <AdminEmailLogs />}
             {tab === 'usuarios' && <GestionUsuarios es={true} />}
             {tab === 'voluntarios' && (
