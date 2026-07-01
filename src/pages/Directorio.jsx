@@ -307,17 +307,17 @@ export default function Directorio() {
             <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1">
               <button
                 onClick={() => tab === 'personas' ? setVistaPersonas('grid') : setVistaEdificios('grid')}
-                className={`p-1.5 rounded-lg cursor-pointer transition-colors ${(tab === 'personas' ? vistaPersonas : vistaEdificios) === 'grid' ? 'bg-[#1A1F2E] text-white' : 'text-gray-400 hover:text-gray-700'}`}
+                className={`p-2.5 rounded-lg cursor-pointer transition-colors ${(tab === 'personas' ? vistaPersonas : vistaEdificios) === 'grid' ? 'bg-[#1A1F2E] text-white' : 'text-gray-400 hover:text-gray-700'}`}
                 title={es ? 'Vista grid' : 'Grid view'}
               >
-                <LayoutGrid size={14} />
+                <LayoutGrid size={16} />
               </button>
               <button
                 onClick={() => tab === 'personas' ? setVistaPersonas('lista') : setVistaEdificios('lista')}
-                className={`p-1.5 rounded-lg cursor-pointer transition-colors ${(tab === 'personas' ? vistaPersonas : vistaEdificios) === 'lista' ? 'bg-[#1A1F2E] text-white' : 'text-gray-400 hover:text-gray-700'}`}
+                className={`p-2.5 rounded-lg cursor-pointer transition-colors ${(tab === 'personas' ? vistaPersonas : vistaEdificios) === 'lista' ? 'bg-[#1A1F2E] text-white' : 'text-gray-400 hover:text-gray-700'}`}
                 title={es ? 'Vista lista' : 'List view'}
               >
-                <List size={14} />
+                <List size={16} />
               </button>
             </div>
           </div>
@@ -368,10 +368,10 @@ export default function Directorio() {
                         <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{es ? badge.es : badge.en}</span>
                       </div>
                       <button onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })}
-                        className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1 rounded-lg cursor-pointer hover:bg-blue-100 whitespace-nowrap">
+                        className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-blue-100 whitespace-nowrap">
                         🔔 {es ? 'Avisar' : 'Notify'}
                       </button>
-                      <span onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className="text-gray-300 text-xs cursor-pointer">›</span>
+                      <span onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className="text-gray-300 text-xl cursor-pointer p-2 -m-2">›</span>
                     </div>
                   </div>
                 );
@@ -409,7 +409,7 @@ export default function Directorio() {
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${badge.cls}`}>{es ? badge.es : badge.en}</span>
                       <button
                         onClick={ev => { ev.stopPropagation(); setFichaSeleccionada({ item: p, tipo: 'persona' }); }}
-                        className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-2.5 py-1 rounded-xl cursor-pointer hover:bg-blue-100 whitespace-nowrap flex-shrink-0">
+                        className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2.5 rounded-xl cursor-pointer hover:bg-blue-100 whitespace-nowrap flex-shrink-0">
                         🔔 {es ? 'Avisar' : 'Notify'}
                       </button>
                     </div>
@@ -465,10 +465,10 @@ export default function Directorio() {
                 </div>
                 <div className="flex flex-col items-end justify-center gap-2 pr-3 flex-shrink-0">
                   <span className="text-[9px] text-gray-400">{tiempoRelativo(e.updated_date || e.created_date)}</span>
-                  <button onClick={abrir} className="text-[9px] font-semibold bg-green-50 border border-green-300 text-green-700 px-2 py-1 rounded-lg cursor-pointer hover:bg-green-100 whitespace-nowrap">
+                  <button onClick={abrir} className="text-[9px] font-semibold bg-green-50 border border-green-300 text-green-700 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-green-100 whitespace-nowrap">
                     🔔 {es ? 'Avísame' : 'Notify'}
                   </button>
-                  <span onClick={irFicha} className="text-gray-300 text-base cursor-pointer leading-none">›</span>
+                  <span onClick={irFicha} className="text-gray-300 text-xl cursor-pointer leading-none p-2 -m-2">›</span>
                 </div>
               </div>
             );
@@ -503,7 +503,7 @@ export default function Directorio() {
                   <div className="flex items-center justify-between mt-1 pt-1 border-t border-gray-100">
                     <span className="text-[9px] text-gray-400">🕐 {tiempoRelativo(e.updated_date || e.created_date)}</span>
                     <button onClick={ev => { ev.preventDefault(); abrir(ev); }}
-                      className="text-[9px] font-bold text-green-700 bg-green-50 border border-green-300 px-1.5 py-0.5 rounded-full hover:bg-green-100 cursor-pointer">
+                      className="text-[9px] font-bold text-green-700 bg-green-50 border border-green-300 px-2.5 py-2 rounded-full hover:bg-green-100 cursor-pointer">
                       🔔 {es ? 'Avísame' : 'Notify'}
                     </button>
                   </div>
