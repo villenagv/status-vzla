@@ -8,6 +8,7 @@ import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import FotosDragDrop from '@/components/svzla/FotosDragDrop';
+import { similitudTexto, esMismaCiudad } from '@/lib/similitud';
 
 const SEXO_OPT = [
   { val: 'femenino',  es: 'Femenino',     en: 'Female',          pt: 'Feminino' },
@@ -85,11 +86,13 @@ export default function BuscarPersona() {
     setBuscandoDups(true);
     try {
       const todas = await base44.entities.PersonasBuscadas.list();
-      const q = nombre.toLowerCase();
-      const found = todas.filter(p =>
-        p.nombre_completo?.toLowerCase().includes(q) ||
-        (p.apodo && p.apodo.toLowerCase().includes(q))
-      );
+      // Similitud tolerante a acentos, mayúsculas y variaciones (no solo substring exacto).
+      const found = todas.filter(p => {
+        const simNombre = Math.max(similitudTexto(nombre, p.nombre_completo), similitudTexto(nombre, p.apodo));
+        if (simNombre < 0.5) return false;
+        if (form.ciudad && p.ciudad && !esMismaCiudad(form.ciudad, p.ciudad)) return false;
+        return true;
+      });
       setPosiblesDuplicados(found);
     } catch {}
     setBuscandoDups(false);

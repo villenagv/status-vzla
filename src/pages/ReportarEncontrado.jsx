@@ -8,6 +8,7 @@ import { useLowBw } from '@/lib/LowBwContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import FotosDragDrop from '@/components/svzla/FotosDragDrop';
+import { similitudTexto } from '@/lib/similitud';
 
 const CONDICION = [
   { val: 'a_salvo',            es: '✅ A salvo — está bien',          en: '✅ Safe — they are OK',             sel: 'bg-green-600 border-green-600 text-white' },
@@ -89,10 +90,9 @@ export default function ReportarEncontrado() {
     setBuscando(true);
     try {
       const todas = await base44.entities.PersonasBuscadas.list();
-      const ql = q.toLowerCase();
+      // Similitud tolerante a acentos, mayúsculas y variaciones (no solo substring exacto).
       setPosiblesCoincidencias(todas.filter(p =>
-        p.nombre_completo?.toLowerCase().includes(ql) ||
-        p.apodo?.toLowerCase().includes(ql)
+        Math.max(similitudTexto(q, p.nombre_completo), similitudTexto(q, p.apodo)) >= 0.5
       ));
     } catch {}
     setBuscando(false);

@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, 
 import { base44 } from '@/api/base44Client';
 import { useDraft } from '@/lib/useDraft';
 import { generarCodigo } from '@/lib/codigos';
+import { normalizarTexto, similitudTexto, esMismaCiudad } from '@/lib/similitud';
 
 const TIPO_OPTS = [
   { val: 'edificio_residencial', es: '🏠 Edificio residencial', en: '🏠 Residential building' },
@@ -34,22 +35,6 @@ const ATRAPADOS_OPTS = [
 
 const inputCls = "w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 placeholder-gray-400";
 const PRIORIDAD_SORT = { critico: 0, colapsado: 1, grave: 2, moderado: 3, leve: 4, no_evaluado: 5, no_sabe: 6 };
-
-function normalizar(str) {
-  let s = (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-  const ABREV = { 'av': 'avenida', 'ave': 'avenida', 'cll': 'calle', 'urb': 'urbanizacion', 'edif': 'edificio' };
-  s = s.split(' ').map(w => ABREV[w] || w).join(' ');
-  return s;
-}
-function similitud(a, b) {
-  const na = normalizar(a), nb = normalizar(b);
-  if (!na || !nb) return 0;
-  if (na === nb) return 1;
-  if (na.includes(nb) || nb.includes(na)) return 0.9;
-  const wA = na.split(' '), wB = nb.split(' ');
-  const matches = wA.filter(w => w.length > 2 && wB.some(wb => wb.startsWith(w) || w.startsWith(wb)));
-  return matches.length / Math.max(wA.length, wB.length);
-}
 
 const DANO_CONFIG = {
   leve:        { color: '#B7950B', bg: '#FEF9E7', border: '#F9E79F', cardBorder: '#D4AC0D', label: { es: 'Daño leve',     en: 'Minor damage'   }, icon: '🟡' },
@@ -147,11 +132,14 @@ export default function TabReportar({ todos, setTab, lang, t }) {
   const verificarEdificio = async () => {
     if (!valDireccion.trim()) return;
     setBuscandoDup(true);
-    const q = normalizar(valDireccion + ' ' + valNombre);
+    const q = normalizarTexto(valDireccion + ' ' + valNombre);
     const dups = todos.filter(r => {
-      const dir = normalizar(r.direccion || '');
-      const nombre = normalizar(r.nombre_lugar || '');
-      return similitud(q, dir) > 0.45 || similitud(q, nombre) > 0.5 || dir.includes(q.slice(0, 10));
+      // Si ya sabemos la ciudad, descartamos coincidencias de otras ciudades
+      // (evita falsos positivos por calles con nombres repetidos, ej. "Av. Bolívar").
+      if (ciudad && r.ciudad && !esMismaCiudad(ciudad, r.ciudad)) return false;
+      const dir = normalizarTexto(r.direccion || '');
+      const nombre = normalizarTexto(r.nombre_lugar || '');
+      return similitudTexto(q, dir) > 0.45 || similitudTexto(q, nombre) > 0.5 || dir.includes(q.slice(0, 10));
     }).sort((a, b) => (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5));
     setPosiblesDups(dups);
     setEtapa('resultados');
@@ -248,6 +236,12 @@ export default function TabReportar({ todos, setTab, lang, t }) {
               <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Dirección o zona', 'Address or area', 'Endereço ou área')} <span className="text-red-500">*</span></label>
               <input value={valDireccion} onChange={e => setValDireccion(e.target.value)} onKeyDown={e => e.key === 'Enter' && verificarEdificio()}
                 placeholder={t('Ej: Av. Soublette, frente al mercado, La Guaira', 'E.g: Soublette Ave, next to market, La Guaira', 'Ex: Av. Soublette, em frente ao mercado')} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Ciudad (opcional, mejora la búsqueda)', 'City (optional, improves search)', 'Cidade (opcional)')}</label>
+              <input list="ciudades-lista-rep-val" value={ciudad} onChange={e => setCiudad(e.target.value)} onKeyDown={e => e.key === 'Enter' && verificarEdificio()}
+                placeholder={t('Ej: La Guaira', 'E.g: La Guaira', 'Ex: La Guaira')} className={inputCls} />
+              <datalist id="ciudades-lista-rep-val">{ciudadesDisponibles.map(c => <option key={c} value={c} />)}</datalist>
             </div>
             <button onClick={verificarEdificio} disabled={buscandoDup || !valDireccion.trim()}
               className="w-full py-3.5 rounded-xl text-sm font-bold bg-blue-700 hover:bg-blue-800 text-white disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer">

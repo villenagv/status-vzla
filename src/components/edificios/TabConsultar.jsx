@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, CheckCircle, MapPin, Loader2 } from 'lucide-react';
+import { normalizarTexto, similitudTexto } from '@/lib/similitud';
 
 const DANO_CONFIG = {
   leve:        { color: '#B7950B', bg: '#FEF9E7', border: '#F9E79F', label: { es: 'Daño leve',     en: 'Minor damage'   }, icon: '🟡', acceso: { es: 'Entrada con precaución', en: 'Enter with caution' } },
@@ -13,21 +14,6 @@ const DANO_CONFIG = {
 };
 const cfg = (d) => DANO_CONFIG[d] || DANO_CONFIG.no_evaluado;
 
-const ABREVIACIONES = { 'av': 'avenida', 'ave': 'avenida', 'cll': 'calle', 'cl': 'calle', 'urb': 'urbanizacion', 'edif': 'edificio', 'res': 'residencias', 'cc': 'centro comercial' };
-function normalizar(str) {
-  let s = (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-  s = s.split(' ').map(w => ABREVIACIONES[w] || w).join(' ');
-  return s;
-}
-function similitud(a, b) {
-  const na = normalizar(a), nb = normalizar(b);
-  if (!na || !nb) return 0;
-  if (na === nb) return 1;
-  if (na.includes(nb) || nb.includes(na)) return 0.9;
-  const wA = na.split(' '), wB = nb.split(' ');
-  const matches = wA.filter(w => w.length > 2 && wB.some(wb => wb.startsWith(w) || w.startsWith(wb)));
-  return matches.length / Math.max(wA.length, wB.length);
-}
 const PRIORIDAD_SORT = { critico: 0, colapsado: 1, grave: 2, moderado: 3, leve: 4, no_evaluado: 5, no_sabe: 6 };
 
 export default function TabConsultar({ todos, setTab, t, lang }) {
@@ -44,12 +30,12 @@ export default function TabConsultar({ todos, setTab, t, lang }) {
   const buscar = async () => {
     if (!query.trim()) return;
     setBuscando(true); setBuscado(false);
-    const q = normalizar(query);
+    const q = normalizarTexto(query);
     const enc = todos.filter(r => {
-      const dir = normalizar(r.direccion || '');
-      const ciudad = normalizar(r.ciudad || '');
-      const nombre = normalizar(r.nombre_lugar || '');
-      return similitud(q, dir) > 0.4 || similitud(q, ciudad) > 0.6 || similitud(q, nombre) > 0.5 || dir.includes(q) || ciudad.includes(q) || nombre.includes(q);
+      const dir = normalizarTexto(r.direccion || '');
+      const ciudad = normalizarTexto(r.ciudad || '');
+      const nombre = normalizarTexto(r.nombre_lugar || '');
+      return similitudTexto(q, dir) > 0.4 || similitudTexto(q, ciudad) > 0.6 || similitudTexto(q, nombre) > 0.5 || dir.includes(q) || ciudad.includes(q) || nombre.includes(q);
     }).sort((a, b) => (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5));
     setResultados(enc);
     setBuscando(false); setBuscado(true);
