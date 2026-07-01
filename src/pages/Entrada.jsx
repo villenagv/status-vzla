@@ -24,6 +24,7 @@ const TRIAGE = [
     subColor: 'rgba(255,255,255,0.82)',
     es: { title: 'Reportar daño o peligro', sub: 'Edificio dañado · Gas · Personas atrapadas · Riesgo eléctrico' },
     en: { title: 'Report damage or hazard', sub: 'Damaged building · Gas · Trapped people · Electrical risk' },
+    pt: { title: 'Reportar dano ou perigo', sub: 'Edifício danificado · Gás · Pessoas presas · Risco elétrico' },
   },
   {
     to: '/buscar-persona',
@@ -33,6 +34,7 @@ const TRIAGE = [
     subColor: 'rgba(255,255,255,0.82)',
     es: { title: 'Buscar a alguien', sub: 'Personas buscadas · Encontradas · Cruces de información' },
     en: { title: 'Search for someone', sub: 'Missing people · Found · Cross-search' },
+    pt: { title: 'Procurar alguém', sub: 'Pessoas desaparecidas · Encontradas · Busca cruzada' },
   },
   {
     to: '/reportar-encontrado',
@@ -42,6 +44,7 @@ const TRIAGE = [
     subColor: 'rgba(255,255,255,0.82)',
     es: { title: 'Encontré a alguien', sub: 'Vi o tengo información real sobre una persona' },
     en: { title: 'I found someone', sub: 'I saw or have real info about a person' },
+    pt: { title: 'Encontrei alguém', sub: 'Vi ou tenho informação real sobre uma pessoa' },
   },
   {
     to: '/centros-apoyo',
@@ -51,6 +54,7 @@ const TRIAGE = [
     subColor: 'rgba(255,255,255,0.82)',
     es: { title: 'Buscar refugio o ayuda', sub: 'Refugios · Hospitales · Centros de acopio · Agua y comida' },
     en: { title: 'Find shelter or help', sub: 'Shelters · Hospitals · Aid centers · Water & food' },
+    pt: { title: 'Encontrar abrigo ou ajuda', sub: 'Abrigos · Hospitais · Centros de acopio · Água e comida' },
   },
 ];
 
@@ -89,6 +93,8 @@ export default function Entrada() {
   const { lang } = useLang();
   const { lowBw } = useLowBw();
   const es = lang === 'es';
+  const pt = lang === 'pt';
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F5F6F8' }}>
@@ -114,12 +120,10 @@ export default function Entrada() {
             </span>
           </div>
           <h1 className="text-2xl font-black leading-tight mb-1.5" style={{ letterSpacing: '-0.02em', color: '#111827' }}>
-            {es ? '¿Qué necesitas hacer ahora?' : 'What do you need to do now?'}
+            {t('¿Qué necesitas hacer ahora?', 'What do you need to do now?', 'O que você precisa fazer agora?')}
           </h1>
           <p className="text-sm leading-relaxed" style={{ color: '#6B7280' }}>
-            {es
-              ? 'Elige una opción. Sin cuenta obligatoria. Funciona con poca señal.'
-              : 'Choose an option. No account required. Works with poor signal.'}
+            {t('Elige una opción. Sin cuenta obligatoria. Funciona con poca señal.', 'Choose an option. No account required. Works with poor signal.', 'Escolha uma opção. Sem conta obrigatória. Funciona com pouco sinal.')}
           </p>
         </div>
 
@@ -129,11 +133,11 @@ export default function Entrada() {
         {/* ── TRIAGE: 4 ACCIONES PRIMARIAS ── */}
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest mb-2.5" style={{ color: '#9CA3AF' }}>
-            {es ? '⚡ Acción inmediata' : '⚡ Immediate action'}
+            {t('⚡ Acción inmediata', '⚡ Immediate action', '⚡ Ação imediata')}
           </p>
           <div className="flex flex-col gap-2.5">
             {TRIAGE.map(item => {
-              const txt = es ? item.es : item.en;
+              const txt = pt ? (item.pt || item.es) : es ? item.es : item.en;
               return (
                 <Link key={item.to} to={item.to} className="no-underline block" style={{ borderRadius: 16 }}>
                   <div style={{
@@ -176,10 +180,10 @@ export default function Entrada() {
             <span style={{ fontSize: 28, flexShrink: 0 }}>📸</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 15, fontWeight: 800, color: '#fff', lineHeight: 1.2, marginBottom: 3 }}>
-                {es ? 'Pedir inspección de daños' : 'Request a damage inspection'}
+                {t('Pedir inspección de daños', 'Request a damage inspection', 'Solicitar inspeção de danos')}
               </p>
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.82)', lineHeight: 1.4 }}>
-                {es ? 'Toma fotos · Un voluntario técnico revisará y te contactará' : 'Take photos · A technical volunteer will review and contact you'}
+                {t('Toma fotos · Un voluntario técnico revisará y te contactará', 'Take photos · A technical volunteer will review and contact you', 'Tire fotos · Um voluntário técnico revisará e entrará em contato')}
               </p>
             </div>
             <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 20, flexShrink: 0 }}>›</span>
@@ -189,11 +193,11 @@ export default function Entrada() {
         {/* ── CONSULTAR INFORMACIÓN ── */}
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest mb-2.5" style={{ color: '#9CA3AF' }}>
-            {es ? '📋 Consultar información' : '📋 Browse information'}
+            {t('📋 Consultar información', '📋 Browse information', '📋 Consultar informações')}
           </p>
           <div className="flex flex-col gap-2">
             {PILARES.map(item => {
-              const txt = es ? item.es : item.en;
+              const txt = pt ? (item.pt || item.es) : es ? item.es : item.en;
               return (
                 <Link key={item.to} to={item.to} className="no-underline block" style={{ borderRadius: 12 }}>
                   <div style={{
@@ -243,28 +247,28 @@ export default function Entrada() {
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
             <span style={{ fontSize: 18 }}>❓</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', lineHeight: 1.3 }}>
-              {es ? 'Cómo usar la app' : 'How to use the app'}
+              {t('Cómo usar la app', 'How to use the app', 'Como usar o app')}
             </span>
           </Link>
           <Link to="/guia-edificios" className="no-underline flex items-center gap-3 px-3.5 py-3.5 rounded-2xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
             <span style={{ fontSize: 18 }}>📖</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', lineHeight: 1.3 }}>
-              {es ? 'Guía edificios' : 'Building guide'}
+              {t('Guía edificios', 'Building guide', 'Guia de edifícios')}
             </span>
           </Link>
           <Link to="/contactanos" className="no-underline flex items-center gap-3 px-3.5 py-3.5 rounded-2xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
             <span style={{ fontSize: 18 }}>✉️</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', lineHeight: 1.3 }}>
-              {es ? 'Contáctanos' : 'Contact us'}
+              {t('Contáctanos', 'Contact us', 'Contate-nos')}
             </span>
           </Link>
           <Link to="/voluntario" className="no-underline flex items-center gap-3 px-3.5 py-3.5 rounded-2xl"
             style={{ background: '#F0FDF4', border: '1px solid rgba(21,128,61,0.25)' }}>
             <span style={{ fontSize: 18 }}>🤝</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#15803D', lineHeight: 1.3 }}>
-              {es ? 'Ser voluntario' : 'Volunteer'}
+              {t('Ser voluntario', 'Volunteer', 'Ser voluntário')}
             </span>
           </Link>
         </div>
@@ -278,7 +282,7 @@ export default function Entrada() {
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         }}>
           <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#9CA3AF' }}>
-            📞 {es ? 'Emergencias Venezuela' : 'Venezuela emergency lines'}
+            📞 {t('Emergencias Venezuela', 'Venezuela emergency lines', 'Emergências Venezuela')}
           </p>
           <div className="grid grid-cols-4 gap-2">
             {TELS.map(({ num, op }) => (
@@ -298,9 +302,11 @@ export default function Entrada() {
           padding: '12px 16px',
         }}>
           <p className="text-xs leading-relaxed" style={{ color: '#92400E' }}>
-            ⚠️ {es
-              ? 'Nunca envíes dinero a cambio de información. Si alguien pide dinero para localizar a alguien, es una estafa.'
-              : "Never send money in exchange for information. If someone asks for money to locate a person, it's a scam."}
+            ⚠️ {t(
+              'Nunca envíes dinero a cambio de información. Si alguien pide dinero para localizar a alguien, es una estafa.',
+              "Never send money in exchange for information. If someone asks for money to locate a person, it's a scam.",
+              'Nunca envie dinheiro por informações. Se alguém pedir dinheiro para localizar alguém, é um golpe.'
+            )}
           </p>
         </div>
 
