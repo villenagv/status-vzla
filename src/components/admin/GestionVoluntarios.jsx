@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Loader2, CheckCircle, XCircle, Copy, Check, Trash2, Plus, Link as LinkIcon } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Copy, Check, Trash2, Plus, Link as LinkIcon, Camera } from 'lucide-react';
 
 const ESTADO_BADGE = {
   pendiente: 'bg-amber-100 text-amber-800 border-amber-200',
@@ -171,6 +171,10 @@ export default function GestionVoluntarios({ es }) {
   const [creando, setCreando] = useState(false);
   const [tokenCreado, setTokenCreado] = useState(null);
 
+  // Envío masivo de solicitud de foto de perfil
+  const [enviandoFotos, setEnviandoFotos] = useState(false);
+  const [resultadoFotos, setResultadoFotos] = useState(null);
+
   useEffect(() => {
     cargar();
   }, []);
@@ -228,6 +232,18 @@ export default function GestionVoluntarios({ es }) {
     setCreando(false);
   };
 
+  const enviarSolicitudesFoto = async () => {
+    setEnviandoFotos(true);
+    setResultadoFotos(null);
+    try {
+      const r = await base44.functions.invoke('gestionarFotoPerfil', { accion: 'enviar_solicitudes' });
+      setResultadoFotos(r.data);
+    } catch {
+      setResultadoFotos({ error: true });
+    }
+    setEnviandoFotos(false);
+  };
+
   const desactivarToken = async (id) => {
     try {
       await base44.entities.InvitacionInstitucional.update(id, { activo: false });
@@ -246,6 +262,28 @@ export default function GestionVoluntarios({ es }) {
 
   return (
     <div>
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-sm font-bold text-blue-900">📷 {es ? 'Foto de perfil del equipo' : 'Team profile photo'}</p>
+          <p className="text-xs text-blue-700 mt-0.5">
+            {es ? 'Envía un correo con enlace individual a cada voluntario/inspector/arquitecto sin foto para que la suban.' : 'Send an email with an individual link to each volunteer/inspector/architect without a photo so they can upload it.'}
+          </p>
+          {resultadoFotos && !resultadoFotos.error && (
+            <p className="text-xs text-green-700 font-semibold mt-1.5">
+              ✅ {es ? `Enviados ${resultadoFotos.enviados} de ${resultadoFotos.total} correos.` : `Sent ${resultadoFotos.enviados} of ${resultadoFotos.total} emails.`}
+            </p>
+          )}
+          {resultadoFotos?.error && (
+            <p className="text-xs text-red-600 font-semibold mt-1.5">{es ? 'Error al enviar los correos.' : 'Error sending emails.'}</p>
+          )}
+        </div>
+        <button onClick={enviarSolicitudesFoto} disabled={enviandoFotos}
+          className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl disabled:opacity-50 transition-colors flex-shrink-0">
+          {enviandoFotos ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
+          {enviandoFotos ? (es ? 'Enviando...' : 'Sending...') : (es ? 'Enviar solicitud de foto' : 'Send photo request')}
+        </button>
+      </div>
+
       <div className="flex gap-2 mb-4 border-b border-gray-200 pb-4">
         {[
           { key: 'solicitudes', label: es ? `Solicitudes (${pendientesCount} pend.)` : `Requests (${pendientesCount} pend.)` },

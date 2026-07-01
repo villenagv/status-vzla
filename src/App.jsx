@@ -56,6 +56,7 @@ import AgregarContactos from './pages/AgregarContactos.jsx';
 import ComoFunciona from './pages/ComoFunciona.jsx';
 import RecursosTecnicos from './pages/RecursosTecnicos.jsx';
 import InformacionEducacion from './pages/InformacionEducacion.jsx';
+import SubirFotoPerfil from './pages/SubirFotoPerfil.jsx';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -106,6 +107,7 @@ const PublicApp = () => (
     <Route path="/como-funciona" element={<ComoFunciona />} />
     <Route path="/recursos-tecnicos" element={<RecursosTecnicos />} />
     <Route path="/informacion" element={<InformacionEducacion />} />
+    <Route path="/subir-foto-perfil" element={<SubirFotoPerfil />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );

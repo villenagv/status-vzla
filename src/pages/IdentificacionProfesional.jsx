@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, HardHat, Heart, CheckCircle } from 'lucide-react';
+import { Loader2, HardHat, Heart, CheckCircle, Camera } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -61,6 +61,8 @@ export default function IdentificacionProfesional() {
   const [disponibilidad, setDisponibilidad] = useState('');
   const [tipoApoyo, setTipoApoyo] = useState([]);
   const [documentos, setDocumentos] = useState([]);
+  const [fotoPerfilUrl, setFotoPerfilUrl] = useState('');
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [listo, setListo] = useState(false);
 
@@ -83,8 +85,17 @@ export default function IdentificacionProfesional() {
       .finally(() => setCargando(false));
   }, []);
 
+  const subirFotoPerfil = async (file) => {
+    setSubiendoFoto(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFotoPerfilUrl(file_url);
+    } catch {}
+    setSubiendoFoto(false);
+  };
+
   const guardar = async () => {
-    if (!tipoPerfil) return;
+    if (!tipoPerfil || !fotoPerfilUrl) return;
     setGuardando(true);
     try {
       // Verificar si ya existe un perfil sin completar
@@ -103,6 +114,7 @@ export default function IdentificacionProfesional() {
         disponibilidad,
         tipo_apoyo: tipoApoyo,
         documentos_validacion: documentos,
+        foto_perfil_url: fotoPerfilUrl,
         estado_aprobacion: ['ingeniero', 'arquitecto'].includes(tipoPerfil) ? 'pendiente' : 'aprobado',
         completado: true,
       };
@@ -275,13 +287,41 @@ export default function IdentificacionProfesional() {
             <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <DocumentosValidacion value={documentos} onChange={setDocumentos} es={es} />
             </div>
+
+            {/* Foto de perfil — obligatoria */}
+            <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+                {t('Foto de perfil (obligatoria)', 'Profile photo (required)')} <span style={{ color: '#F87171' }}>*</span>
+              </p>
+              <p className="text-xs text-gray-500 mb-2 leading-relaxed">
+                {t('Necesaria para identificar a inspectores, voluntarios y arquitectos del equipo.',
+                   'Needed to identify inspectors, volunteers and architects on the team.')}
+              </p>
+              {fotoPerfilUrl ? (
+                <div className="flex items-center gap-3">
+                  <img src={fotoPerfilUrl} alt="perfil" className="w-16 h-16 object-cover rounded-full border-2 border-green-400" />
+                  <button type="button" onClick={() => setFotoPerfilUrl('')} className="text-xs text-red-400 underline">
+                    {t('Cambiar', 'Change')}
+                  </button>
+                </div>
+              ) : (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1.5px dashed rgba(255,255,255,0.20)', borderRadius: 10, padding: '12px', cursor: 'pointer' }}>
+                  {subiendoFoto ? <Loader2 size={18} className="animate-spin text-gray-400" /> : <Camera size={18} className="text-gray-400" />}
+                  <span style={{ fontSize: 13, color: '#fff', fontWeight: 600 }}>
+                    {subiendoFoto ? t('Subiendo...', 'Uploading...') : t('Subir foto de perfil', 'Upload profile photo')}
+                  </span>
+                  <input type="file" accept="image/*" className="hidden" disabled={subiendoFoto}
+                    onChange={e => { if (e.target.files?.[0]) subirFotoPerfil(e.target.files[0]); e.target.value = ''; }} />
+                </label>
+              )}
+            </div>
           </div>
         )}
 
         {/* Botón guardar */}
         <button
           onClick={guardar}
-          disabled={!tipoPerfil || guardando}
+          disabled={!tipoPerfil || !fotoPerfilUrl || guardando}
           style={{
             width: '100%',
             background: perfilSeleccionado ? perfilSeleccionado.color : '#374151',
@@ -291,8 +331,8 @@ export default function IdentificacionProfesional() {
             padding: '16px',
             fontSize: 15,
             fontWeight: 800,
-            cursor: tipoPerfil ? 'pointer' : 'not-allowed',
-            opacity: !tipoPerfil || guardando ? 0.5 : 1,
+            cursor: tipoPerfil && fotoPerfilUrl ? 'pointer' : 'not-allowed',
+            opacity: !tipoPerfil || !fotoPerfilUrl || guardando ? 0.5 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
