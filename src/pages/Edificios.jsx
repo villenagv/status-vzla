@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X, Eye, Bell } from 'lucide-react';
+import PopupAvisame from '@/components/edificio/PopupAvisame';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
@@ -196,7 +197,11 @@ export default function Edificios() {
     if (!subEmail.trim()) return;
     setSubEnviando(true);
     try {
-      await base44.entities.SuscriptoresSeguimiento.create({ reporte_id: reporteId, tipo_reporte: 'dano', telefono_whatsapp: subEmail.trim(), activo: true });
+      await base44.functions.invoke('registrarSuscripcionEdificio', {
+        edificio_id: reporteId,
+        email: subEmail.trim(),
+        lang,
+      });
       setSubOk(true);
       setTimeout(() => setSubOk(false), 3000);
     } catch {}
@@ -824,16 +829,16 @@ export default function Edificios() {
                 </div>
                 <div className="space-y-2">
                   {solicitudes.slice(0, 5).map(s => (
-                    <Link key={s.id} to={`/edificio?id=${s.id}`}
-                      className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 no-underline hover:bg-amber-100 transition-colors gap-2">
+                    <div key={s.id} className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-gray-900 truncate">{s.nombre_lugar}</p>
                         <p className="text-xs text-gray-500 truncate">📍 {s.direccion || t('Sin dirección', 'No address', 'Sem endereço')} · {s.ciudad}</p>
                       </div>
-                      <span className="text-xs font-semibold bg-purple-700 text-white px-3 py-1.5 rounded-lg flex-shrink-0">
+                      <Link to={`/reportar-dano?nombre=${encodeURIComponent(s.nombre_lugar || '')}&direccion=${encodeURIComponent(s.direccion || '')}&ciudad=${encodeURIComponent(s.ciudad || '')}`}
+                        className="text-xs font-semibold bg-purple-700 text-white px-3 py-1.5 rounded-lg flex-shrink-0 no-underline hover:bg-purple-800">
                         {t('Tengo info →', 'I have info →', 'Tenho info →')}
-                      </span>
-                    </Link>
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -1578,12 +1583,15 @@ export default function Edificios() {
       <Footer />
 
       {/* ── POP-UP AVÍSAME ── */}
-      {avisameEdificio && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-          style={{ background: 'rgba(0,0,0,0.55)' }}
-          onClick={cerrarAvisame}
-        >
+      <PopupAvisame
+        avisameEdificio={avisameEdificio} cerrarAvisame={cerrarAvisame}
+        avisameNombre={avisameNombre} setAvisameNombre={setAvisameNombre}
+        avisameEmail={avisameEmail} setAvisameEmail={setAvisameEmail}
+        avisameEnviando={avisameEnviando} avisameOk={avisameOk}
+        handleAvisame={handleAvisame} t={t}
+      />
+      {false && (
+        <div>
           <div
             className="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl"
             onClick={e => e.stopPropagation()}
