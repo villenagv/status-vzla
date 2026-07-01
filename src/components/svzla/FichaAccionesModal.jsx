@@ -8,6 +8,8 @@ import NotificarmeEmail from '@/components/svzla/NotificarmeEmail';
 export default function FichaAccionesModal({ item, tipo, onClose }) {
   const { lang } = useLang();
   const es = lang === 'es';
+  const pt = lang === 'pt';
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
   // ── EDIFICIO ──
   const [actualizandoEdificio, setActualizandoEdificio] = useState(false);
@@ -207,7 +209,7 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
         <div className="flex items-start justify-between px-5 pt-5 pb-3 border-b border-gray-100 flex-shrink-0">
           <div className="flex-1 min-w-0 pr-3">
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">
-              {tipo === 'persona' ? (es ? 'Persona' : 'Person') : (es ? 'Edificio / Estructura' : 'Building / Structure')}
+              {tipo === 'persona' ? t('Persona', 'Person', 'Pessoa') : t('Edificio / Estructura', 'Building / Structure', 'Edifício / Estrutura')}
             </p>
             <h2 className="text-base font-black text-[#1A1F2E] leading-tight truncate">{item._nombre}</h2>
             {(item.ciudad || item.ultima_ubicacion_conocida || item.direccion) && (
@@ -232,9 +234,11 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
               <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
                 <span className="text-amber-600 flex-shrink-0 text-sm">⚠️</span>
                 <p className="text-[11px] text-amber-800 leading-snug">
-                  {es
-                    ? 'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados.'
-                    : 'Never send money in exchange for information. This platform does not authorize payments or private rescue fees.'}
+                  {t(
+                    'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados.',
+                    'Never send money in exchange for information. This platform does not authorize payments or private rescue fees.',
+                    'Nunca envie dinheiro por informações. Esta plataforma não autoriza pagamentos ou resgates privados.'
+                  )}
                 </p>
               </div>
 
@@ -242,7 +246,7 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
               {item._fuente === 'busqueda' && (
                 <Link to={`/persona?id=${item.id}`} onClick={onClose}
                   className="flex items-center justify-between bg-[#1A1F2E] text-white rounded-2xl px-4 py-3.5 no-underline">
-                  <span className="text-sm font-bold">📋 {es ? 'Ver ficha completa' : 'View full record'}</span>
+                  <span className="text-sm font-bold">📋 {t('Ver ficha completa', 'View full record', 'Ver ficha completa')}</span>
                   <ChevronRight size={16} />
                 </Link>
               )}
@@ -253,7 +257,7 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                   {!reportandoEncontrado ? (
                     <button onClick={() => setReportandoEncontrado(true)}
                       className="flex items-center justify-between w-full bg-green-600 text-white rounded-2xl px-4 py-3.5 cursor-pointer">
-                      <span className="text-sm font-bold">✋ {es ? 'La/lo encontré — reportar ahora' : 'I found them — report now'}</span>
+                      <span className="text-sm font-bold">✋ {t('La/lo encontré — reportar ahora', 'I found them — report now', 'Encontrei — reportar agora')}</span>
                       <ChevronRight size={16} />
                     </button>
                   ) : (
@@ -262,10 +266,12 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                         ✋ {es ? '¿Dónde y cómo la/lo encontraste?' : 'Where and how did you find them?'}
                       </p>
                       <p className="text-[11px] text-green-700 leading-snug">
-                        {es
-                          ? 'Solo comparte información que hayas visto o verificado. No publiques rumores. Tus datos serán privados.'
-                          : 'Only share information you have seen or verified. Do not spread rumors. Your contact info will be private.'}
-                      </p>
+                         {t(
+                           'Solo comparte información que hayas visto o verificado. No publiques rumores. Tus datos serán privados.',
+                           'Only share information you have seen or verified. Do not spread rumors. Your contact info will be private.',
+                           'Compartilhe apenas informação que você viu ou verificou. Não espalhe rumores. Seus dados serão privados.'
+                         )}
+                       </p>
 
                       {/* Condición */}
                       <div>
@@ -294,7 +300,7 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                           value={encontradoForm.lugar}
                           onChange={e => setEncontradoForm(f => ({ ...f, lugar: e.target.value }))}
                           placeholder={es ? 'Ej: Refugio Cruz Roja, Av. Principal, Maiquetía' : 'E.g.: Red Cross shelter, Main Ave, Maiquetia'}
-                          className="w-full border border-green-300 rounded-xl px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none bg-white"
+                          className="w-full border border-green-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none bg-white"
                         />
                       </div>
 
@@ -304,7 +310,7 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                         value={encontradoForm.notas}
                         onChange={e => setEncontradoForm(f => ({ ...f, notas: e.target.value }))}
                         placeholder={es ? 'Información adicional (estado, acompañantes, etc.)...' : 'Additional info (status, companions, etc.)...'}
-                        className="w-full border border-green-200 rounded-xl px-3 py-2.5 text-sm resize-none placeholder-gray-400 focus:outline-none bg-white"
+                        className="w-full border border-green-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 resize-none placeholder-gray-400 focus:outline-none bg-white"
                       />
 
                       {/* Datos reportante (privados) */}
@@ -314,13 +320,13 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                         </p>
                         <input value={encontradoForm.nombre} onChange={e => setEncontradoForm(f => ({ ...f, nombre: e.target.value }))}
                           placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none" />
-                        <input value={encontradoForm.telefono} onChange={e => setEncontradoForm(f => ({ ...f, telefono: e.target.value }))}
-                          placeholder={es ? 'Teléfono / WhatsApp (opcional)' : 'Phone / WhatsApp (optional)'}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none" />
-                        <input value={encontradoForm.email} onChange={e => setEncontradoForm(f => ({ ...f, email: e.target.value }))}
-                          placeholder={es ? 'Email (opcional)' : 'Email (optional)'}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none" />
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none" />
+                          <input value={encontradoForm.telefono} onChange={e => setEncontradoForm(f => ({ ...f, telefono: e.target.value }))}
+                            placeholder={t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)', 'Telefone / WhatsApp (opcional)')}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none" />
+                          <input value={encontradoForm.email} onChange={e => setEncontradoForm(f => ({ ...f, email: e.target.value }))}
+                            placeholder={t('Email (opcional)', 'Email (optional)', 'Email (opcional)')}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none" />
                       </div>
 
                       <div className="flex gap-2">
@@ -391,14 +397,14 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                   )}
                   <textarea rows={2} value={personaForm.descripcion}
                     onChange={e => setPersonaForm(f => ({ ...f, descripcion: e.target.value }))}
-                    placeholder={es ? 'Describe lo que sabes (sin datos sensibles)...' : 'Describe what you know (no sensitive data)...'}
-                    className="w-full border border-amber-300 rounded-xl px-3 py-2.5 text-sm resize-none placeholder-gray-400 focus:outline-none bg-white" />
+                    placeholder={t('Describe lo que sabes (sin datos sensibles)...', 'Describe what you know (no sensitive data)...', 'Descreva o que sabe (sem dados sensíveis)...')}
+                    className="w-full border border-amber-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 resize-none placeholder-gray-400 focus:outline-none bg-white" />
                   <input value={personaForm.nombre} onChange={e => setPersonaForm(f => ({ ...f, nombre: e.target.value }))}
-                    placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'}
-                    className="w-full border border-amber-300 rounded-xl px-3 py-2 text-sm placeholder-gray-400 focus:outline-none bg-white" />
+                    placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')}
+                    className="w-full border border-amber-300 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none bg-white" />
                   <input value={personaForm.contacto} onChange={e => setPersonaForm(f => ({ ...f, contacto: e.target.value }))}
-                    placeholder={es ? 'Tu contacto (opcional, privado)' : 'Your contact (optional, private)'}
-                    className="w-full border border-amber-300 rounded-xl px-3 py-2 text-sm placeholder-gray-400 focus:outline-none bg-white" />
+                    placeholder={t('Tu contacto (opcional, privado)', 'Your contact (optional, private)', 'Seu contato (opcional, privado)')}
+                    className="w-full border border-amber-300 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none bg-white" />
                   <div className="flex gap-2">
                     <button onClick={enviarActualizacionPersona}
                       disabled={enviandoPersona || (!personaForm.estado && !personaForm.descripcion)}
@@ -424,7 +430,7 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
               <button onClick={compartir}
                 className="flex items-center justify-center gap-2 w-full bg-gray-100 border border-gray-200 rounded-2xl px-4 py-3 cursor-pointer">
                 <Share2 size={13} className="text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">{copiado ? (es ? '✅ Enlace copiado' : '✅ Link copied') : (es ? 'Copiar enlace' : 'Copy link')}</span>
+                <span className="text-sm font-semibold text-gray-700">{copiado ? t('✅ Enlace copiado', '✅ Link copied', '✅ Link copiado') : t('Copiar enlace', 'Copy link', 'Copiar link')}</span>
               </button>
             </>
           )}
@@ -450,9 +456,11 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
               <div className="flex gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
                 <AlertTriangle size={13} className="text-red-600 flex-shrink-0 mt-0.5" />
                 <p className="text-[11px] text-red-800 leading-snug">
-                  {es
-                    ? 'No entres a estructuras dañadas. Si hay gas, cables caídos o personas atrapadas, espera a Protección Civil o Bomberos.'
-                    : 'Do not enter damaged structures. If there is gas, fallen wires or trapped people, wait for Civil Protection or firefighters.'}
+                  {t(
+                    'No entres a estructuras dañadas. Si hay gas, cables caídos o personas atrapadas, espera a Protección Civil o Bomberos.',
+                    'Do not enter damaged structures. If there is gas, fallen wires or trapped people, wait for Civil Protection or firefighters.',
+                    'Não entre em estruturas danificadas. Se houver gás, fios caídos ou pessoas presas, aguarde a Proteção Civil ou Bombeiros.'
+                  )}
                 </p>
               </div>
 
@@ -606,16 +614,16 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                     <textarea rows={2} value={edificioForm.notasServicios}
                       onChange={e => setEdificioForm(f => ({ ...f, notasServicios: e.target.value }))}
                       placeholder={es ? 'Notas de racionamiento o horarios (ej: agua 6am–8am)...' : 'Rationing notes or schedules (e.g.: water 6am–8am)...'}
-                      className="w-full border border-blue-200 rounded-xl px-3 py-2.5 text-sm resize-none placeholder-gray-400 focus:outline-none bg-white mt-2" />
+                      className="w-full border border-blue-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 resize-none placeholder-gray-400 focus:outline-none bg-white mt-2" />
                   </div>
 
                   {/* Descripción general */}
                   <div>
-                    <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">{es ? 'Describe lo que viste o sabes' : 'Describe what you saw or know'}</p>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">{t('Describe lo que viste o sabes', 'Describe what you saw or know', 'Descreva o que você viu ou sabe')}</p>
                     <textarea rows={3} value={edificioForm.descripcion}
                       onChange={e => setEdificioForm(f => ({ ...f, descripcion: e.target.value }))}
-                      placeholder={es ? 'Sé específico: grietas, accesos, olores, ruidos, personas...' : 'Be specific: cracks, access, smells, noises, people...'}
-                      className="w-full border border-blue-200 rounded-xl px-3 py-2.5 text-sm resize-none placeholder-gray-400 focus:outline-none bg-white" />
+                      placeholder={t('Sé específico: grietas, accesos, olores, ruidos, personas...', 'Be specific: cracks, access, smells, noises, people...', 'Seja específico: rachaduras, acessos, odores, ruídos, pessoas...')}
+                      className="w-full border border-blue-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 resize-none placeholder-gray-400 focus:outline-none bg-white" />
                   </div>
 
                   {/* Datos reportante */}
@@ -624,17 +632,17 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
                       🔒 {es ? 'Tus datos — privados, no se publican' : 'Your info — private, not published'}
                     </p>
                     <input value={edificioForm.nombre} onChange={e => setEdificioForm(f => ({ ...f, nombre: e.target.value }))}
-                      placeholder={es ? 'Nombre (opcional)' : 'Name (optional)'}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none" />
+                      placeholder={t('Nombre (opcional)', 'Name (optional)', 'Nome (opcional)')}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none" />
                     <input value={edificioForm.telefono} onChange={e => setEdificioForm(f => ({ ...f, telefono: e.target.value }))}
-                      placeholder={es ? 'Teléfono / WhatsApp (opcional)' : 'Phone / WhatsApp (optional)'}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none" />
+                      placeholder={t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)', 'Telefone / WhatsApp (opcional)')}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none" />
                     <input value={edificioForm.email} onChange={e => setEdificioForm(f => ({ ...f, email: e.target.value }))}
-                      placeholder={es ? 'Email (opcional)' : 'Email (optional)'}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none" />
+                      placeholder={t('Email (opcional)', 'Email (optional)', 'Email (opcional)')}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none" />
                     <input value={edificioForm.redSocial} onChange={e => setEdificioForm(f => ({ ...f, redSocial: e.target.value }))}
-                      placeholder={es ? 'Red social: @usuario (opcional)' : 'Social media: @user (optional)'}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs placeholder-gray-400 focus:outline-none" />
+                      placeholder={t('Red social: @usuario (opcional)', 'Social media: @user (optional)', 'Rede social: @usuário (opcional)')}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none" />
                   </div>
 
                   <p className="text-[10px] text-gray-400 italic">
@@ -664,7 +672,7 @@ export default function FichaAccionesModal({ item, tipo, onClose }) {
               <button onClick={compartir}
                 className="flex items-center justify-center gap-2 w-full bg-gray-100 border border-gray-200 rounded-2xl px-4 py-3 cursor-pointer">
                 <Share2 size={13} className="text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">{copiado ? (es ? '✅ Enlace copiado' : '✅ Link copied') : (es ? 'Copiar enlace' : 'Copy link')}</span>
+                <span className="text-sm font-semibold text-gray-700">{copiado ? t('✅ Enlace copiado', '✅ Link copied', '✅ Link copiado') : t('Copiar enlace', 'Copy link', 'Copiar link')}</span>
               </button>
             </>
           )}

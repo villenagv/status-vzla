@@ -101,10 +101,10 @@ function ModalActualizarCentro({ centro, t, onClose, onSaved }) {
             </div>
             <input value={nombre} onChange={e => setNombre(e.target.value)}
               placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white" />
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 bg-white" />
             <textarea rows={2} value={nota} onChange={e => setNota(e.target.value)}
               placeholder={t('Notas adicionales (opcional)', 'Additional notes (optional)', 'Notas adicionais (opcional)')}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none bg-white" />
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 resize-none bg-white" />
             <button onClick={guardar} disabled={guardando}
               className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl cursor-pointer disabled:opacity-40 flex items-center justify-center gap-2">
               {guardando ? <Loader2 size={14} className="animate-spin" /> : '💾'}
@@ -238,7 +238,7 @@ export default function CentrosApoyo() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input value={query} onChange={e => { setQuery(e.target.value); setPage(1); }}
               placeholder={t('Buscar por nombre, ciudad...', 'Search by name, city...', 'Buscar por nome, cidade...')}
-              className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm bg-white focus:outline-none focus:border-gray-400" />
+              className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:border-gray-400" />
           </div>
           {query && <button onClick={() => setQuery('')} className="text-sm text-gray-400 px-2 cursor-pointer">✕</button>}
         </div>
@@ -416,7 +416,7 @@ export default function CentrosApoyo() {
                           <input value={busquedasPersonas[c.id] || ''}
                             onChange={e => setBusquedasPersonas(prev => ({ ...prev, [c.id]: e.target.value }))}
                             placeholder={t('Buscar en este centro...', 'Search this center...', 'Buscar neste centro...')}
-                            className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-xs bg-white focus:outline-none" />
+                            className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-xs text-gray-900 bg-white focus:outline-none" />
                         </div>
                         <div className="max-h-44 overflow-y-auto border border-gray-100 rounded-xl">
                           <table className="w-full text-xs">

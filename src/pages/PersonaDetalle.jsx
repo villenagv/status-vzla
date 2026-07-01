@@ -49,6 +49,8 @@ export default function PersonaDetalle() {
   const id = params.get('id');
   const { lang } = useLang();
   const es = lang === 'es';
+  const pt = lang === 'pt';
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
   const [persona, setPersona] = useState(null);
   const [pistas, setPistas] = useState([]);
@@ -174,7 +176,7 @@ export default function PersonaDetalle() {
       <TopBar />
       <div className="max-w-lg mx-auto w-full px-4 py-5">
         <Link to="/personas" className="flex items-center gap-1 text-sm text-gray-500 mb-4 hover:text-gray-800">
-          <ChevronLeft size={16} /> {es ? 'Directorio' : 'Directory'}
+          <ChevronLeft size={16} /> {t('Directorio', 'Directory', 'Diretório')}
         </Link>
 
         {/* ── ENCABEZADO — Pasaporte ── */}
@@ -190,7 +192,7 @@ export default function PersonaDetalle() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${st.cls}`}>
-                  {es ? st.es : st.en}
+                  {t(st.es, st.en, st.es)}
                 </span>
               </div>
               <h1 className="text-lg font-black text-white leading-tight">{persona.nombre_completo}</h1>
@@ -236,10 +238,12 @@ export default function PersonaDetalle() {
         <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mb-4">
           <AlertTriangle size={13} className="text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="text-[11px] text-amber-800 leading-relaxed">
-            {es
-              ? 'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados.'
-              : 'Never send money in exchange for information. This platform does not authorize payments or private rescue fees.'}
-          </p>
+            {t(
+               'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos ni rescates privados.',
+               'Never send money in exchange for information. This platform does not authorize payments or private rescue fees.',
+               'Nunca envie dinheiro por informações. Esta plataforma não autoriza pagamentos ou resgates privados.'
+             )}
+            </p>
         </div>
 
         {/* ── TABS ── */}
@@ -348,7 +352,7 @@ export default function PersonaDetalle() {
 
             {timelineUnificado.length === 0 ? (
               <div className="text-center py-8 text-gray-400 text-sm">
-                {es ? 'Aún no hay eventos registrados.' : 'No events recorded yet.'}
+                {t('Aún no hay eventos registrados.', 'No events recorded yet.', 'Nenhum evento registrado ainda.')}
               </div>
             ) : (
               <div className="relative">
@@ -397,9 +401,11 @@ export default function PersonaDetalle() {
           <div className="space-y-4">
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3">
               <p className="text-xs text-amber-800 font-semibold">
-                ⚠️ {es
-                  ? 'Nunca envíes dinero. Verifica la identidad antes de compartir información personal.'
-                  : 'Never send money. Verify identity before sharing personal information.'}
+                ⚠️ {t(
+                     'Nunca envíes dinero. Verifica la identidad antes de compartir información personal.',
+                     'Never send money. Verify identity before sharing personal information.',
+                     'Nunca envie dinheiro. Verifique a identidade antes de compartilhar informações pessoais.'
+                   )}
               </p>
             </div>
 
@@ -472,9 +478,11 @@ export default function PersonaDetalle() {
         )}
 
         <p className="text-[10px] text-gray-400 text-center leading-relaxed mt-6 mb-4">
-          {es
-            ? 'Esta plataforma es una herramienta ciudadana y no partidista. La información proviene de ciudadanos y no ha sido verificada de manera independiente.'
-            : 'This platform is a citizen and non-partisan tool. Information comes from citizens and has not been independently verified.'}
+          {t(
+            'Esta plataforma es una herramienta ciudadana y no partidista. La información proviene de ciudadanos y no ha sido verificada de manera independiente.',
+            'This platform is a citizen and non-partisan tool. Information comes from citizens and has not been independently verified.',
+            'Esta plataforma é uma ferramenta cidadã e apartidária. As informações vêm de cidadãos e não foram verificadas de forma independente.'
+          )}
         </p>
       </div>
       <Footer />
