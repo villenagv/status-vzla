@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Loader2, RefreshCw, Building2, MapPin, AlertTriangle, ChevronLeft, ChevronRight, Bell, ExternalLink, X, Check } from 'lucide-react';
+import { Loader2, RefreshCw, Building2, MapPin, AlertTriangle, ChevronLeft, ChevronRight, Bell, ExternalLink, X, Check, ZoomIn } from 'lucide-react';
 
 const FUENTE_LABELS = {
   importacion_masiva: 'Base de datos',
@@ -30,8 +30,46 @@ const NIVEL_CFG = {
 };
 
 // ── Carrusel de fotos ─────────────────────────────────────────────────────────
+function LightboxFoto({ fotos, idx, onClose, onPrev, onNext }) {
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); if (e.key === 'ArrowLeft') onPrev(); if (e.key === 'ArrowRight') onNext(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose, onPrev, onNext]);
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 40, height: 40, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+        <X size={20} />
+      </button>
+      {fotos.length > 1 && (
+        <>
+          <button onClick={e => { e.stopPropagation(); onPrev(); }} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 44, height: 44, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+            <ChevronLeft size={22} />
+          </button>
+          <button onClick={e => { e.stopPropagation(); onNext(); }} style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 44, height: 44, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+            <ChevronRight size={22} />
+          </button>
+        </>
+      )}
+      <img
+        src={fotos[idx]}
+        alt={`Foto ${idx + 1}`}
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '92vw', maxHeight: '88vh', objectFit: 'contain', borderRadius: 10, boxShadow: '0 8px 40px rgba(0,0,0,0.6)' }}
+      />
+      {fotos.length > 1 && (
+        <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.6)', color: '#fff', borderRadius: 20, padding: '4px 14px', fontSize: 12, fontWeight: 700 }}>
+          {idx + 1} / {fotos.length}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CarruselFotos({ fotos, nivelCfg }) {
   const [fotoIdx, setFotoIdx] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
+
   if (!fotos || fotos.length === 0) {
     return (
       <div style={{ height: 160, background: nivelCfg.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, position: 'relative' }}>
@@ -43,33 +81,49 @@ function CarruselFotos({ fotos, nivelCfg }) {
   const prev = (e) => { e.stopPropagation(); setFotoIdx(i => (i - 1 + fotos.length) % fotos.length); };
   const next = (e) => { e.stopPropagation(); setFotoIdx(i => (i + 1) % fotos.length); };
   return (
-    <div style={{ height: 200, position: 'relative', background: '#111', overflow: 'hidden' }}>
-      <img
-        src={fotos[fotoIdx]}
-        alt={`Foto ${fotoIdx + 1}`}
-        draggable={false}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
-        onError={e => { e.target.style.display = 'none'; }}
-      />
-      {fotos.length > 1 && (
-        <>
-          <button onPointerDown={prev} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 30, height: 30, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
-            <ChevronLeft size={16} />
-          </button>
-          <button onPointerDown={next} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 30, height: 30, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
-            <ChevronRight size={16} />
-          </button>
-          <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 5 }}>
-            {fotos.map((_, i) => (
-              <div key={i} style={{ width: i === fotoIdx ? 16 : 6, height: 6, borderRadius: 3, background: i === fotoIdx ? '#fff' : 'rgba(255,255,255,0.45)', transition: 'width 150ms' }} />
-            ))}
-          </div>
-          <div style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: '#fff', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontWeight: 700, zIndex: 5 }}>
-            {fotoIdx + 1}/{fotos.length}
-          </div>
-        </>
+    <>
+      {lightbox && (
+        <LightboxFoto
+          fotos={fotos}
+          idx={fotoIdx}
+          onClose={() => setLightbox(false)}
+          onPrev={() => setFotoIdx(i => (i - 1 + fotos.length) % fotos.length)}
+          onNext={() => setFotoIdx(i => (i + 1) % fotos.length)}
+        />
       )}
-    </div>
+      <div style={{ height: 200, position: 'relative', background: '#111', overflow: 'hidden' }}>
+        <img
+          src={fotos[fotoIdx]}
+          alt={`Foto ${fotoIdx + 1}`}
+          draggable={false}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
+          onError={e => { e.target.style.display = 'none'; }}
+        />
+        {/* Botón abrir pantalla completa */}
+        <button onPointerDown={e => { e.stopPropagation(); setLightbox(true); }}
+          style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.60)', border: 'none', borderRadius: 8, padding: '5px 9px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, zIndex: 6 }}>
+          <ZoomIn size={12} /> Ver foto
+        </button>
+        {fotos.length > 1 && (
+          <>
+            <button onPointerDown={prev} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 30, height: 30, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
+              <ChevronLeft size={16} />
+            </button>
+            <button onPointerDown={next} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 30, height: 30, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
+              <ChevronRight size={16} />
+            </button>
+            <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 5 }}>
+              {fotos.map((_, i) => (
+                <div key={i} style={{ width: i === fotoIdx ? 16 : 6, height: 6, borderRadius: 3, background: i === fotoIdx ? '#fff' : 'rgba(255,255,255,0.45)', transition: 'width 150ms' }} />
+              ))}
+            </div>
+            <div style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: '#fff', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontWeight: 700, zIndex: 5 }}>
+              {fotoIdx + 1}/{fotos.length}
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -371,6 +425,13 @@ export default function TriajeMasivo() {
 
       setProcesados(prev => [...prev, { id: edificio.id, nombre: edificio.nombre_lugar || edificio.tipo_estructura, accion }]);
       setStats(prev => ({ ...prev, [accion]: (prev[accion] || 0) + 1 }));
+      // Actualizar contadores globales en tiempo real
+      setContadoresGlobales(prev => {
+        const next = { ...prev, pendiente: Math.max(0, prev.pendiente - 1) };
+        if (accion !== 'sin_informacion') next[accion] = (next[accion] || 0) + 1;
+        else next.sin_informacion = (next.sin_informacion || 0) + 1;
+        return next;
+      });
       setIdx(prev => prev + 1);
 
       const labels = {
