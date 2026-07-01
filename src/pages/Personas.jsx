@@ -552,22 +552,22 @@ export default function Personas() {
                     <input value={encontradoForm.lugar}
                       onChange={e => setEncontradoForm(f => ({ ...f, lugar: e.target.value }))}
                       placeholder={t('Refugio, hospital, dirección...', 'Shelter, hospital, address...', 'Abrigo, hospital, endereço...')}
-                      className="w-full border border-green-300 rounded-xl px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:border-green-500 bg-white" />
+                      className="w-full border border-green-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-green-500 bg-white" />
                   </div>
 
                   <textarea rows={2} value={encontradoForm.notas}
                     onChange={e => setEncontradoForm(f => ({ ...f, notas: e.target.value }))}
                     placeholder={t('Información adicional (estado, acompañantes, necesidades...)', 'Additional info (condition, companions, needs...)', 'Informação adicional...')}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none placeholder-gray-400 focus:outline-none bg-white" />
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 resize-none placeholder-gray-400 focus:outline-none bg-white" />
 
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
                     <p className="text-[10px] font-bold text-gray-500">🔒 {t('Tus datos — privados, no se publican', 'Your info — private, not published', 'Seus dados — privados')}</p>
                     <input value={encontradoForm.nombre} onChange={e => setEncontradoForm(f => ({ ...f, nombre: e.target.value }))}
                       placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs bg-white placeholder-gray-400" />
-                    <input value={encontradoForm.telefono} onChange={e => setEncontradoForm(f => ({ ...f, telefono: e.target.value }))}
-                      placeholder={t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)', 'Telefone / WhatsApp (opcional)')}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs bg-white placeholder-gray-400" />
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 bg-white placeholder-gray-400" />
+                      <input value={encontradoForm.telefono} onChange={e => setEncontradoForm(f => ({ ...f, telefono: e.target.value }))}
+                       placeholder={t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)', 'Telefone / WhatsApp (opcional)')}
+                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 bg-white placeholder-gray-400" />
                   </div>
 
                   <button onClick={enviarEncontrado}
