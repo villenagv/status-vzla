@@ -25,7 +25,7 @@ export default function GaleriaTecnicaInspeccion({ edificio, es }) {
   const [lightbox, setLightbox] = useState(null); // { lista: [{url,area,nota}], idx }
 
   const { grupos, complementarias, totalInspeccion, todas } = useMemo(() => {
-    const detalle = Array.isArray(edificio.inspeccion_detalle_fotos) ? edificio.inspeccion_detalle_fotos.filter(f => f?.url) : [];
+    const detalle = Array.isArray(edificio.inspeccion_detalle_fotos) ? edificio.inspeccion_detalle_fotos.filter(f => f?.url && !f.privada) : [];
 
     // Agrupar el detalle por grupo de área, preservando el orden de captura dentro de cada uno
     const porGrupo = {};
@@ -47,7 +47,7 @@ export default function GaleriaTecnicaInspeccion({ edificio, es }) {
     // Lista consolidada de TODAS las fotos del edificio (inspección + edificio), sin duplicar
     const vistas = new Set();
     const todas = [];
-    detalle.forEach(f => { if (!vistas.has(f.url)) { vistas.add(f.url); todas.push({ url: f.url, area: f.area, nota: f.nota }); } });
+    detalle.forEach(f => { if (!vistas.has(f.url)) { vistas.add(f.url); todas.push({ url: f.url, area: f.area, nota: f.nota, piso: f.piso }); } });
     (edificio.foto_urls || []).forEach(url => { if (url && !vistas.has(url)) { vistas.add(url); todas.push({ url }); } });
 
     return { grupos, complementarias, totalInspeccion: detalle.length, todas };
@@ -150,7 +150,10 @@ export default function GaleriaTecnicaInspeccion({ edificio, es }) {
             {(lightbox.lista[lightbox.idx].area || lightbox.lista[lightbox.idx].nota) && (
               <div className="mt-3 text-center px-4">
                 {lightbox.lista[lightbox.idx].area && (
-                  <p className="text-white text-sm font-bold">{areaLabel(lightbox.lista[lightbox.idx].area, es)}</p>
+                  <p className="text-white text-sm font-bold">
+                    {areaLabel(lightbox.lista[lightbox.idx].area, es)}
+                    {lightbox.lista[lightbox.idx].piso && ` · ${es ? 'Piso' : 'Floor'} ${lightbox.lista[lightbox.idx].piso}`}
+                  </p>
                 )}
                 {lightbox.lista[lightbox.idx].nota && (
                   <p className="text-white/70 text-xs mt-0.5">{lightbox.lista[lightbox.idx].nota}</p>

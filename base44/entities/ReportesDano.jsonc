@@ -314,6 +314,15 @@
           },
           "nota": {
             "type": "string"
+          },
+          "piso": {
+            "type": "string",
+            "description": "Piso o zona del edificio asociada a esta foto"
+          },
+          "privada": {
+            "type": "boolean",
+            "description": "Si es true, la foto no se muestra en la galer\u00eda p\u00fablica",
+            "default": false
           }
         }
       }

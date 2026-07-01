@@ -3,6 +3,7 @@ import { Loader2, CheckCircle, Camera, X, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { comprimirFoto, dataURLaFile } from '@/lib/comprimirFoto';
 import { AREAS_INSPECCION, GRUPOS_AREA, areaLabel } from './areasInspeccion';
+import ChecklistFotosGuia from './ChecklistFotosGuia';
 
 /**
  * FormularioInspeccion
@@ -64,7 +65,7 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
     for (const file of archivos) {
       try {
         const dataURL = await comprimirFoto(file, 1280, 0.7);
-        setFotos(prev => [...prev, { id: Date.now() + Math.random(), dataURL, area: 'general', nota: '' }]);
+        setFotos(prev => [...prev, { id: Date.now() + Math.random(), dataURL, area: 'general', nota: '', piso: '', privada: false }]);
       } catch { /* ignorar foto que falle */ }
     }
     setSubiendoFoto(false);
@@ -92,7 +93,7 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
           const file = dataURLaFile(f.dataURL, `inspeccion_${Date.now()}_${i}.jpg`);
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
           if (file_url) {
-            detalle.push({ url: file_url, area: f.area || 'general', nota: (f.nota || '').trim() });
+            detalle.push({ url: file_url, area: f.area || 'general', nota: (f.nota || '').trim(), piso: (f.piso || '').trim(), privada: !!f.privada });
             urls.push(file_url);
           }
         } catch { /* seguimos con la siguiente */ }
@@ -203,9 +204,11 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
       <div>
         <p className="text-[11px] font-bold text-gray-600 mb-1.5">📷 {es ? `Fotos por área (opcional, máx ${MAX_FOTOS})` : `Photos by area (optional, max ${MAX_FOTOS})`}</p>
         <p className="text-[10px] text-gray-500 mb-2 leading-relaxed">
-          {es ? 'Para cada foto elige el área del edificio y, si quieres, una nota técnica corta. Las fotos sin nota también se incluyen en el informe.'
-              : 'For each photo choose the building area and, if you wish, a short technical note. Photos with no note are also included in the report.'}
+          {es ? 'Para cada foto elige el tipo de toma, el área del edificio y, si quieres, el piso y una nota técnica corta.'
+              : 'For each photo choose the shot type, the building area and, if you wish, the floor and a short technical note.'}
         </p>
+
+        {fotos.length > 0 && <div className="mb-2"><ChecklistFotosGuia fotos={fotos} es={es} /></div>}
 
         <div className="space-y-2">
           {fotos.map((f, i) => (
@@ -229,10 +232,19 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
                     </optgroup>
                   ))}
                 </select>
-                <input type="text" value={f.nota} onChange={e => actualizarFoto(f.id, 'nota', e.target.value)}
-                  maxLength={200}
-                  placeholder={es ? 'Nota técnica de esta foto (opcional)' : 'Technical note for this photo (optional)'}
-                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-[11px] focus:outline-none focus:border-green-500" />
+                <div className="flex gap-1">
+                  <input type="text" value={f.piso} onChange={e => actualizarFoto(f.id, 'piso', e.target.value)}
+                    placeholder={es ? 'Piso (ej: 3)' : 'Floor (e.g. 3)'}
+                    className="w-1/3 border border-gray-300 rounded-md px-2 py-1 text-[11px] focus:outline-none focus:border-green-500" />
+                  <input type="text" value={f.nota} onChange={e => actualizarFoto(f.id, 'nota', e.target.value)}
+                    maxLength={200}
+                    placeholder={es ? 'Nota técnica (opcional)' : 'Technical note (optional)'}
+                    className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-[11px] focus:outline-none focus:border-green-500" />
+                </div>
+                <label className="flex items-center gap-1.5 text-[10px] text-gray-500 cursor-pointer select-none">
+                  <input type="checkbox" checked={!!f.privada} onChange={e => actualizarFoto(f.id, 'privada', e.target.checked)} className="rounded" />
+                  {es ? '🔒 Mantener esta foto privada (no mostrar públicamente)' : '🔒 Keep this photo private (do not show publicly)'}
+                </label>
               </div>
             </div>
           ))}

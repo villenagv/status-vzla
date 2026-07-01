@@ -25,6 +25,7 @@ export const AREAS_INSPECCION = [
   { val: 'escaleras',       grupo: 'acabados',    es: 'Escaleras / Pasamanos',  en: 'Stairs / Railings' },
   { val: 'areas_comunes',   grupo: 'acabados',    es: 'Áreas comunes',          en: 'Common areas' },
   { val: 'general',         grupo: 'otros',       es: 'Vista general',          en: 'General view' },
+  { val: 'otro_angulo',     grupo: 'otros',       es: 'Otro ángulo',            en: 'Other angle' },
   { val: 'otro',            grupo: 'otros',       es: 'Otro',                   en: 'Other' },
 ];
 
