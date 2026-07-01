@@ -133,14 +133,19 @@ export default function TabReportar({ todos, setTab, lang, t }) {
     if (!valDireccion.trim() && !valNombre.trim()) return;
     setBuscandoDup(true);
     const dups = todos.filter(r => {
-      // Si ya sabemos la ciudad, descartamos coincidencias de otras ciudades
-      // (evita falsos positivos por calles con nombres repetidos, ej. "Av. Bolívar").
-      if (ciudad && r.ciudad && !esMismaCiudad(ciudad, r.ciudad)) return false;
-      // Comparamos dirección y nombre por separado (en vez de concatenarlos) para no
-      // exigir que ambos coincidan a la vez ni diluir la similitud real de cada campo.
-      const simDireccion = valDireccion.trim() ? similitudTexto(valDireccion, r.direccion || '') : 0;
-      const simNombre = valNombre.trim() ? similitudTexto(valNombre, r.nombre_lugar || '') : 0;
-      return simDireccion >= 0.65 || simNombre >= 0.65;
+      // Nombre, dirección y ciudad se evalúan en paralelo como criterios independientes
+      // (no como filtros obligatorios en cadena), para que una coincidencia fuerte en un
+      // solo campo (ej. el nombre "Orca") no se pierda por diferencias en los otros campos.
+      const criterios = [];
+      if (valNombre.trim()) criterios.push({ peso: 1, valor: similitudTexto(valNombre, r.nombre_lugar || '') });
+      if (valDireccion.trim()) criterios.push({ peso: 0.8, valor: similitudTexto(valDireccion, r.direccion || '') });
+      if (ciudad.trim() && r.ciudad) criterios.push({ peso: 0.5, valor: esMismaCiudad(ciudad, r.ciudad) ? 1 : 0 });
+      if (criterios.length === 0) return false;
+      const mejorCriterio = Math.max(...criterios.map(c => c.valor));
+      const pesoTotal = criterios.reduce((s, c) => s + c.peso, 0);
+      const promedioPonderado = criterios.reduce((s, c) => s + c.peso * c.valor, 0) / pesoTotal;
+      // Coincide si un solo campo es muy fuerte, o si la combinación de campos lo es en conjunto.
+      return mejorCriterio >= 0.75 || promedioPonderado >= 0.55;
     }).sort((a, b) => (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5));
     setPosiblesDups(dups);
     setEtapa('resultados');
