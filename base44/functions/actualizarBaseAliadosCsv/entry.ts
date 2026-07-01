@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const CACHE_KEY = 'base_aliados_cris_csv';
-const SIX_HOURS = 6 * 60 * 60 * 1000;
+const TWO_HOURS = 2 * 60 * 60 * 1000;
 
 const DATASETS = [
   { entity: 'PersonasBuscadas', label: 'personas_buscadas', fields: ['nombre_completo', 'apodo', 'edad_aprox', 'sexo', 'descripcion_fisica', 'ultima_ubicacion_conocida', 'ciudad', 'estado_region', 'fecha_ultima_vez', 'estado_caso', 'notas_publicas', 'fuente'] },
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     const cachedList = await base44.asServiceRole.entities.ArchivoAliados.filter({ clave: CACHE_KEY }, '-updated_date', 1);
     const cached = cachedList[0];
     const cachedTime = cached?.generated_at ? new Date(cached.generated_at).getTime() : 0;
-    const isFresh = cached?.file_url && Date.now() - cachedTime < SIX_HOURS;
+    const isFresh = cached?.file_url && Date.now() - cachedTime < TWO_HOURS;
 
     if (isFresh && payload.force !== true) {
       return Response.json({ ...cached, from_cache: true });

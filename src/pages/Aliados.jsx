@@ -64,8 +64,39 @@ Prioritize areas with the highest needs, detect likely duplicates, flag incomple
           </p>
           <p className="text-sm text-gray-500 leading-relaxed">
             {es
-              ? 'Si necesitas la base de datos, descárgala aquí. Se actualiza automáticamente cada 6 horas con la información pública y operativa de la plataforma: personas, centros de ayuda, listados institucionales, reportes y actualizaciones.'
-              : 'If you need the database, download it here. It updates automatically every 6 hours with the platform’s public operational information: people, help centers, institutional lists, reports, and updates.'}
+              ? 'Si necesitas la base de datos, descárgala aquí. Se actualiza automáticamente cada 2 horas con la información pública y operativa de la plataforma: personas, centros de ayuda, listados institucionales, reportes y actualizaciones.'
+              : 'If you need the database, download it here. It updates automatically every 2 hours with the platform’s public operational information: people, help centers, institutional lists, reports, and updates.'}
+          </p>
+        </section>
+
+        <section className="bg-white border border-[#EDEBE8] rounded-2xl p-5 mb-4">
+          <h2 className="text-base font-black text-[#1A1F2E] mb-3">
+            {es ? '¿Cómo registrarme como aliado o voluntario?' : 'How do I register as a partner or volunteer?'}
+          </h2>
+          <ol className="space-y-2 text-sm text-gray-600 leading-relaxed list-decimal list-inside">
+            <li>
+              {es
+                ? <>Regístrate con tu cuenta e ingresa a <Link to="/voluntario" className="text-[#0F766E] font-bold underline">Voluntarios</Link> para solicitar acceso como voluntario o profesional.</>
+                : <>Sign up and go to <Link to="/voluntario" className="text-[#0F766E] font-bold underline">Volunteers</Link> to request access as a volunteer or professional.</>}
+            </li>
+            <li>
+              {es
+                ? 'Un administrador revisará tu solicitud. Una vez aprobada, tendrás acceso al portal de voluntarios.'
+                : 'An admin will review your request. Once approved, you’ll have access to the volunteer portal.'}
+            </li>
+            <li>
+              {es
+                ? 'No necesitas aprobación para descargar el CSV público de esta página: está disponible para cualquier aliado u organización.'
+                : 'You don’t need approval to download the public CSV on this page: it’s available to any partner or organization.'}
+            </li>
+          </ol>
+          <h2 className="text-base font-black text-[#1A1F2E] mt-4 mb-2">
+            {es ? '¿Cómo descargo los datos?' : 'How do I download the data?'}
+          </h2>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {es
+              ? 'Pulsa el botón "Descargar CSV centralizado" abajo. El archivo se regenera automáticamente cada 2 horas, así que puedes volver a esta página y descargarlo de nuevo para tener los datos más recientes. No hace falta pedir un archivo por correo.'
+              : 'Tap the "Download centralized CSV" button below. The file regenerates automatically every 2 hours, so you can come back to this page and download it again for the latest data. No need to request a file by email.'}
           </p>
         </section>
 
@@ -98,7 +129,7 @@ Prioritize areas with the highest needs, detect likely duplicates, flag incomple
                   <p className="text-[10px] font-semibold text-gray-500">{es ? 'Registros' : 'Records'}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <p className="text-xl font-black text-[#1A1F2E]">6h</p>
+                  <p className="text-xl font-black text-[#1A1F2E]">2h</p>
                   <p className="text-[10px] font-semibold text-gray-500">{es ? 'Actualización' : 'Refresh'}</p>
                 </div>
               </div>
