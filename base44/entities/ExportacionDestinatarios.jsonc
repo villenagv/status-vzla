@@ -1,0 +1,21 @@
+{
+  "name": "ExportacionDestinatarios",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Correo adicional que recibir\u00e1 copia de las exportaciones de edificios e inspecciones"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "agregado_por": {
+      "type": "string",
+      "description": "Email del admin que agreg\u00f3 este destinatario"
+    }
+  },
+  "required": [
+    "email"
+  ]
+}

@@ -17,6 +17,7 @@ import CargaFotosDrive from '@/components/admin/CargaFotosDrive';
 import AdminEmailLogs from '@/components/admin/AdminEmailLogs';
 import TriajeMasivo from '@/components/admin/TriajeMasivo';
 import AdminReportes from '@/components/admin/reportes/AdminReportes';
+import ExportacionEdificios from '@/components/admin/ExportacionEdificios';
 
 const ADMIN_EMAIL = 'villenagv@gmail.com';
 
@@ -73,6 +74,7 @@ const AdminDashboard = () => {
       { key: 'fotos_drive', label: '🖼️ Fotos Drive'         },
       { key: 'triaje',      label: '🃏 Triaje'               },
       { key: 'dossier',    label: '📋 Dossier'              },
+      { key: 'exportar',   label: '📤 Exportar'             },
   ];
 
   return (
@@ -135,6 +137,7 @@ const AdminDashboard = () => {
                 <TriajeMasivo />
               </div>
             )}
+            {tab === 'exportar' && <ExportacionEdificios es={true} />}
             {tab === 'dossier' && (
               <div>
                 <p className="text-sm text-gray-500 mb-4">Dossier visual de auditoría interna del sistema CRIS. Solo visible para administradores.</p>
