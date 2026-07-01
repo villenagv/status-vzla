@@ -9,11 +9,13 @@ import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import FotosDragDrop from '@/components/svzla/FotosDragDrop';
 
-const SEXO = [
-  { val: 'femenino',  es: 'Femenino',     en: 'Female' },
-  { val: 'masculino', es: 'Masculino',     en: 'Male' },
-  { val: 'otro',      es: 'Otro / No sé', en: 'Other / Unknown' },
+const SEXO_OPT = [
+  { val: 'femenino',  es: 'Femenino',     en: 'Female',          pt: 'Feminino' },
+  { val: 'masculino', es: 'Masculino',     en: 'Male',            pt: 'Masculino' },
+  { val: 'otro',      es: 'Otro / No sé', en: 'Other / Unknown', pt: 'Outro / Não sei' },
 ];
+
+
 
 const ESTADO_LABEL = {
   buscando:           { es: 'Buscando',           en: 'Searching',       color: 'bg-yellow-100 text-yellow-800' },
@@ -42,6 +44,8 @@ export default function BuscarPersona() {
   const { lang } = useLang();
   const { lowBw } = useLowBw();
   const es = lang === 'es';
+  const pt = lang === 'pt';
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
   const [user, setUser] = useState(null);
   const [mostrarLogin, setMostrarLogin] = useState(false);
@@ -170,16 +174,20 @@ export default function BuscarPersona() {
       <div className="max-w-lg mx-auto w-full px-4 py-8 space-y-5">
         <div className="text-center space-y-3">
           <div className="text-6xl">✅</div>
-          <h2 className="text-2xl font-black text-[#1A1F2E]">{es ? 'Búsqueda registrada.' : 'Search registered.'}</h2>
+          <h2 className="text-2xl font-black text-[#1A1F2E]">{t('Búsqueda registrada.', 'Search registered.', 'Busca registrada.')}</h2>
           <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">
-            {es
-              ? 'Búsqueda registrada. Si encontramos a alguien que buscas, te avisaremos de inmediato al email registrado. También recibirás notificación si alguien actualiza esta ficha.'
-              : 'Search registered. If we find someone you are looking for, we will notify you immediately at your registered email. You will also be notified if anyone updates this record.'}
+            {t(
+              'Búsqueda registrada. Si encontramos a alguien que buscas, te avisaremos de inmediato al email registrado. También recibirás notificación si alguien actualiza esta ficha.',
+              'Search registered. If we find someone you are looking for, we will notify you immediately at your registered email. You will also be notified if anyone updates this record.',
+              'Busca registrada. Se encontrarmos alguém que você procura, avisaremos imediatamente pelo email registrado.'
+            )}
           </p>
           <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 text-sm text-blue-800 font-medium">
-            🔔 {es
-              ? 'Si dejaste email, recibirás avisos cuando alguien reporte información sobre esta persona.'
-              : 'If you left an email, you will receive alerts when someone reports information about this person.'}
+            🔔 {t(
+              'Si dejaste email, recibirás avisos cuando alguien reporte información sobre esta persona.',
+              'If you left an email, you will receive alerts when someone reports information about this person.',
+              'Se deixou email, receberá alertas quando alguém reportar informações sobre esta pessoa.'
+            )}
           </div>
         </div>
         {!user && mostrarLogin && <PostReporteLogin es={es} onSkip={() => setMostrarLogin(false)} />}
@@ -221,15 +229,17 @@ export default function BuscarPersona() {
         </Link>
 
         <h1 className="text-2xl font-black text-[#1A1F2E] mb-1">
-          🔎 {es ? 'Busco a alguien' : "I'm looking for someone"}
+          🔎 {t('Busco a alguien', "I'm looking for someone", 'Estou procurando alguém')}
         </h1>
         <p className="text-sm text-gray-700 mb-3 leading-relaxed">
-          {es
-            ? 'Registra a la persona que buscas. Responde solo lo que sepas. Tus datos de contacto no se publicarán.'
-            : "Register the person you're looking for. Answer only what you know. Your contact details won't be published."}
+          {t(
+            'Registra a la persona que buscas. Responde solo lo que sepas. Tus datos de contacto no se publicarán.',
+            "Register the person you're looking for. Answer only what you know. Your contact details won't be published.",
+            'Registre a pessoa que você procura. Responda apenas o que sabe. Seus dados de contato não serão publicados.'
+          )}
         </p>
         <button onClick={() => setModoRapido(v => !v)} type="button" className={`text-xs font-semibold px-3 py-1.5 rounded-lg border mb-4 cursor-pointer ${modoRapido ? 'bg-[#D48C2E] text-white border-[#D48C2E]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#D48C2E]'}`}>
-          ⚡ {modoRapido ? (es ? 'Versión completa' : 'Full version') : (es ? 'Modo rápido' : 'Quick mode')}
+          ⚡ {modoRapido ? t('Versión completa', 'Full version', 'Versão completa') : t('Modo rápido', 'Quick mode', 'Modo rápido')}
         </button>
 
         {/* Anti-extorsión */}
@@ -237,12 +247,14 @@ export default function BuscarPersona() {
           <ShieldAlert size={18} className="text-[#B83A52] flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-bold text-[#B83A52] mb-0.5">
-              {es ? 'Alerta de seguridad' : 'Security alert'}
+              {t('Alerta de seguridad', 'Security alert', 'Alerta de segurança')}
             </p>
             <p className="text-xs text-[#B83A52] leading-relaxed">
-              {es
-                ? 'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos, rescates privados ni intermediarios anónimos.'
-                : 'Never send money in exchange for information. This platform does not authorize payments, private rescue fees, or anonymous intermediaries.'}
+              {t(
+                'Nunca envíes dinero a cambio de información. Esta plataforma no autoriza pagos, rescates privados ni intermediarios anónimos.',
+                'Never send money in exchange for information. This platform does not authorize payments, private rescue fees, or anonymous intermediaries.',
+                'Nunca envie dinheiro por informações. Esta plataforma não autoriza pagamentos, resgates privados ou intermediários anônimos.'
+              )}
             </p>
           </div>
         </div>
@@ -251,12 +263,14 @@ export default function BuscarPersona() {
         {dupCheck && posiblesDuplicados.length > 0 && decisionDup === null && (
           <div className="bg-[#FFF8EE] border-2 border-[#E6C195] rounded-2xl p-4 mb-5 space-y-3">
             <h3 className="text-base font-black text-[#1A1F2E]">
-              ⚠️ {es ? 'Encontramos fichas similares' : 'We found similar records'}
+              ⚠️ {t('Encontramos fichas similares', 'We found similar records', 'Encontramos fichas similares')}
             </h3>
             <p className="text-xs text-gray-600 leading-relaxed">
-              {es
-                ? 'Si es la misma persona, suscríbete a esa ficha. Si no, continúa abajo y crea una nueva búsqueda.'
-                : 'If this is the same person, subscribe to that record. If not, continue below and create a new search.'}
+              {t(
+                'Si es la misma persona, suscríbete a esa ficha. Si no, continúa abajo y crea una nueva búsqueda.',
+                'If this is the same person, subscribe to that record. If not, continue below and create a new search.',
+                'Se for a mesma pessoa, inscreva-se nessa ficha. Se não, continue abaixo e crie uma nova busca.'
+              )}
             </p>
             <div className="space-y-2">
               {posiblesDuplicados.map(p => {
@@ -277,7 +291,7 @@ export default function BuscarPersona() {
                       onClick={() => { setSubTarget(p); setDecisionDup('suscribir'); }}
                       className="w-full flex items-center justify-center gap-1.5 bg-[#FFF0D0] border border-[#E6C195] text-[#7A5000] text-sm font-bold py-2.5 rounded-xl cursor-pointer hover:bg-[#FFE5A8] transition-colors"
                     >
-                      <Bell size={14} /> {es ? 'Esta es — suscribirme a actualizaciones' : "This is them — subscribe to updates"}
+                      <Bell size={14} /> {t('Esta es — suscribirme a actualizaciones', "This is them — subscribe to updates", 'Esta é ela — inscrever-me em atualizações')}
                     </button>
                   </div>
                 );
@@ -287,7 +301,7 @@ export default function BuscarPersona() {
               onClick={() => setDecisionDup('nueva')}
               className="w-full border-2 border-[#EDEBE8] bg-white text-[#1A1F2E] text-sm font-bold py-3 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
             >
-              {es ? 'No, es una persona diferente — crear nueva ficha' : "No, it's a different person — create new record"}
+              {t('No, es una persona diferente — crear nueva ficha', "No, it's a different person — create new record", 'Não, é uma pessoa diferente — criar nova ficha')}
             </button>
           </div>
         )}
@@ -320,27 +334,27 @@ export default function BuscarPersona() {
         {/* Formulario principal */}
         {decisionDup !== 'suscribir' && modoRapido && (
           <form onSubmit={handleSubmit} className="space-y-3 bg-white rounded-2xl border-2 border-[#D48C2E] p-4">
-            <p className="text-xs font-bold text-[#1A1F2E]">{es ? '⚡ Modo rápido — solo lo esencial' : '⚡ Quick mode — only essentials'}</p>
-            <input required placeholder={es ? 'Nombre completo de la persona' : 'Person\'s full name'} value={form.nombre_completo} onChange={e => { set('nombre_completo', e.target.value); setDupCheck(false); setDecisionDup(null); setPosiblesDuplicados([]); }} onBlur={checkDuplicados} className={inputCls} />
-            <input required placeholder={es ? 'Última ubicación conocida' : 'Last known location'} value={form.ultima_ubicacion_conocida} onChange={e => set('ultima_ubicacion_conocida', e.target.value)} className={inputCls} />
+            <p className="text-xs font-bold text-[#1A1F2E]">⚡ {t('Modo rápido — solo lo esencial', 'Quick mode — only essentials', 'Modo rápido — apenas o essencial')}</p>
+            <input required placeholder={t('Nombre completo de la persona', "Person's full name", 'Nome completo da pessoa')} value={form.nombre_completo} onChange={e => { set('nombre_completo', e.target.value); setDupCheck(false); setDecisionDup(null); setPosiblesDuplicados([]); }} onBlur={checkDuplicados} className={inputCls} />
+            <input required placeholder={t('Última ubicación conocida', 'Last known location', 'Última localização conhecida')} value={form.ultima_ubicacion_conocida} onChange={e => set('ultima_ubicacion_conocida', e.target.value)} className={inputCls} />
             <div className="grid grid-cols-2 gap-2">
-              <input placeholder={es ? 'Ciudad' : 'City'} value={form.ciudad} onChange={e => set('ciudad', e.target.value)} className={inputCls} />
-              <input placeholder={es ? 'Estado' : 'State'} value={form.estado_region} onChange={e => set('estado_region', e.target.value)} className={inputCls} />
+              <input placeholder={t('Ciudad', 'City', 'Cidade')} value={form.ciudad} onChange={e => set('ciudad', e.target.value)} className={inputCls} />
+              <input placeholder={t('Estado', 'State', 'Estado')} value={form.estado_region} onChange={e => set('estado_region', e.target.value)} className={inputCls} />
             </div>
-            <input placeholder={es ? 'Tu nombre (opcional)' : 'Your name (optional)'} value={form.contacto_nombre} onChange={e => set('contacto_nombre', e.target.value)} className={inputCls} />
-            <input placeholder={es ? 'Tu teléfono o WhatsApp (opcional)' : 'Your phone or WhatsApp (optional)'} value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
-            <input type="email" placeholder={es ? 'Email para avisarte si hay novedades (opcional)' : 'Email to notify you of updates (optional)'} value={form.contacto_email} onChange={e => set('contacto_email', e.target.value)} className={inputCls} />
+            <input placeholder={t('Tu nombre (opcional)', 'Your name (optional)', 'Seu nome (opcional)')} value={form.contacto_nombre} onChange={e => set('contacto_nombre', e.target.value)} className={inputCls} />
+            <input placeholder={t('Tu teléfono o WhatsApp (opcional)', 'Your phone or WhatsApp (optional)', 'Seu telefone ou WhatsApp (opcional)')} value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
+            <input type="email" placeholder={t('Email para avisarte si hay novedades (opcional)', 'Email to notify you of updates (optional)', 'Email para avisá-lo de novidades (opcional)')} value={form.contacto_email} onChange={e => set('contacto_email', e.target.value)} className={inputCls} />
             <p className="text-[11px] text-gray-600 leading-relaxed">
-              🔒 {es ? 'Tus datos no se publican. Si dejas email, te avisamos cuando alguien reporte información sobre esta persona.' : 'Your info is not published. If you leave an email, we notify you when someone reports info about this person.'}
+              🔒 {t('Tus datos no se publican. Si dejas email, te avisamos cuando alguien reporte información sobre esta persona.', 'Your info is not published. If you leave an email, we notify you when someone reports info about this person.', 'Seus dados não são publicados. Se deixar email, avisamos quando alguém reportar informação sobre esta pessoa.')}
             </p>
             {!lowBw && (
               <div>
-                <p className="text-xs font-bold text-[#1A1F2E] mb-1">📷 {es ? 'Foto opcional (máx. 2)' : 'Optional photo (max 2)'}</p>
+                <p className="text-xs font-bold text-[#1A1F2E] mb-1">📷 {t('Foto opcional (máx. 2)', 'Optional photo (max 2)', 'Foto opcional (máx. 2)')}</p>
                 <FotosDragDrop category="personas" caseId={personaId} caseLabel={form.nombre_completo || 'persona-nueva'} maxFiles={2} onUploaded={setFotoUrls} disabled={enviando} />
               </div>
             )}
             <button type="submit" disabled={enviando || !form.nombre_completo || !form.ultima_ubicacion_conocida} className="w-full bg-[#1A1F2E] disabled:opacity-40 text-white font-black py-4 rounded-xl text-base transition-colors flex items-center justify-center gap-2 cursor-pointer">
-              {enviando ? <Loader2 size={18} className="animate-spin" /> : '🔎'} {es ? 'Registrar búsqueda' : 'Register search'}
+              {enviando ? <Loader2 size={18} className="animate-spin" /> : '🔎'} {t('Registrar búsqueda', 'Register search', 'Registrar busca')}
             </button>
           </form>
         )}
@@ -351,7 +365,7 @@ export default function BuscarPersona() {
             {/* Sección 1: Persona */}
             <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-4">
               <h3 className="text-base font-black text-[#1A1F2E]">
-                {es ? '1. ¿A quién buscas?' : '1. Who are you looking for?'}
+                {t('1. ¿A quién buscas?', '1. Who are you looking for?', '1. Quem você está procurando?')}
               </h3>
 
               <div>
@@ -364,48 +378,48 @@ export default function BuscarPersona() {
                   onBlur={checkDuplicados}
                   className={inputCls}
                 />
-                {buscandoDups && <p className="text-xs text-gray-400 mt-1">⏳ {es ? 'Buscando fichas existentes...' : 'Checking existing records...'}</p>}
+                {buscandoDups && <p className="text-xs text-gray-400 mt-1">⏳ {t('Buscando fichas existentes...', 'Checking existing records...', 'Verificando fichas existentes...')}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <FieldLabel label={es ? 'Apodo (opcional)' : 'Nickname (optional)'} />
-                  <input placeholder={es ? 'Ej: Marite' : 'E.g: Marite'} value={form.apodo} onChange={e => set('apodo', e.target.value)} className={inputCls} />
+                  <FieldLabel label={t('Apodo (opcional)', 'Nickname (optional)', 'Apelido (opcional)')} />
+                  <input placeholder={t('Ej: Marite', 'E.g: Marite', 'Ex: Marite')} value={form.apodo} onChange={e => set('apodo', e.target.value)} className={inputCls} />
                 </div>
                 <div>
-                  <FieldLabel label={es ? 'Edad aprox.' : 'Approx. age'} />
-                  <input placeholder={es ? 'Ej: 35' : 'E.g: 35'} value={form.edad_aprox} onChange={e => set('edad_aprox', e.target.value)} className={inputCls} />
+                  <FieldLabel label={t('Edad aprox.', 'Approx. age', 'Idade aprox.')} />
+                  <input placeholder={t('Ej: 35', 'E.g: 35', 'Ex: 35')} value={form.edad_aprox} onChange={e => set('edad_aprox', e.target.value)} className={inputCls} />
                 </div>
               </div>
 
               <div>
-                <FieldLabel label={es ? 'Sexo' : 'Sex'} />
+                <FieldLabel label={t('Sexo', 'Sex', 'Sexo')} />
                 <div className="flex gap-2 flex-wrap">
-                  {SEXO.map(s => (
+                  {SEXO_OPT.map(s => (
                     <button key={s.val} type="button" onClick={() => set('sexo', s.val)}
                       className={`px-4 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors cursor-pointer ${form.sexo === s.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-[#EDEBE8] text-gray-700'}`}>
-                      {es ? s.es : s.en}
+                      {t(s.es, s.en, s.pt)}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <FieldLabel label={es ? 'Descripción física (opcional)' : 'Physical description (optional)'}
-                  hint={es ? 'Ropa que llevaba, cabello, señas particulares' : 'Clothing, hair, distinguishing marks'} />
-                <textarea rows={2} placeholder={es ? 'Ej: cabello negro corto, ropa azul, 1.65m...' : "E.g: short black hair, blue clothes, 5'5\"..."} value={form.descripcion_fisica} onChange={e => set('descripcion_fisica', e.target.value)} className={`${inputCls} resize-none`} />
+                <FieldLabel label={t('Descripción física (opcional)', 'Physical description (optional)', 'Descrição física (opcional)')}
+                  hint={t('Ropa que llevaba, cabello, señas particulares', 'Clothing, hair, distinguishing marks', 'Roupas, cabelo, sinais particulares')} />
+                <textarea rows={2} placeholder={t('Ej: cabello negro corto, ropa azul, 1.65m...', "E.g: short black hair, blue clothes, 5'5\"...", 'Ex: cabelo preto curto, roupa azul, 1,65m...')} value={form.descripcion_fisica} onChange={e => set('descripcion_fisica', e.target.value)} className={`${inputCls} resize-none`} />
               </div>
             </div>
 
             {/* Sección 2: Ubicación */}
             <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-4">
               <h3 className="text-base font-black text-[#1A1F2E]">
-                {es ? '2. ¿Dónde fue vista por última vez?' : '2. Where were they last seen?'}
+                {t('2. ¿Dónde fue vista por última vez?', '2. Where were they last seen?', '2. Onde foi vista pela última vez?')}
               </h3>
 
               <div>
-                <FieldLabel label={es ? 'Lugar específico' : 'Specific place'} required />
-                <input required placeholder={es ? 'Ej: Av. Libertador, metro Chacaíto' : 'E.g: Av. Libertador, Chacaíto metro'} value={form.ultima_ubicacion_conocida} onChange={e => set('ultima_ubicacion_conocida', e.target.value)} className={inputCls} />
+                <FieldLabel label={t('Lugar específico', 'Specific place', 'Lugar específico')} required />
+                <input required placeholder={t('Ej: Av. Libertador, metro Chacaíto', 'E.g: Av. Libertador, Chacaíto metro', 'Ex: Av. Libertador, metrô Chacaíto')} value={form.ultima_ubicacion_conocida} onChange={e => set('ultima_ubicacion_conocida', e.target.value)} className={inputCls} />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -420,8 +434,8 @@ export default function BuscarPersona() {
               </div>
 
               <div>
-                <FieldLabel label={es ? '¿Cuándo fue vista por última vez?' : 'When were they last seen?'}
-                  hint={es ? 'Aproximado está bien. Deja en blanco si no recuerdas.' : 'Approximate is fine. Leave blank if unsure.'} />
+                <FieldLabel label={t('¿Cuándo fue vista por última vez?', 'When were they last seen?', '¿Cuándo foi vista pela última vez?')}
+                  hint={t('Aproximado está bien. Deja en blanco si no recuerdas.', 'Approximate is fine. Leave blank if unsure.', 'Aproximado está bom. Deixe em branco se não lembrar.')} />
                 <div className="grid grid-cols-2 gap-2">
                   <input type="date" value={form.fecha_ultima_vez} onChange={e => set('fecha_ultima_vez', e.target.value)} className={inputCls} />
                   <input type="time" value={form.hora_ultima_vez} onChange={e => set('hora_ultima_vez', e.target.value)} className={inputCls} />
@@ -432,22 +446,22 @@ export default function BuscarPersona() {
             {/* Sección 3: Tu contacto */}
             <div className="bg-white rounded-2xl border border-[#EDEBE8] p-4 space-y-4">
               <h3 className="text-base font-black text-[#1A1F2E]">
-                {es ? '3. Tu contacto (opcional) — para avisarte si hay novedades' : '3. Your contact (optional) — to notify you of updates'}
+                {t('3. Tu contacto (opcional) — para avisarte si hay novedades', '3. Your contact (optional) — to notify you of updates', '3. Seu contato (opcional) — para avisar sobre novidades')}
                 </h3>
                 <div className="bg-[#F0F4FD] rounded-xl px-3 py-2">
                 <p className="text-xs text-blue-800 font-medium">
-                  🔒 {es ? 'No se mostrará públicamente. Si dejas email o teléfono, podemos avisarte si hay novedades.' : 'Not shown publicly. If you leave email or phone, we can notify you of updates.'}
+                  🔒 {t('No se mostrará públicamente. Si dejas email o teléfono, podemos avisarte si hay novedades.', 'Not shown publicly. If you leave email or phone, we can notify you of updates.', 'Não será exibido publicamente. Se deixar email ou telefone, podemos avisá-lo sobre novidades.')}
                 </p>
                 </div>
 
               <div>
-                <FieldLabel label={es ? 'Tu nombre' : 'Your name'} />
-                <input placeholder={es ? 'Ej: Carlos García' : 'E.g: Carlos García'} value={form.contacto_nombre} onChange={e => set('contacto_nombre', e.target.value)} className={inputCls} />
+                <FieldLabel label={t('Tu nombre', 'Your name', 'Seu nome')} />
+                <input placeholder={t('Ej: Carlos García', 'E.g: Carlos García', 'Ex: Carlos García')} value={form.contacto_nombre} onChange={e => set('contacto_nombre', e.target.value)} className={inputCls} />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <FieldLabel label={es ? 'Tu teléfono (opcional)' : 'Your phone (optional)'} />
+                  <FieldLabel label={t('Tu teléfono (opcional)', 'Your phone (optional)', 'Seu telefone (opcional)')} />
                   <input placeholder="+58..." value={form.contacto_telefono} onChange={e => set('contacto_telefono', e.target.value)} className={inputCls} />
                 </div>
                 <div>
@@ -457,30 +471,30 @@ export default function BuscarPersona() {
               </div>
 
               <div>
-                <FieldLabel label={es ? 'Tu email (para notificaciones)' : 'Your email (for notifications)'} />
-                <input type="email" placeholder="correo@ejemplo.com" value={form.contacto_email} onChange={e => set('contacto_email', e.target.value)} className={inputCls} />
+                <FieldLabel label={t('Tu email (para notificaciones)', 'Your email (for notifications)', 'Seu email (para notificações)')} />
+                <input type="email" placeholder="correo@exemplo.com" value={form.contacto_email} onChange={e => set('contacto_email', e.target.value)} className={inputCls} />
               </div>
             </div>
 
             {/* Notas públicas */}
             <div>
-              <FieldLabel label={es ? 'Información adicional (se mostrará públicamente)' : 'Additional info (shown publicly)'}
-                hint={es ? 'Ej: Salió a las 8am, no volvió. Cicatriz en brazo derecho.' : 'E.g: Left at 8am, did not return. Scar on right arm.'} />
-              <textarea rows={3} placeholder={es ? 'Escribe aquí...' : 'Write here...'} value={form.notas_publicas} onChange={e => set('notas_publicas', e.target.value)} className={`${inputCls} resize-none`} />
+              <FieldLabel label={t('Información adicional (se mostrará públicamente)', 'Additional info (shown publicly)', 'Informação adicional (será exibida publicamente)')}
+                hint={t('Ej: Salió a las 8am, no volvió. Cicatriz en brazo derecho.', 'E.g: Left at 8am, did not return. Scar on right arm.', 'Ex: Saiu às 8h, não voltou. Cicatriz no braço direito.')} />
+              <textarea rows={3} placeholder={t('Escribe aquí...', 'Write here...', 'Escreva aqui...')} value={form.notas_publicas} onChange={e => set('notas_publicas', e.target.value)} className={`${inputCls} resize-none`} />
             </div>
 
             {/* Foto */}
             {!lowBw && (
               <div>
-                <FieldLabel label={es ? 'Foto de la persona (máx. 2, opcional)' : 'Photo (max 2, optional)'}
-                  hint={es ? 'No es obligatorio. Nadie queda bloqueado de reportar por no tener foto.' : 'Not required. No one is blocked from reporting for lack of a photo.'} />
+                <FieldLabel label={t('Foto de la persona (máx. 2, opcional)', 'Photo (max 2, optional)', 'Foto da pessoa (máx. 2, opcional)')}
+                  hint={t('No es obligatorio. Nadie queda bloqueado de reportar por no tener foto.', 'Not required. No one is blocked from reporting for lack of a photo.', 'Não é obrigatório. Ninguém fica impedido de reportar por falta de foto.')} />
                 <FotosDragDrop category="personas" caseId={personaId} caseLabel={form.nombre_completo || 'persona-nueva'} maxFiles={2} onUploaded={setFotoUrls} disabled={enviando} />
               </div>
             )}
 
             {resultado === 'err' && (
               <div className="bg-[#FDF1F0] border-2 border-[#E8B4B0] rounded-2xl p-4 text-sm text-[#B83A52] font-medium">
-                ⚠️ {es ? 'Error al enviar. Verifica tu conexión e intenta de nuevo.' : 'Error submitting. Check your connection and try again.'}
+                ⚠️ {t('Error al enviar. Verifica tu conexión e intenta de nuevo.', 'Error submitting. Check your connection and try again.', 'Erro ao enviar. Verifique sua conexão e tente novamente.')}
               </div>
             )}
 
@@ -491,12 +505,12 @@ export default function BuscarPersona() {
             >
               {enviando ? <Loader2 size={20} className="animate-spin" /> : '🔎'}
               {dupCheck && posiblesDuplicados.length > 0 && decisionDup === 'nueva'
-                ? (es ? 'Confirmar — crear nueva ficha' : 'Confirm — create new record')
-                : (es ? 'Registrar búsqueda' : 'Register search')}
+                ? t('Confirmar — crear nueva ficha', 'Confirm — create new record', 'Confirmar — criar nova ficha')
+                : t('Registrar búsqueda', 'Register search', 'Registrar busca')}
             </button>
 
             <p className="text-center text-xs text-gray-400">
-              {es ? 'Tus datos de contacto no se publicarán.' : 'Your contact details will not be published.'}
+              {t('Tus datos de contacto no se publicarán.', 'Your contact details will not be published.', 'Seus dados de contato não serão publicados.')}
             </p>
           </form>
         )}

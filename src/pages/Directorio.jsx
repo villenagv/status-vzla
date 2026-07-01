@@ -16,6 +16,8 @@ const PAGE_SIZE = 12;
 export default function Directorio() {
   const { lang } = useLang();
   const es = lang === 'es';
+  const pt = lang === 'pt';
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
   const [tab, setTab] = useState('personas'); // 'personas' | 'edificios'
   const [cargando, setCargando] = useState(true);
