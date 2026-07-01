@@ -4,7 +4,7 @@ import { AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, 
 import { base44 } from '@/api/base44Client';
 import { useDraft } from '@/lib/useDraft';
 import { generarCodigo } from '@/lib/codigos';
-import { normalizarTexto, similitudTexto, esMismaCiudad } from '@/lib/similitud';
+import { similitudTexto, esMismaCiudad } from '@/lib/similitud';
 
 const TIPO_OPTS = [
   { val: 'edificio_residencial', es: '🏠 Edificio residencial', en: '🏠 Residential building' },
@@ -132,14 +132,15 @@ export default function TabReportar({ todos, setTab, lang, t }) {
   const verificarEdificio = async () => {
     if (!valDireccion.trim()) return;
     setBuscandoDup(true);
-    const q = normalizarTexto(valDireccion + ' ' + valNombre);
     const dups = todos.filter(r => {
       // Si ya sabemos la ciudad, descartamos coincidencias de otras ciudades
       // (evita falsos positivos por calles con nombres repetidos, ej. "Av. Bolívar").
       if (ciudad && r.ciudad && !esMismaCiudad(ciudad, r.ciudad)) return false;
-      const dir = normalizarTexto(r.direccion || '');
-      const nombre = normalizarTexto(r.nombre_lugar || '');
-      return similitudTexto(q, dir) > 0.45 || similitudTexto(q, nombre) > 0.5 || dir.includes(q.slice(0, 10));
+      // Comparamos dirección y nombre por separado (en vez de concatenarlos) para no
+      // exigir que ambos coincidan a la vez ni diluir la similitud real de cada campo.
+      const simDireccion = valDireccion.trim() ? similitudTexto(valDireccion, r.direccion || '') : 0;
+      const simNombre = valNombre.trim() ? similitudTexto(valNombre, r.nombre_lugar || '') : 0;
+      return simDireccion >= 0.65 || simNombre >= 0.65;
     }).sort((a, b) => (PRIORIDAD_SORT[a.nivel_dano] ?? 5) - (PRIORIDAD_SORT[b.nivel_dano] ?? 5));
     setPosiblesDups(dups);
     setEtapa('resultados');
