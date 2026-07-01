@@ -408,6 +408,11 @@
     "fuente": {
       "type": "string",
       "default": "web_publica"
+    },
+    "es_privado": {
+      "type": "boolean",
+      "description": "Si es true, el reporte se oculta de directorios, mapa y API p\u00fablicos. Solo visible para voluntarios/admin.",
+      "default": false
     }
   },
   "required": [

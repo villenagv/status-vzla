@@ -51,10 +51,18 @@ export default function AdminReportes({ es = true }) {
     });
   }, [reportes, filtros]);
 
-  const actualizar = async (id, data) => {
-    setReportes(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
-    try { await base44.entities.ReportesDano.update(id, data); } catch {}
+  const ejecutar = async (id, accion, data) => {
+    try {
+      const res = await base44.functions.invoke('gestionarReporte', { reporte_id: id, accion, data });
+      const actualizado = res?.data?.reporte;
+      if (actualizado) setReportes(prev => prev.map(r => r.id === id ? { ...r, ...actualizado } : r));
+    } catch {}
   };
+
+  const cambiarEstado = (id, estado_verificacion) => ejecutar(id, 'cambiar_estado', { estado_verificacion });
+  const asignarVoluntario = (id, voluntario_asignado_id, voluntario_asignado_nombre) => ejecutar(id, 'asignar_voluntario', { voluntario_asignado_id, voluntario_asignado_nombre });
+  const cerrarReporte = (id) => ejecutar(id, 'cerrar');
+  const togglePrivado = (id, es_privado) => ejecutar(id, 'marcar_privado', { es_privado });
 
   const exportarCsv = () => {
     const campos = ['codigo_reporte', 'nombre_lugar', 'ciudad', 'estado_region', 'tipo_estructura', 'nivel_dano', 'prioridad', 'estado_verificacion', 'voluntario_asignado_nombre', 'created_date'];
@@ -92,7 +100,9 @@ export default function AdminReportes({ es = true }) {
       ) : (
         <div className="space-y-2">
           {filtrados.map(r => (
-            <AdminReporteRow key={r.id} reporte={r} voluntarios={voluntarios} es={es} onUpdate={actualizar} />
+            <AdminReporteRow key={r.id} reporte={r} voluntarios={voluntarios} es={es}
+              onCambiarEstado={cambiarEstado} onAsignarVoluntario={asignarVoluntario}
+              onCerrar={cerrarReporte} onTogglePrivado={togglePrivado} />
           ))}
           {filtrados.length === 0 && (
             <div className="text-center py-10 text-sm text-gray-400">{es ? 'No hay reportes con estos filtros.' : 'No reports match these filters.'}</div>

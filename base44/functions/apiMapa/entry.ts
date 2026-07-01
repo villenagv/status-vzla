@@ -102,6 +102,12 @@ Deno.serve(async (req) => {
       edificios = edificios.filter(e => e.tipo_estructura === tipo);
     }
 
+    // Privacidad: nunca exponer reportes marcados como privados en la API pública
+    edificios = edificios.filter(e => !e.es_privado);
+
+    // Redondea coordenadas a ~1km de precisión para no exponer ubicación exacta públicamente
+    const aprox = (n) => (typeof n === 'number' ? Math.round(n * 100) / 100 : null);
+
     // ── Mapear solo campos públicos ───────────────────────────────────────
     const mapEdificio = (e, i) => ({
       numero: i + 1,
@@ -124,11 +130,10 @@ Deno.serve(async (req) => {
         gas: e.gas || 'no_confirmado',
       },
       ubicacion: {
-        direccion: e.direccion || null,
         ciudad: e.ciudad || null,
         estado_region: e.estado_region || null,
-        lat: e.lat || null,
-        lng: e.lng || null,
+        lat: aprox(e.lat),
+        lng: aprox(e.lng),
       },
       nivel_verificacion: e.nivel_verificacion || 'sin_verificar',
       actualizado: e.updated_date || e.created_date,

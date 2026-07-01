@@ -204,7 +204,7 @@ export default function MapaDanos() {
       base44.entities.EstadoOperativoEdificio.list('-updated_date', 500),
     ])
       .then(([d, eo]) => {
-        setReportes(d || []);
+        setReportes((d || []).filter(r => !r.es_privado));
         const idx = {};
         (eo || []).forEach(e => { if (!idx[e.edificio_id]) idx[e.edificio_id] = e; });
         estadoOpIndexRef.current = idx;

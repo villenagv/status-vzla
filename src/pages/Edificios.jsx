@@ -55,7 +55,7 @@ export default function Edificios() {
 
   useEffect(() => {
     base44.entities.ReportesDano.list('-updated_date', 2000)
-      .then(d => setTodos(d || []))
+      .then(d => setTodos((d || []).filter(r => !r.es_privado)))
       .catch(() => {})
       .finally(() => setCargandoDir(false));
     Promise.all([
