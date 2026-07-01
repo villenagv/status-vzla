@@ -22,9 +22,9 @@ const TRIAGE = [
     bg: '#C0392B',
     textColor: '#fff',
     subColor: 'rgba(255,255,255,0.82)',
-    es: { title: 'Reportar daño o peligro', sub: 'Edificio dañado · Gas · Personas atrapadas · Riesgo eléctrico' },
-    en: { title: 'Report damage or hazard', sub: 'Damaged building · Gas · Trapped people · Electrical risk' },
-    pt: { title: 'Reportar dano ou perigo', sub: 'Edifício danificado · Gás · Pessoas presas · Risco elétrico' },
+    es: { title: 'Reportar daño o peligro', sub: 'Edificio dañado · Gas · Personas atrapadas · Riesgo eléctrico', hint: 'No entres. Solo reporta desde afuera.' },
+    en: { title: 'Report damage or hazard', sub: 'Damaged building · Gas · Trapped people · Electrical risk', hint: 'Do not enter. Report from outside only.' },
+    pt: { title: 'Reportar dano ou perigo', sub: 'Edifício danificado · Gás · Pessoas presas · Risco elétrico', hint: 'Não entre. Reporte apenas de fora.' },
   },
   {
     to: '/buscar-persona',
@@ -32,9 +32,9 @@ const TRIAGE = [
     bg: '#7C3AED',
     textColor: '#fff',
     subColor: 'rgba(255,255,255,0.82)',
-    es: { title: 'Buscar a alguien', sub: 'Personas buscadas · Encontradas · Cruces de información' },
-    en: { title: 'Search for someone', sub: 'Missing people · Found · Cross-search' },
-    pt: { title: 'Procurar alguém', sub: 'Pessoas desaparecidas · Encontradas · Busca cruzada' },
+    es: { title: 'Buscar a alguien', sub: 'Personas desaparecidas · Encontradas · Cruces de información', hint: 'Busca por nombre, zona o descripción.' },
+    en: { title: 'Search for someone', sub: 'Missing people · Found · Cross-search', hint: 'Search by name, area or description.' },
+    pt: { title: 'Procurar alguém', sub: 'Pessoas desaparecidas · Encontradas · Busca cruzada', hint: 'Busque por nome, área ou descrição.' },
   },
   {
     to: '/reportar-encontrado',
@@ -42,9 +42,9 @@ const TRIAGE = [
     bg: '#15803D',
     textColor: '#fff',
     subColor: 'rgba(255,255,255,0.82)',
-    es: { title: 'Encontré a alguien', sub: 'Vi o tengo información real sobre una persona' },
-    en: { title: 'I found someone', sub: 'I saw or have real info about a person' },
-    pt: { title: 'Encontrei alguém', sub: 'Vi ou tenho informação real sobre uma pessoa' },
+    es: { title: 'Encontré a alguien', sub: 'Vi o tengo información real sobre una persona', hint: 'Ayuda a familias que buscan a sus seres queridos.' },
+    en: { title: 'I found someone', sub: 'I saw or have real info about a person', hint: 'Help families searching for loved ones.' },
+    pt: { title: 'Encontrei alguém', sub: 'Vi ou tenho informação real sobre uma pessoa', hint: 'Ajude famílias a encontrar seus entes queridos.' },
   },
   {
     to: '/centros-apoyo',
@@ -52,9 +52,9 @@ const TRIAGE = [
     bg: '#0E7490',
     textColor: '#fff',
     subColor: 'rgba(255,255,255,0.82)',
-    es: { title: 'Buscar refugio o ayuda', sub: 'Refugios · Hospitales · Centros de acopio · Agua y comida' },
-    en: { title: 'Find shelter or help', sub: 'Shelters · Hospitals · Aid centers · Water & food' },
-    pt: { title: 'Encontrar abrigo ou ajuda', sub: 'Abrigos · Hospitais · Centros de acopio · Água e comida' },
+    es: { title: 'Buscar refugio o ayuda', sub: 'Refugios · Hospitales · Centros de acopio · Agua y comida', hint: 'Ver direcciones, horarios y disponibilidad.' },
+    en: { title: 'Find shelter or help', sub: 'Shelters · Hospitals · Aid centers · Water & food', hint: 'See addresses, hours and availability.' },
+    pt: { title: 'Encontrar abrigo ou ajuda', sub: 'Abrigos · Hospitais · Centros de acopio · Água e comida', hint: 'Veja endereços, horários e disponibilidade.' },
   },
 ];
 
@@ -160,6 +160,11 @@ export default function Entrada() {
                       <p style={{ fontSize: 11, color: item.subColor, lineHeight: 1.4 }}>
                         {txt.sub}
                       </p>
+                      {txt.hint && (
+                        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', lineHeight: 1.3, marginTop: 3 }}>
+                          {txt.hint}
+                        </p>
+                      )}
                     </div>
                     <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 20, flexShrink: 0 }}>›</span>
                   </div>
