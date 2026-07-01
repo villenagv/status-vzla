@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
+import InfografiaDanos from '@/components/informacion/InfografiaDanos';
 
 const TARJETAS = [
   {
@@ -79,7 +80,11 @@ export default function InformacionEducacion() {
           ))}
         </div>
 
-        <div className="mt-5 bg-amber-50 border border-amber-200 rounded-2xl p-4">
+        <div className="mt-5">
+          <InfografiaDanos es={es} />
+        </div>
+
+        <div className="mt-1 bg-amber-50 border border-amber-200 rounded-2xl p-4">
           <p className="text-xs font-bold text-amber-800 mb-2">
             ⚠️ {t('Aviso de seguridad', 'Safety notice')}
           </p>
