@@ -204,7 +204,7 @@ export default function EdificioDetalle() {
   };
 
   if (cargando) return (
-    <div className="min-h-screen bg-gray-50 flex flex-col"><TopBar />
+    <div className="min-h-screen flex flex-col" style={{ background: '#F1F2F5' }}><TopBar />
       <div className="flex-1 flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-3"><Loader2 className="animate-spin text-gray-400" size={32} /><p className="text-sm text-gray-400">{t('Cargando ficha...', 'Loading record...', 'Carregando ficha...')}</p></div>
       </div>
@@ -212,7 +212,7 @@ export default function EdificioDetalle() {
   );
 
   if (errorId || !edificio) return (
-    <div className="min-h-screen bg-gray-50 flex flex-col"><TopBar />
+    <div className="min-h-screen flex flex-col" style={{ background: '#F1F2F5' }}><TopBar />
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4 py-12">
         <p className="text-5xl">🏗️</p>
         <p className="font-semibold text-gray-700">{t('Edificio no encontrado.', 'Building not found.', 'Edifício não encontrado.')}</p>
@@ -254,7 +254,7 @@ export default function EdificioDetalle() {
   ].filter(Boolean).join(' ');
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: '#F1F2F5' }}>
       <SeoMeta
         title={seoTitle}
         description={seoDesc}
@@ -365,8 +365,11 @@ export default function EdificioDetalle() {
         </div>
 
         {/* ── 4. DATOS DE UBICACIÓN ── */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">📍 {t('Ubicación y descripción', 'Location & description', 'Localização e descrição')}</p>
+        <div className="rounded-2xl p-4 mb-3" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <span style={{ width: 5, height: 5, borderRadius: 999, background: '#4B5563', flexShrink: 0 }} />
+            <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#9CA3AF' }}>📍 {t('Ubicación y descripción', 'Location & description', 'Localização e descrição')}</p>
+          </div>
           <div className="space-y-2">
             {edificio.direccion && (
               <div className="flex items-start gap-2 text-sm text-gray-700">
@@ -490,8 +493,11 @@ export default function EdificioDetalle() {
         <VecinosBuscandoInfo solicitudes={solicitudes} setSolicitudes={setSolicitudes} t={t} />
 
         {/* ── 12. COMPARTIR ── */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">{t('Compartir esta ficha', 'Share this record', 'Compartilhar esta ficha')}</p>
+        <div className="rounded-2xl p-4 mb-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <span style={{ width: 5, height: 5, borderRadius: 999, background: '#15803D', flexShrink: 0 }} />
+            <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#9CA3AF' }}>{t('Compartir esta ficha', 'Share this record', 'Compartilhar esta ficha')}</p>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <button onClick={compartir} className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-3 rounded-xl cursor-pointer transition-colors">
               <Share2 size={13} /> WhatsApp
