@@ -174,9 +174,16 @@
           },
           "notas": {
             "type": "string"
+          },
+          "agregado_en": {
+            "type": "string"
           }
         }
       }
+    },
+    "contactos_token": {
+      "type": "string",
+      "description": "Token privado para acceder al formulario de contactos de acceso sin autenticaci\u00f3n"
     },
     "prioridad": {
       "type": "string",
@@ -209,7 +216,7 @@
     },
     "triage_estado": {
       "type": "string",
-      "description": "Fase del triaje t\u00e9cnico: pendiente de clasificar, clasificado online, en cola de inspecci\u00f3n presencial, inspeccionado, descartado",
+      "description": "Fase del triaje t\u00e9cnico",
       "enum": [
         "pendiente_triage",
         "clasificado",
@@ -221,7 +228,7 @@
     },
     "triage_riesgo": {
       "type": "string",
-      "description": "Resultado del triaje r\u00e1pido online realizado por un especialista",
+      "description": "Resultado del triaje r\u00e1pido online",
       "enum": [
         "sin_clasificar",
         "riesgo_colapso",
@@ -249,7 +256,6 @@
     },
     "inspeccion_severidad": {
       "type": "string",
-      "description": "Resultado de la inspecci\u00f3n presencial: nivel de severidad del da\u00f1o",
       "enum": [
         "sin_definir",
         "leve",
@@ -261,7 +267,6 @@
     },
     "inspeccion_tipo_dano": {
       "type": "string",
-      "description": "Tipo de da\u00f1o confirmado en la inspecci\u00f3n presencial",
       "enum": [
         "sin_definir",
         "estetico",
@@ -272,19 +277,16 @@
       "default": "sin_definir"
     },
     "inspeccion_notas": {
-      "type": "string",
-      "description": "Informe t\u00e9cnico de la inspecci\u00f3n presencial"
+      "type": "string"
     },
     "inspeccion_fotos": {
       "type": "array",
-      "description": "Fotos tomadas durante la inspecci\u00f3n presencial",
       "items": {
         "type": "string"
       }
     },
     "inspeccion_detalle_fotos": {
       "type": "array",
-      "description": "Detalle foto por foto de la inspecci\u00f3n presencial: cada foto con su \u00e1rea y nota t\u00e9cnica",
       "items": {
         "type": "object",
         "properties": {
@@ -301,24 +303,19 @@
       }
     },
     "inspeccion_pdf_url": {
-      "type": "string",
-      "description": "URL p\u00fablica del informe t\u00e9cnico de inspecci\u00f3n en PDF, descargable desde la ficha"
+      "type": "string"
     },
     "inspeccion_pdf_fecha": {
-      "type": "string",
-      "description": "Fecha ISO en que se gener\u00f3 el PDF del informe de inspecci\u00f3n"
+      "type": "string"
     },
     "inspeccion_fecha": {
-      "type": "string",
-      "description": "Fecha ISO de la inspecci\u00f3n presencial completada"
+      "type": "string"
     },
     "inspeccion_por": {
-      "type": "string",
-      "description": "Nombre o email del especialista que hizo la inspecci\u00f3n presencial"
+      "type": "string"
     },
     "inspeccion_estado_pendiente": {
       "type": "string",
-      "description": "Por qu\u00e9 la inspecci\u00f3n sigue pendiente (cuando aplica)",
       "enum": [
         "ninguno",
         "sin_contacto",
@@ -331,12 +328,10 @@
       "default": "ninguno"
     },
     "inspeccion_motivo_pendiente": {
-      "type": "string",
-      "description": "Detalle libre del motivo por el que la inspecci\u00f3n est\u00e1 pendiente"
+      "type": "string"
     },
     "voluntario_asignado_id": {
-      "type": "string",
-      "description": "ID del usuario voluntario/especialista asignado a la inspecci\u00f3n presencial"
+      "type": "string"
     },
     "voluntario_asignado_nombre": {
       "type": "string"

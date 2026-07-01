@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, Camera, MapPin, CheckCircle, UserCheck, Clock } from 'lucide-react';
+import { Loader2, Camera, MapPin, CheckCircle, UserCheck, Clock, Users, ExternalLink } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AccionesEspecialista from './AccionesEspecialista';
 import FormularioInspeccion from './FormularioInspeccion';
@@ -37,14 +37,32 @@ function TarjetaInspeccion({ reporte, es, perfil, onActualizado, completada }) {
   const asignadoAMi = reporte.voluntario_asignado_id === perfil.user_id;
   const motivo = reporte.inspeccion_estado_pendiente && reporte.inspeccion_estado_pendiente !== 'ninguno' ? reporte.inspeccion_estado_pendiente : '';
 
+  const [confirmando, setConfirmando] = useState(false);
+
   const asignarme = async () => {
     setEnviando(true);
     try {
+      // 1. Actualizar en BD
       await base44.entities.ReportesDano.update(reporte.id, {
         voluntario_asignado_id: perfil.user_id,
         voluntario_asignado_nombre: perfil.user_nombre || perfil.user_email,
+        triage_estado: 'en_cola_inspeccion',
       });
-      onActualizado(reporte.id, { voluntario_asignado_id: perfil.user_id, voluntario_asignado_nombre: perfil.user_nombre || perfil.user_email });
+      onActualizado(reporte.id, {
+        voluntario_asignado_id: perfil.user_id,
+        voluntario_asignado_nombre: perfil.user_nombre || perfil.user_email,
+        triage_estado: 'en_cola_inspeccion',
+      });
+      // 2. Disparar correos al inspector y al reportante
+      base44.functions.invoke('notificarAsignacionInspeccion', {
+        reporte_id: reporte.id,
+        inspector_id: perfil.user_id,
+        inspector_nombre: perfil.user_nombre || perfil.user_email,
+        inspector_email: perfil.user_email,
+        inspector_telefono: perfil.telefono_contacto || '',
+        inspector_especialidad: perfil.especialidad || perfil.tipo_perfil || '',
+      }).catch(() => {});
+      setConfirmando(false);
     } catch {}
     setEnviando(false);
   };
@@ -136,13 +154,61 @@ function TarjetaInspeccion({ reporte, es, perfil, onActualizado, completada }) {
             </div>
           )}
 
+          {/* Contactos de acceso */}
+          {reporte.contactos_token && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+              <p className="text-[10px] font-bold text-purple-700 uppercase mb-1 flex items-center gap-1">
+                <Users size={11} /> {es ? 'Contactos de acceso' : 'Access contacts'} ({(reporte.contactos_acceso || []).length})
+              </p>
+              {(reporte.contactos_acceso || []).length > 0 ? (
+                <div className="space-y-1 mb-2">
+                  {(reporte.contactos_acceso || []).map((c, i) => (
+                    <div key={i} className="text-xs text-gray-700">
+                      <span className="font-semibold">{c.nombre}</span>
+                      {c.rol ? <span className="text-gray-400"> · {c.rol}</span> : null}
+                      {c.telefono ? <a href={`tel:${c.telefono}`} className="text-blue-600 ml-2 hover:underline">{c.telefono}</a> : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 mb-2">{es ? 'Aún no hay contactos registrados.' : 'No contacts registered yet.'}</p>
+              )}
+              <a
+                href={`/contactos-acceso?edificio=${reporte.id}&token=${reporte.contactos_token}`}
+                target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-purple-700 font-semibold hover:underline"
+              >
+                <ExternalLink size={11} /> {es ? 'Ver / agregar contactos →' : 'View / add contacts →'}
+              </a>
+            </div>
+          )}
+
           {/* Asignación */}
           {!completada && !reporte.voluntario_asignado_id && (
-            <button onClick={asignarme} disabled={enviando}
-              className="w-full bg-blue-50 border border-blue-300 text-blue-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40">
-              {enviando ? <Loader2 size={13} className="animate-spin" /> : <UserCheck size={13} />}
-              {es ? 'Asignarme esta inspección' : 'Assign this inspection to me'}
-            </button>
+            confirmando ? (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
+                <p className="text-xs text-blue-800 font-semibold">
+                  {es ? '¿Confirmas que tomas esta inspección? Se enviarán correos al reportante y a ti.' : 'Confirm you are taking this inspection? Emails will be sent to the reporter and to you.'}
+                </p>
+                <div className="flex gap-2">
+                  <button onClick={asignarme} disabled={enviando}
+                    className="flex-1 bg-blue-700 text-white text-xs font-bold py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40">
+                    {enviando ? <Loader2 size={12} className="animate-spin" /> : <UserCheck size={12} />}
+                    {es ? 'Sí, tomo el caso' : 'Yes, I take it'}
+                  </button>
+                  <button onClick={() => setConfirmando(false)}
+                    className="flex-1 bg-white border border-gray-300 text-gray-600 text-xs font-bold py-2 rounded-xl cursor-pointer">
+                    {es ? 'Cancelar' : 'Cancel'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setConfirmando(true)} disabled={enviando}
+                className="w-full bg-blue-50 border border-blue-300 text-blue-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40">
+                <UserCheck size={13} />
+                {es ? 'Tomar esta inspección' : 'Take this inspection'}
+              </button>
+            )
           )}
 
           {/* Acciones del especialista: contacto, email, notas, motivo pendiente */}

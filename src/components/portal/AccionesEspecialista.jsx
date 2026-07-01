@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, Mail, Phone, User, Send, FileText, ClipboardList, ShieldAlert, Clock } from 'lucide-react';
+import { Loader2, Mail, Phone, User, Send, FileText, ClipboardList, ShieldAlert, Clock, Users, ExternalLink } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import SelloRiesgo from '@/components/edificio/SelloRiesgo';
 import MotivoPendiente, { MOTIVO_LABEL } from './MotivoPendiente';
@@ -110,6 +110,28 @@ export default function AccionesEspecialista({ reporte, perfil, es, onActualizad
           <p className="text-xs text-gray-400">{es ? 'Sin datos de contacto registrados.' : 'No contact details on record.'}</p>
         )}
       </div>
+
+      {/* Contactos de acceso — visible para el equipo autorizado */}
+      {(reporte.contactos_acceso || []).length > 0 && (
+        <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 space-y-1.5">
+          <p className="text-[10px] font-bold text-purple-700 uppercase flex items-center gap-1">
+            <Users size={11} /> {es ? 'Contactos de acceso al edificio' : 'Building access contacts'} ({reporte.contactos_acceso.length})
+          </p>
+          {reporte.contactos_acceso.map((c, i) => (
+            <div key={i} className="py-1 border-b border-purple-100 last:border-0">
+              <p className="text-xs text-gray-800 font-semibold">{c.nombre}{c.rol ? <span className="font-normal text-gray-500"> · {c.rol}</span> : null}</p>
+              {c.telefono && <a href={`tel:${c.telefono}`} className="text-xs text-blue-600 hover:underline flex items-center gap-1"><Phone size={10} /> {c.telefono}</a>}
+              {c.email && <p className="text-xs text-gray-500 flex items-center gap-1"><Mail size={10} /> {c.email}</p>}
+            </div>
+          ))}
+          {reporte.contactos_token && (
+            <a href={`/contactos-acceso?edificio=${reporte.id}&token=${reporte.contactos_token}`} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-purple-700 font-semibold hover:underline mt-1">
+              <ExternalLink size={10} /> {es ? 'Agregar más contactos →' : 'Add more contacts →'}
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Botones de acción */}
       <div className="grid grid-cols-2 gap-2">

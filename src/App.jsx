@@ -52,6 +52,7 @@ import MapaDanos from './pages/MapaDanos.jsx';
 import Alianzas from './pages/Alianzas.jsx';
 import SolicitarInspeccion from './pages/SolicitarInspeccion.jsx';
 import Inspecciones from './pages/Inspecciones.jsx';
+import AgregarContactos from './pages/AgregarContactos.jsx';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -98,6 +99,7 @@ const PublicApp = () => (
     <Route path="/alianzas" element={<Alianzas />} />
     <Route path="/solicitar-inspeccion" element={<SolicitarInspeccion />} />
     <Route path="/inspecciones" element={<Inspecciones />} />
+    <Route path="/contactos-acceso" element={<AgregarContactos />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
