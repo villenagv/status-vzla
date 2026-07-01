@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle, ChevronLeft, MapPin, Loader2, ShieldAlert, Camera, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useDraft } from '@/lib/useDraft';
+import { generarCodigo } from '@/lib/codigos';
 
 const TIPO_OPTS = [
   { val: 'edificio_residencial', es: '🏠 Edificio residencial', en: '🏠 Residential building' },
@@ -64,7 +65,7 @@ const cfg = (d) => DANO_CONFIG[d] || DANO_CONFIG.no_evaluado;
 export default function TabReportar({ todos, setTab, lang, t }) {
   const es = lang === 'es';
   const pt = lang === 'pt';
-  const DRAFT_INIT = { valNombre: '', valDireccion: '', tipo: '', nivel: '', atrapados: '', ciudad: '', estado: '', descripcion: '', repNombre: '', repTelefono: '', repEmail: '', accesoCalle: '', accesoVehiculos: '', notasAcceso: '', electricidad: '', agua: '', gas: '', riesgoGas: false, riesgoElec: false, riesgoIncendio: false, racionamientoAgua: false, racionamientoElec: false, horarioAgua: '', horarioElec: '' };
+  const DRAFT_INIT = { valNombre: '', valDireccion: '', tipo: '', nivel: '', atrapados: '', ciudad: '', estado: '', descripcion: '', repNombre: '', repTelefono: '', repEmail: '', accesoCalle: '', accesoVehiculos: '', notasAcceso: '', electricidad: '', agua: '', gas: '', riesgoGas: false, riesgoElec: false, riesgoIncendio: false, racionamientoAgua: false, racionamientoElec: false, horarioAgua: '', horarioElec: '', pisosTotales: '', pisoReporta: '', pisosAfectados: '' };
   const [draft, setDraft, clearDraft, hasDraft] = useDraft('edificios-reporte', DRAFT_INIT);
 
   const valNombre = draft.valNombre; const setValNombre = v => setDraft({ valNombre: v });
@@ -91,6 +92,9 @@ export default function TabReportar({ todos, setTab, lang, t }) {
   const repNombre = draft.repNombre; const setRepNombre = v => setDraft({ repNombre: v });
   const repTelefono = draft.repTelefono; const setRepTelefono = v => setDraft({ repTelefono: v });
   const repEmail = draft.repEmail; const setRepEmail = v => setDraft({ repEmail: v });
+  const pisosTotales = draft.pisosTotales; const setPisosTotales = v => setDraft({ pisosTotales: v });
+  const pisoReporta = draft.pisoReporta; const setPisoReporta = v => setDraft({ pisoReporta: v });
+  const pisosAfectados = draft.pisosAfectados; const setPisosAfectados = v => setDraft({ pisosAfectados: v });
 
   const [contactosAcceso, setContactosAcceso] = useState([]);
   const CONTACTO_VACIO = { nombre: '', telefono: '', email: '', rol: '' };
@@ -103,6 +107,8 @@ export default function TabReportar({ todos, setTab, lang, t }) {
   const MAX_DANO = 4;
   const [enviando, setEnviando] = useState(false);
   const [exito, setExito] = useState(null);
+  const [codigoGenerado, setCodigoGenerado] = useState('');
+  const [codigoCopiado, setCodigoCopiado] = useState(false);
   const [etapa, setEtapa] = useState('validacion');
   const [posiblesDups, setPosiblesDups] = useState([]);
   const [buscandoDup, setBuscandoDup] = useState(false);
@@ -165,7 +171,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
     }
   };
 
-  const resetForm = () => { setEtapa('validacion'); setPosiblesDups([]); clearDraft(); setFotoFachada(null); setFotosDano([]); setContactosAcceso([]); };
+  const resetForm = () => { setEtapa('validacion'); setPosiblesDups([]); clearDraft(); setFotoFachada(null); setFotosDano([]); setContactosAcceso([]); setCodigoGenerado(''); };
 
   const handleSubmit = async () => {
     setEnviando(true);
@@ -173,8 +179,10 @@ export default function TabReportar({ todos, setTab, lang, t }) {
       const prioridad = (nivel === 'critico' || nivel === 'colapsado' || atrapados === 'si' || atrapados === 'voces') ? 'critica' : nivel === 'grave' ? 'alta' : 'normal';
       const foto_urls = [...(fotoFachada?.url ? [fotoFachada.url] : []), ...fotosDano.filter(f => f.url).map(f => f.url)];
       const contactosFiltrados = contactosAcceso.filter(c => c.nombre.trim() || c.telefono.trim() || c.email.trim());
+      const codigo = 'ED-' + generarCodigo();
       await base44.entities.ReportesDano.create({
-        tipo_estructura: tipo || 'otro', nombre_lugar: valNombre,
+        tipo_estructura: tipo || 'otro', nombre_lugar: valNombre, codigo_reporte: codigo,
+        pisos_totales: pisosTotales, piso_reporta: pisoReporta, pisos_afectados: pisosAfectados,
         nivel_dano: nivel || 'no_evaluado', personas_atrapadas: atrapados || 'no_sabe',
         riesgo_gas: riesgoGas, riesgo_electrico: riesgoElec, riesgo_incendio: riesgoIncendio,
         acceso_calle: accesoCalle || 'no_sabe', acceso_vehiculos: accesoVehiculos || 'no_sabe', notas_acceso: notasAcceso,
@@ -184,6 +192,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
         reportante_nombre: repNombre, reportante_telefono: repTelefono, reportante_email: repEmail,
         contactos_acceso: contactosFiltrados, estado_verificacion: 'recibido', nivel_verificacion: 'sin_verificar', fuente: 'ciudadano',
       });
+      setCodigoGenerado(codigo);
       setExito(true);
     } catch { setExito(false); }
     setEnviando(false);
@@ -194,8 +203,21 @@ export default function TabReportar({ todos, setTab, lang, t }) {
       <div className="text-4xl mb-3">✅</div>
       <h3 className="font-bold text-green-800 text-lg mb-1">{t('Reporte enviado.', 'Report submitted.', 'Relatório enviado.')}</h3>
       <p className="text-sm text-green-700 mb-3">{t('Gracias. Tu reporte ayuda a que otras personas eviten el peligro.', 'Thank you. Your report helps others avoid danger.', 'Obrigado. Seu relatório ajuda outras pessoas a evitar o perigo.')}</p>
+      {codigoGenerado && (
+        <div className="bg-white border-2 border-green-300 rounded-xl p-4 mb-4 inline-block">
+          <p className="text-xs font-semibold text-gray-500 mb-1">{t('Tu código de seguimiento', 'Your tracking code', 'Seu código de rastreamento')}</p>
+          <div className="flex items-center gap-2 justify-center">
+            <span className="text-xl font-black tracking-widest text-green-800">{codigoGenerado}</span>
+            <button onClick={() => { navigator.clipboard.writeText(codigoGenerado); setCodigoCopiado(true); setTimeout(() => setCodigoCopiado(false), 2000); }}
+              className="text-xs bg-green-700 text-white px-2.5 py-1 rounded-lg cursor-pointer">
+              {codigoCopiado ? t('¡Copiado!', 'Copied!', 'Copiado!') : t('Copiar', 'Copy', 'Copiar')}
+            </button>
+          </div>
+          <p className="text-[11px] text-gray-400 mt-2">{t('Guárdalo para consultar el estado de este reporte.', 'Save it to check this report\'s status later.', 'Guarde-o para consultar o estado deste relatório.')}</p>
+        </div>
+      )}
       <div className="flex gap-3 justify-center">
-        <button onClick={() => { resetForm(); setExito(null); }} className="text-sm bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg cursor-pointer">{t('Reportar otro', 'Report another', 'Reportar outro')}</button>
+        <button onClick={() => { resetForm(); setExito(null); setCodigoGenerado(''); }} className="text-sm bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg cursor-pointer">{t('Reportar otro', 'Report another', 'Reportar outro')}</button>
         <button onClick={() => setTab('directorio')} className="text-sm bg-blue-700 text-white px-4 py-2 rounded-lg cursor-pointer">{t('Ver directorio', 'View directory', 'Ver diretório')}</button>
       </div>
     </div>
@@ -316,9 +338,29 @@ export default function TabReportar({ todos, setTab, lang, t }) {
             </div>
           </div>
 
-          {/* 2. Ubicación */}
+          {/* 2. Pisos del edificio */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-800">2. {t('Ubicación', 'Location', 'Localização')} <span className="text-red-500">*</span></h3>
+            <h3 className="text-sm font-semibold text-gray-800 mb-1">2. {t('Detalles del edificio', 'Building details', 'Detalhes do edifício')}</h3>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">{t('¿Cuántos pisos tiene el edificio?', 'How many floors does the building have?', 'Quantos andares tem o edifício?')}</label>
+              <input value={pisosTotales} onChange={e => setPisosTotales(e.target.value)}
+                placeholder={t('Ej: 8 o "No sé"', 'E.g: 8 or "Don\'t know"', 'Ex: 8 ou "Não sei"')} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">{t('¿Desde qué piso estás reportando?', 'What floor are you reporting from?', 'De que andar você está reportando?')}</label>
+              <input value={pisoReporta} onChange={e => setPisoReporta(e.target.value)}
+                placeholder={t('Ej: Planta baja, piso 3...', 'E.g: Ground floor, 3rd floor...', 'Ex: Térreo, 3º andar...')} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">{t('¿En qué piso o pisos está el daño?', 'What floor(s) is the damage on?', 'Em que andar(es) está o dano?')}</label>
+              <input value={pisosAfectados} onChange={e => setPisosAfectados(e.target.value)}
+                placeholder={t('Ej: Piso 5 y 6, o "No sé"', 'E.g: Floors 5 and 6, or "Don\'t know"', 'Ex: Andares 5 e 6, ou "Não sei"')} className={inputCls} />
+            </div>
+          </div>
+
+          {/* 3. Ubicación */}
+          <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-800">3. {t('Ubicación', 'Location', 'Localização')} <span className="text-red-500">*</span></h3>
             <input value={valNombre} onChange={e => setValNombre(e.target.value)} placeholder={t('Nombre del lugar', 'Place name', 'Nome do lugar')} className={inputCls} />
             <p className="text-xs text-green-600 flex items-center gap-1"><CheckCircle size={10} />{valDireccion}</p>
             <div className="grid grid-cols-2 gap-3">
@@ -344,7 +386,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
 
           {/* 3. Nivel */}
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">3. {t('Nivel de daño visible', 'Visible damage level', 'Nível de dano visível')} <span className="text-red-500">*</span></h3>
+            <h3 className="text-sm font-semibold text-gray-800 mb-3">4. {t('Nivel de daño visible', 'Visible damage level', 'Nível de dano visível')} <span className="text-red-500">*</span></h3>
             <div className="space-y-2">
               {NIVEL_OPTS.map(n => (
                 <button key={n.val} onClick={() => setNivel(n.val)}
@@ -357,7 +399,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
 
           {/* 4. Atrapados */}
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">4. {t('¿Hay personas atrapadas?', 'Are there trapped people?', 'Há pessoas presas?')} <span className="text-red-500">*</span></h3>
+            <h3 className="text-sm font-semibold text-gray-800 mb-3">5. {t('¿Hay personas atrapadas?', 'Are there trapped people?', 'Há pessoas presas?')} <span className="text-red-500">*</span></h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {ATRAPADOS_OPTS.map(a => (
                 <button key={a.val} onClick={() => setAtrapados(a.val)}
@@ -375,7 +417,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
 
           {/* 5. Riesgos */}
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">5. {t('Riesgos adicionales', 'Additional hazards', 'Riscos adicionais')}</h3>
+            <h3 className="text-sm font-semibold text-gray-800 mb-3">6. {t('Riesgos adicionales', 'Additional hazards', 'Riscos adicionais')}</h3>
             <div className="flex flex-wrap gap-2">
               {[
                 { val: riesgoGas,      set: setRiesgoGas,      label: { es: '💨 Olor a gas',               en: '💨 Gas smell',   pt: '💨 Cheiro de gás'     } },
@@ -392,7 +434,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
 
           {/* 6. Acceso */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
-            <h3 className="text-sm font-semibold text-gray-800">6. {t('Acceso al lugar', 'Access to the site', 'Acesso ao local')}</h3>
+            <h3 className="text-sm font-semibold text-gray-800">7. {t('Acceso al lugar', 'Access to the site', 'Acesso ao local')}</h3>
             <div>
               <p className="text-xs font-semibold text-gray-700 mb-2">🚶 {t('¿Cómo está la calle?', 'How is the street?', 'Como está a rua?')}</p>
               <div className="grid grid-cols-2 gap-2">
@@ -434,7 +476,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
 
           {/* 7. Servicios */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
-            <h3 className="text-sm font-semibold text-gray-800">7. {t('Servicios básicos', 'Basic services', 'Serviços básicos')}</h3>
+            <h3 className="text-sm font-semibold text-gray-800">8. {t('Servicios básicos', 'Basic services', 'Serviços básicos')}</h3>
             <p className="text-xs text-gray-400 -mt-2">{t('Marca solo lo que sabes con certeza.', 'Only mark what you know for sure.', 'Marque apenas o que sabe com certeza.')}</p>
             {[
               { label: '⚡', title: t('Electricidad', 'Electricity', 'Eletricidade'), val: electricidad, set: setElectricidad, color: 'yellow', opts: [
@@ -494,7 +536,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
           {/* 8. Fotos */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-5">
             <div>
-              <h3 className="text-sm font-semibold text-gray-800 mb-0.5">8. {t('Fotos del edificio', 'Building photos', 'Fotos do edifício')}</h3>
+              <h3 className="text-sm font-semibold text-gray-800 mb-0.5">9. {t('Fotos del edificio', 'Building photos', 'Fotos do edifício')}</h3>
               <p className="text-xs text-gray-400">{t('Solo desde un lugar seguro. No entres al edificio.', 'Only from a safe location.', 'Somente de um lugar seguro.')}</p>
             </div>
             {/* Fachada */}
@@ -544,7 +586,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
 
           {/* 9. Contactos */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-800">9. {t('¿Quién puede dar acceso para inspección?', 'Who can grant access for inspection?', 'Quem pode dar acesso para inspeção?')}</h3>
+            <h3 className="text-sm font-semibold text-gray-800">10. {t('¿Quién puede dar acceso para inspección?', 'Who can grant access for inspection?', 'Quem pode dar acesso para inspeção?')}</h3>
             <p className="text-xs text-gray-500">{t('Datos privados — no se muestran públicamente.', 'Private data — not shown publicly.', 'Dados privados.')}</p>
             {contactosAcceso.length === 0 && <p className="text-xs text-gray-400 italic">{t('Ningún contacto. Opcional pero útil.', 'No contacts. Optional but useful.', 'Nenhum contato. Opcional mas útil.')}</p>}
             {contactosAcceso.map((c, i) => (
@@ -570,7 +612,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
 
           {/* 10. Descripción */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-800">10. {t('Descripción y tus datos', 'Description and your info', 'Descrição e seus dados')}</h3>
+            <h3 className="text-sm font-semibold text-gray-800">11. {t('Descripción y tus datos', 'Description and your info', 'Descrição e seus dados')}</h3>
             <textarea rows={3} value={descripcion} onChange={e => setDescripcion(e.target.value)} maxLength={200}
               placeholder={t('Describe lo que ves (opcional)', 'Describe what you see (optional)', 'Descreva o que você vê (opcional)')}
               className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-900 focus:outline-none focus:border-blue-600 resize-none placeholder-gray-400" />

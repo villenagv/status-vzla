@@ -20,6 +20,22 @@
     "nombre_lugar": {
       "type": "string"
     },
+    "codigo_reporte": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico de seguimiento generado autom\u00e1ticamente al crear el reporte"
+    },
+    "pisos_totales": {
+      "type": "string",
+      "description": "N\u00famero total de pisos del edificio (texto libre, ej: '5' o 'No s\u00e9')"
+    },
+    "piso_reporta": {
+      "type": "string",
+      "description": "Piso desde el cual la persona est\u00e1 reportando"
+    },
+    "pisos_afectados": {
+      "type": "string",
+      "description": "Piso o pisos donde se observa el da\u00f1o"
+    },
     "nivel_dano": {
       "type": "string",
       "enum": [
