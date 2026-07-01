@@ -66,17 +66,27 @@ export default function CajaSalidaInspecciones({ es, queue }) {
     for (let i = 0; i < pendientes.length; i++) {
       const item = pendientes[i];
       try {
-        // 1) Subir fotos (comprimidas) una a una
+        // 1) Subir fotos (comprimidas) una a una, con su área y nota
         const urls = [];
+        const detalle = [];
         for (let j = 0; j < (item.fotos || []).length; j++) {
-          const file = dataURLaFile(item.fotos[j], `insp_${item.id}_${j}.jpg`);
+          const f = item.fotos[j];
+          const dataURL = typeof f === 'string' ? f : f.dataURL;
+          const area = typeof f === 'string' ? 'general' : (f.area || 'general');
+          const nota = typeof f === 'string' ? '' : (f.nota || '').trim();
+          const file = dataURLaFile(dataURL, `insp_${item.id}_${j}.jpg`);
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          if (file_url) urls.push(file_url);
+          if (file_url) {
+            urls.push(file_url);
+            detalle.push({ url: file_url, area, nota, piso: '', privada: false });
+          }
         }
-        // 2) Crear el reporte de daño con las URLs
+        // 2) Crear el reporte de daño con las URLs (galería pública limitada a 5)
         const creado = await base44.entities.ReportesDano.create({
           ...item.data,
-          foto_urls: urls,
+          foto_urls: urls.slice(0, 5),
+          inspeccion_fotos: urls,
+          inspeccion_detalle_fotos: detalle,
         });
         // 3) Registrar evento de línea de tiempo
         await base44.entities.ActualizacionesSitios.create({

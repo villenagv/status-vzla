@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Camera, X, Save, Loader2, MapPin } from 'lucide-react';
 import { comprimirFoto } from '@/lib/comprimirFoto';
+import { AREAS_INSPECCION, GRUPOS_AREA } from './areasInspeccion';
+import DropzonePlanilla from './DropzonePlanilla';
 
 const RIESGO_OPTS = [
   { val: 'riesgo_colapso',  icon: '💥', es: 'Riesgo de colapso', en: 'Collapse risk',  nivel: 'critico',  prioridad: 'critica', border: '#EF4444', bg: '#FEF2F2', color: '#7F1D1D' },
@@ -16,14 +18,13 @@ const TIPO_OPTS = [
   { val: 'otro',      es: 'Otro',      en: 'Other' },
 ];
 
-const MAX_FOTOS = 5;
-
 const VACIO = {
   tipo_estructura: 'edificio_residencial',
   nombre_lugar: '',
   direccion: '',
   ciudad: '',
   estado_region: '',
+  pisos_totales: '',
   triage_riesgo: '',
   personas_atrapadas: 'no_sabe',
   descripcion: '',
@@ -40,19 +41,32 @@ export default function InspeccionOfflineForm({ es, perfil, onGuardar }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const rsel = RIESGO_OPTS.find(o => o.val === form.triage_riesgo);
 
+  const datosExtraidos = (datos) => {
+    const limpio = {};
+    ['nombre_lugar', 'direccion', 'ciudad', 'estado_region', 'pisos_totales', 'descripcion'].forEach(k => {
+      if (datos[k] && String(datos[k]).trim()) limpio[k] = String(datos[k]).trim();
+    });
+    if (datos.personas_atrapadas && ['si', 'no', 'no_sabe', 'voces', 'posible'].includes(datos.personas_atrapadas)) {
+      limpio.personas_atrapadas = datos.personas_atrapadas;
+    }
+    setForm(f => ({ ...f, ...limpio }));
+  };
+
   const agregarFotos = async (e) => {
     const archivos = Array.from(e.target.files || []);
     if (!archivos.length) return;
     setComprimiendo(true);
-    const disponibles = MAX_FOTOS - fotos.length;
-    const aProcesar = archivos.slice(0, disponibles);
     const comprimidas = [];
-    for (const file of aProcesar) {
-      try { comprimidas.push(await comprimirFoto(file)); } catch {}
+    for (const file of archivos) {
+      try { comprimidas.push({ dataURL: await comprimirFoto(file), area: 'general', nota: '' }); } catch {}
     }
     setFotos(prev => [...prev, ...comprimidas]);
     setComprimiendo(false);
     e.target.value = '';
+  };
+
+  const actualizarFoto = (i, campo, valor) => {
+    setFotos(prev => prev.map((f, idx) => idx === i ? { ...f, [campo]: valor } : f));
   };
 
   const capturarUbicacion = () => {
@@ -105,6 +119,12 @@ export default function InspeccionOfflineForm({ es, perfil, onGuardar }) {
         </p>
       </div>
 
+      {/* Planilla PDF */}
+      <div>
+        <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wide mb-1.5 block">{es ? 'Planilla de evaluación (opcional)' : 'Assessment form (optional)'}</label>
+        <DropzonePlanilla es={es} onExtraido={datosExtraidos} />
+      </div>
+
       {/* Tipo */}
       <div>
         <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wide">{es ? 'Tipo de estructura' : 'Structure type'}</label>
@@ -133,6 +153,9 @@ export default function InspeccionOfflineForm({ es, perfil, onGuardar }) {
           placeholder={es ? 'Estado / región' : 'State / region'}
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400" />
       </div>
+      <input value={form.pisos_totales} onChange={e => set('pisos_totales', e.target.value)}
+        placeholder={es ? 'Pisos totales (opcional)' : 'Total floors (optional)'}
+        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400" />
 
       {/* Ubicación GPS */}
       <button onClick={capturarUbicacion} type="button"
@@ -182,26 +205,48 @@ export default function InspeccionOfflineForm({ es, perfil, onGuardar }) {
         placeholder={es ? 'Notas (grietas, daños visibles, gas, etc.)' : 'Notes (cracks, visible damage, gas, etc.)'}
         className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:border-blue-400" />
 
-      {/* Fotos */}
+      {/* Fotos — cantidad ilimitada, con daño y ubicación por foto */}
       <div>
-        <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wide">{es ? `Fotos (${fotos.length}/${MAX_FOTOS})` : `Photos (${fotos.length}/${MAX_FOTOS})`}</label>
-        <div className="grid grid-cols-3 gap-2 mt-1.5">
+        <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wide">{es ? `Fotos (${fotos.length})` : `Photos (${fotos.length})`}</label>
+        <p className="text-[10px] text-gray-400 mt-0.5 mb-1.5">
+          {es ? 'Para cada foto indica el tipo de daño y en qué parte del edificio está.' : 'For each photo, indicate the damage type and where in the building it is.'}
+        </p>
+
+        <div className="space-y-2 mb-2">
           {fotos.map((f, i) => (
-            <div key={i} className="relative">
-              <img src={f} alt="" className="w-full h-20 object-cover rounded-lg border border-gray-200" />
-              <button onClick={() => setFotos(prev => prev.filter((_, x) => x !== i))}
-                className="absolute -top-1.5 -right-1.5 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer">
-                <X size={11} />
-              </button>
+            <div key={i} className="bg-white border border-gray-200 rounded-lg p-2 flex gap-2">
+              <div className="relative w-20 h-20 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                <img src={f.dataURL} alt="" className="w-full h-full object-cover" />
+                <button type="button" onClick={() => setFotos(prev => prev.filter((_, x) => x !== i))}
+                  className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center cursor-pointer">
+                  <X size={11} />
+                </button>
+                <span className="absolute bottom-0.5 left-0.5 text-[9px] font-bold bg-black/60 text-white px-1 rounded">#{i + 1}</span>
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
+                <select value={f.area} onChange={e => actualizarFoto(i, 'area', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-[11px] focus:outline-none focus:border-blue-500 cursor-pointer">
+                  {GRUPOS_AREA.map(g => (
+                    <optgroup key={g.val} label={es ? g.es : g.en}>
+                      {AREAS_INSPECCION.filter(a => a.grupo === g.val).map(a => (
+                        <option key={a.val} value={a.val}>{es ? a.es : a.en}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                <input type="text" value={f.nota} onChange={e => actualizarFoto(i, 'nota', e.target.value)}
+                  maxLength={200}
+                  placeholder={es ? 'Ubicación / nota (ej: Piso 3, pared norte)' : 'Location / note (e.g. Floor 3, north wall)'}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-[11px] focus:outline-none focus:border-blue-500" />
+              </div>
             </div>
           ))}
-          {fotos.length < MAX_FOTOS && (
-            <label className="h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:border-blue-400">
-              {comprimiendo ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
-              <span className="text-[10px] mt-1">{es ? 'Tomar foto' : 'Take photo'}</span>
-              <input type="file" accept="image/*" capture="environment" multiple onChange={agregarFotos} className="hidden" />
-            </label>
-          )}
+
+          <label className="h-16 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-blue-400">
+            {comprimiendo ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
+            <span className="text-xs font-semibold">{es ? 'Agregar foto(s)' : 'Add photo(s)'}</span>
+            <input type="file" accept="image/*" capture="environment" multiple onChange={agregarFotos} className="hidden" />
+          </label>
         </div>
       </div>
 
