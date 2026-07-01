@@ -39,10 +39,10 @@ export default function TabDirectorio({
     if (!fecha) return '';
     const diff = Date.now() - new Date(fecha).getTime();
     const m = Math.floor(diff / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
-    if (d > 0) return es ? `hace ${d}d` : `${d}d ago`;
-    if (h > 0) return es ? `hace ${h}h` : `${h}h ago`;
-    if (m < 1) return es ? 'ahora' : 'now';
-    return es ? `hace ${m}m` : `${m}m ago`;
+    if (d > 0) return pt ? `há ${d}d` : es ? `hace ${d}d` : `${d}d ago`;
+    if (h > 0) return pt ? `há ${h}h` : es ? `hace ${h}h` : `${h}h ago`;
+    if (m < 1) return pt ? 'agora' : es ? 'ahora' : 'now';
+    return pt ? `há ${m}m` : es ? `hace ${m}m` : `${m}m ago`;
   };
 
   const criticos = todos.filter(r => ['critico', 'colapsado', 'grave'].includes(r.nivel_dano));
@@ -287,7 +287,7 @@ export default function TabDirectorio({
                         <td className="px-4 py-3"><p className="font-semibold text-gray-900 text-xs">{nombre}</p>{p.sexo && <p className="text-[10px] text-gray-400">{p.sexo}</p>}</td>
                         <td className="px-4 py-3 text-xs text-gray-600">{p.edad_aprox || '—'}</td>
                         <td className="px-4 py-3 text-xs text-gray-600"><p>{p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'}</p><p className="text-gray-400">{p.ciudad}{p.estado_region ? `, ${p.estado_region}` : ''}</p></td>
-                        <td className="px-4 py-3"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span></td>
+                        <td className="px-4 py-3"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{t(st.es, st.en, st.es)}</span></td>
                         <td className="px-4 py-3"><span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>{esBuscada ? t('Buscada', 'Missing', 'Procurada') : t('Encontrada', 'Found', 'Encontrada')}</span></td>
                       </tr>
                     );
@@ -305,7 +305,7 @@ export default function TabDirectorio({
                   <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900 truncate">{nombre}</p><p className="text-xs text-gray-400 truncate">📍 {p.ultima_ubicacion_conocida || p.ubicacion_actual || '—'} · {p.ciudad}</p></div>
                     <div className="flex flex-col items-end gap-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{es ? st.es : st.en}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{t(st.es, st.en, st.es)}</span>
                       <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${esBuscada ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>{esBuscada ? t('Buscada', 'Missing', 'Procurada') : t('Encontrada', 'Found', 'Encontrada')}</span>
                     </div>
                   </div>
