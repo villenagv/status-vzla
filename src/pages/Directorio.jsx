@@ -1,53 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, ChevronLeft, Loader2, LayoutGrid, List, Clock } from 'lucide-react';
+import { Search, ChevronLeft, Loader2, LayoutGrid, List } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import FichaAccionesModal from '@/components/svzla/FichaAccionesModal';
-import EdificioImagen from '@/components/svzla/EdificioImagen';
+import PersonaListItem from '@/components/directorio/PersonaListItem';
+import PersonaGridCard from '@/components/directorio/PersonaGridCard';
+import EdificioCard from '@/components/directorio/EdificioCard';
+import { CATEGORIAS_PERSONAS, CATEGORIAS_EDIFICIOS, PRIORIDAD_SORT } from '@/components/directorio/directorioConfig';
 
 const PAGE_SIZE = 12;
-
-// ── Configuraciones de estado ───────────────────────────────────────────────
-const PERSONA_ESTADO = {
-  buscando:             { es: '🔴 Sin contacto',        en: '🔴 Missing',           cls: 'bg-red-100 text-red-800 border-red-200' },
-  informacion_recibida: { es: '🔵 Con pistas',           en: '🔵 Has leads',         cls: 'bg-blue-100 text-blue-800 border-blue-200' },
-  visto_no_confirmado:  { es: '🟠 Visto sin confirmar',  en: '🟠 Seen unconfirmed',  cls: 'bg-orange-100 text-orange-700 border-orange-200' },
-  encontrado_con_vida:  { es: '✅ Localizado',           en: '✅ Located',           cls: 'bg-green-100 text-green-800 border-green-200' },
-  en_hospital_refugio:  { es: '🏥 En refugio',           en: '🏥 In shelter',        cls: 'bg-teal-100 text-teal-800 border-teal-200' },
-  fallecido_reportado:  { es: '⚫ Fallecido (rep.)',      en: '⚫ Deceased (rep.)',   cls: 'bg-gray-200 text-gray-700 border-gray-300' },
-  caso_cerrado:         { es: '🔒 Cerrado',              en: '🔒 Closed',           cls: 'bg-gray-100 text-gray-500 border-gray-200' },
-};
-
-const DANO_CONFIG = {
-  leve:        { color: '#B7950B', bg: '#FEF9E7', border: '#F9E79F', cardBorder: '#D4AC0D', label: { es: '🟡 Daño leve',  en: '🟡 Minor damage'   }, icon: '🟡', acceso: { es: 'Entrada con precaución', en: 'Enter with caution' } },
-  moderado:    { color: '#CA6F1E', bg: '#FEF5E7', border: '#FDEBD0', cardBorder: '#E67E22', label: { es: '🟠 Moderado',   en: '🟠 Moderate'       }, icon: '🟠', acceso: { es: 'Entrada limitada',       en: 'Limited entry'      } },
-  grave:       { color: '#C0392B', bg: '#FDEDEC', border: '#F5B7B1', cardBorder: '#E74C3C', label: { es: '🔴 GRAVE',      en: '🔴 SEVERE'         }, icon: '🔴', acceso: { es: 'NO ENTRAR',              en: 'DO NOT ENTER'       } },
-  critico:     { color: '#922B21', bg: '#FDEDEC', border: '#E74C3C', cardBorder: '#922B21', label: { es: '🚨 CRÍTICO',    en: '🚨 CRITICAL'       }, icon: '🚨', acceso: { es: 'NO ENTRAR — PELIGRO',    en: 'DO NOT ENTER'       } },
-  colapsado:   { color: '#4A0E0E', bg: '#FCECEC', border: '#DC3545', cardBorder: '#4A0E0E', label: { es: '💥 COLAPSADO',  en: '💥 COLLAPSED'      }, icon: '💥', acceso: { es: 'NO ENTRAR — COLAPSADO',  en: 'DO NOT ENTER'       } },
-  no_evaluado: { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', cardBorder: '#BFC9CA', label: { es: '⚪ Sin evaluar',en: '⚪ Not evaluated'   }, icon: '⚪', acceso: { es: 'Sin verificar',          en: 'Unverified'         } },
-  no_sabe:     { color: '#7F8C8D', bg: '#F2F3F4', border: '#BFC9CA', cardBorder: '#BFC9CA', label: { es: '⚪ Sin datos',  en: '⚪ No data'         }, icon: '⚪', acceso: { es: 'Sin información',        en: 'No information'     } },
-};
-
-// ── Categorías de personas ──────────────────────────────────────────────────
-const CATEGORIAS_PERSONAS = [
-  { id: 'desaparecidos', es: '🔴 Desaparecidos', en: '🔴 Missing', estados: ['buscando', 'informacion_recibida', 'visto_no_confirmado'] },
-  { id: 'localizados',   es: '✅ Localizados',   en: '✅ Located',  estados: ['encontrado_con_vida', 'en_hospital_refugio'] },
-  { id: 'encontrados',   es: '🙋 Encontrados',   en: '🙋 Found',   estados: ['encontrado_con_vida'], fuente: 'encontrada' },
-  { id: 'institucional', es: '🏛️ Institucional', en: '🏛️ Institutional', fuente: 'institucional' },
-  { id: 'estoy_aqui',    es: '📍 Estoy aquí',   en: '📍 I am here', fuente: 'cris' },
-];
-
-// ── Categorías de edificios ─────────────────────────────────────────────────
-const CATEGORIAS_EDIFICIOS = [
-  { id: 'criticos',    es: '🆘 Críticos / Atrapados', en: '🆘 Critical / Trapped', niveles: ['critico', 'colapsado'], atrapados: true },
-  { id: 'graves',      es: '🔴 Daño grave',           en: '🔴 Severe damage',       niveles: ['grave'] },
-  { id: 'moderados',   es: '🟠 Daño moderado',        en: '🟠 Moderate damage',     niveles: ['moderado'] },
-  { id: 'leves',       es: '🟡 Daño leve',            en: '🟡 Minor damage',        niveles: ['leve'] },
-  { id: 'sin_evaluar', es: '⚪ Sin evaluar',           en: '⚪ Not evaluated',       niveles: ['no_evaluado', 'no_sabe'] },
-];
 
 export default function Directorio() {
   const { lang } = useLang();
@@ -146,9 +110,6 @@ export default function Directorio() {
       return matchEstado && matchFuente && matchQuery;
     });
   };
-
-  // ── Orden de prioridad para sorting ──
-  const PRIORIDAD_SORT = { critico: 0, colapsado: 1, grave: 2, moderado: 3, leve: 4, no_evaluado: 5, no_sabe: 6 };
 
   // ── Filtrar edificios por categoría ────────────────────────────────────────
   const filtrarEdificios = (cat) => {
@@ -338,191 +299,38 @@ export default function Directorio() {
         )}
 
         {/* ── PERSONAS ── */}
-        {tab === 'personas' && !cargando && (() => {
-          const FUENTE_BADGE = {
-            busqueda:     { es: '🔴 Desaparecido',    en: '🔴 Missing',       cls: 'bg-red-50 text-red-700 border-red-200' },
-            encontrada:   { es: '🙋 Encontrado',      en: '🙋 Found',         cls: 'bg-green-50 text-green-700 border-green-200' },
-            cris:         { es: '📍 Estoy aquí',      en: '📍 I am here',     cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-            institucional:{ es: '🏛️ Institucional',   en: '🏛️ Institutional', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
-          };
-          if (vistaPersonas === 'lista') return (
+        {tab === 'personas' && !cargando && (
+          vistaPersonas === 'lista' ? (
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100">
-              {visibles.map(p => {
-                const st = PERSONA_ESTADO[p.estado_caso] || PERSONA_ESTADO['buscando'];
-                const badge = FUENTE_BADGE[p._fuente] || FUENTE_BADGE.busqueda;
-                const esCritico = p.estado_caso === 'buscando';
-                return (
-                  <div key={p.id} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 ${esCritico ? 'border-l-4 border-l-red-400' : ''}`}>
-                    <div onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 cursor-pointer ${esCritico ? 'bg-red-50' : 'bg-gray-50'}`}>
-                      {p._fuente === 'encontrada' ? '🙋' : p._fuente === 'cris' ? '📍' : '👤'}
-                    </div>
-                    <div onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className="flex-1 min-w-0 cursor-pointer">
-                      <p className="font-bold text-sm text-[#1A1F2E] truncate">{p._nombre}</p>
-                      <p className="text-xs text-gray-400 truncate flex items-center gap-1">
-                        <MapPin size={9} />{[p.ultima_ubicacion_conocida, p.ciudad].filter(Boolean).join(' · ')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <div className="flex flex-col items-end gap-1">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${st.cls}`}>{es ? st.es : st.en}</span>
-                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{es ? badge.es : badge.en}</span>
-                      </div>
-                      <button onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })}
-                        className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-blue-100 whitespace-nowrap">
-                        🔔 {es ? 'Avisar' : 'Notify'}
-                      </button>
-                      <span onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className="text-gray-300 text-xl cursor-pointer p-2 -m-2">›</span>
-                    </div>
-                  </div>
-                );
-              })}
+              {visibles.map(p => (
+                <PersonaListItem key={p.id} p={p} es={es} onSelect={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} />
+              ))}
             </div>
-          );
-          return (
+          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {visibles.map(p => {
-                const st = PERSONA_ESTADO[p.estado_caso] || PERSONA_ESTADO['buscando'];
-                const badge = FUENTE_BADGE[p._fuente] || FUENTE_BADGE.busqueda;
-                const esCritico = p.estado_caso === 'buscando';
-                return (
-                  <div key={p.id}
-                    className={`bg-white rounded-2xl border-2 p-4 space-y-2 hover:shadow-md transition-all ${esCritico ? 'border-red-200' : 'border-gray-100'}`}>
-                    <div onClick={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} className="cursor-pointer space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-black text-sm text-[#1A1F2E] leading-tight">{p._nombre}</p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {p.edad_aprox && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{p.edad_aprox} {es ? 'años' : 'yrs'}</span>}
-                            {p.sexo && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full capitalize">{p.sexo}</span>}
-                          </div>
-                        </div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${st.cls}`}>{es ? st.es : st.en}</span>
-                      </div>
-                      {(p.ultima_ubicacion_conocida || p.ciudad) && (
-                        <p className="text-xs text-gray-500 flex items-start gap-1">
-                          <MapPin size={10} className="flex-shrink-0 mt-0.5" />
-                          {[p.ultima_ubicacion_conocida, p.ciudad, p.estado_region].filter(Boolean).join(' · ')}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between pt-1 border-t border-gray-100 gap-2">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${badge.cls}`}>{es ? badge.es : badge.en}</span>
-                      <button
-                        onClick={ev => { ev.stopPropagation(); setFichaSeleccionada({ item: p, tipo: 'persona' }); }}
-                        className="text-[10px] font-semibold bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2.5 rounded-xl cursor-pointer hover:bg-blue-100 whitespace-nowrap flex-shrink-0">
-                        🔔 {es ? 'Avisar' : 'Notify'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              {visibles.map(p => (
+                <PersonaGridCard key={p.id} p={p} es={es} onSelect={() => setFichaSeleccionada({ item: p, tipo: 'persona' })} />
+              ))}
             </div>
-          );
-        })()}
+          )
+        )}
 
         {/* ── EDIFICIOS ── */}
-        {tab === 'edificios' && !cargando && (() => {
-          const tiempoRelativo = (fecha) => {
-            if (!fecha) return '';
-            const diff = Date.now() - new Date(fecha).getTime();
-            const m = Math.floor(diff / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
-            if (d > 0) return es ? `hace ${d}d` : `${d}d ago`;
-            if (h > 0) return es ? `hace ${h}h` : `${h}h ago`;
-            if (m < 1) return es ? 'ahora' : 'now';
-            return es ? `hace ${m}m` : `${m}m ago`;
-          };
-
-          const EdificioCard = ({ e, compact }) => {
-            const c = DANO_CONFIG[e.nivel_dano] || DANO_CONFIG.no_evaluado;
-            const noEntrar = ['grave', 'critico', 'colapsado'].includes(e.nivel_dano) || e.hayAtrapados;
-            const fotos = e.foto_urls || [];
-            const irFicha = () => { window.location.href = `/edificio?id=${e.id}`; };
-            const abrir = (ev) => { ev.stopPropagation(); setFichaSeleccionada({ item: e, tipo: 'edificio' }); };
-
-            // ── Vista lista con miniatura ──
-            if (compact) return (
-              <div className={`flex items-stretch hover:bg-gray-50 ${noEntrar ? 'border-l-4 border-l-red-500' : ''}`}
-                style={{ borderLeft: noEntrar ? `4px solid ${c.cardBorder}` : undefined }}>
-                <div onClick={irFicha} className="cursor-pointer flex-shrink-0" style={{ width: 72 }}>
-                  <EdificioImagen fotoUrls={fotos} tipoEstructura={e.tipo_estructura} nivelDano={e.nivel_dano} reporte={e} height={72} lang={lang} />
-                </div>
-                <div onClick={irFicha} className="flex-1 min-w-0 cursor-pointer px-3 py-2.5 flex flex-col justify-center gap-0.5">
-                  <p className="font-bold text-sm text-[#1A1F2E] truncate leading-tight">{e._nombre}</p>
-                  {e.tipo_estructura && <p className="text-[10px] text-gray-400 truncate capitalize">{e.tipo_estructura.replace(/_/g, ' ')}</p>}
-                  <p className="text-[10px] text-gray-400 truncate flex items-center gap-1">
-                    <MapPin size={8} />{[e.direccion, e.ciudad].filter(Boolean).join(' · ')}
-                  </p>
-                  <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full border"
-                      style={{ color: c.color, background: c.bg, borderColor: c.border }}>
-                      {c.icon} {es ? c.label.es : c.label.en}
-                    </span>
-                    {e.hayAtrapados && <span className="text-[9px] font-black bg-red-600 text-white px-1.5 py-0.5 rounded-full">🆘</span>}
-                    {e.riesgo_gas && <span className="text-[9px] bg-orange-50 text-orange-700 border border-orange-200 px-1 py-0.5 rounded-full">💨</span>}
-                    {e.riesgo_electrico && <span className="text-[9px] bg-yellow-50 text-yellow-700 border border-yellow-200 px-1 py-0.5 rounded-full">⚡</span>}
-                    {e.riesgo_incendio && <span className="text-[9px] bg-red-50 text-red-700 border border-red-200 px-1 py-0.5 rounded-full">🔥</span>}
-                  </div>
-                </div>
-                <div className="flex flex-col items-end justify-center gap-2 pr-3 flex-shrink-0">
-                  <span className="text-[9px] text-gray-400">{tiempoRelativo(e.updated_date || e.created_date)}</span>
-                  <button onClick={abrir} className="text-[9px] font-semibold bg-green-50 border border-green-300 text-green-700 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-green-100 whitespace-nowrap">
-                    🔔 {es ? 'Avísame' : 'Notify'}
-                  </button>
-                  <span onClick={irFicha} className="text-gray-300 text-xl cursor-pointer leading-none p-2 -m-2">›</span>
-                </div>
-              </div>
-            );
-
-            // ── Vista grid — idéntica a pages/Edificios ──
-            return (
-              <Link to={`/edificio?id=${e.id}`}
-                className="bg-white rounded-xl overflow-hidden no-underline hover:shadow-md transition-shadow flex flex-col"
-                style={{ border: `2px solid ${noEntrar ? c.cardBorder : '#E5E7EB'}` }}>
-                <EdificioImagen fotoUrls={fotos} tipoEstructura={e.tipo_estructura} nivelDano={e.nivel_dano} reporte={e} height={112} lang={lang} sinFotoNudge />
-                <div className="p-3 flex-1 flex flex-col gap-1">
-                  {noEntrar && (
-                    <span className="self-start text-[9px] font-black text-white bg-red-600 px-1.5 py-0.5 rounded">
-                      🚫 {es ? 'NO ENTRAR' : 'DO NOT ENTER'}
-                    </span>
-                  )}
-                  <p className="text-xs font-bold text-gray-900 leading-tight line-clamp-2">{e._nombre}</p>
-                  {e.tipo_estructura && <p className="text-[10px] text-gray-400 truncate capitalize">{e.tipo_estructura.replace(/_/g, ' ')}</p>}
-                  <p className="text-[10px] text-gray-400 truncate">📍 {[e.direccion, e.ciudad].filter(Boolean).join(' · ') || '—'}</p>
-                  <span className="self-start text-[10px] font-semibold px-2 py-0.5 rounded-full border mt-auto"
-                    style={{ color: c.color, borderColor: c.border, background: c.bg }}>
-                    {c.icon} {es ? c.label.es : c.label.en}
-                  </span>
-                  {(e.hayAtrapados || e.riesgo_gas || e.riesgo_electrico || e.riesgo_incendio) && (
-                    <div className="flex flex-wrap gap-0.5 mt-0.5">
-                      {e.hayAtrapados && <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full font-bold">🆘</span>}
-                      {e.riesgo_gas && <span className="text-[9px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full">💨</span>}
-                      {e.riesgo_electrico && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded-full">⚡</span>}
-                      {e.riesgo_incendio && <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded-full">🔥</span>}
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between mt-1 pt-1 border-t border-gray-100">
-                    <span className="text-[9px] text-gray-400">🕐 {tiempoRelativo(e.updated_date || e.created_date)}</span>
-                    <button onClick={ev => { ev.preventDefault(); abrir(ev); }}
-                      className="text-[9px] font-bold text-green-700 bg-green-50 border border-green-300 px-2.5 py-2 rounded-full hover:bg-green-100 cursor-pointer">
-                      🔔 {es ? 'Avísame' : 'Notify'}
-                    </button>
-                  </div>
-                </div>
-              </Link>
-            );
-          };
-
-          if (vistaEdificios === 'lista') return (
+        {tab === 'edificios' && !cargando && (
+          vistaEdificios === 'lista' ? (
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100">
-              {visibles.map(e => <EdificioCard key={e.id} e={e} compact />)}
+              {visibles.map(e => (
+                <EdificioCard key={e.id} e={e} es={es} lang={lang} compact onNotify={(item) => setFichaSeleccionada({ item, tipo: 'edificio' })} />
+              ))}
             </div>
-          );
-          return (
+          ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {visibles.map(e => <EdificioCard key={e.id} e={e} />)}
+              {visibles.map(e => (
+                <EdificioCard key={e.id} e={e} es={es} lang={lang} onNotify={(item) => setFichaSeleccionada({ item, tipo: 'edificio' })} />
+              ))}
             </div>
-          );
-        })()}
+          )
+        )}
 
         {lista.length > visibles.length && (
           <button onClick={() => setPage(p => p + 1)}
