@@ -103,6 +103,12 @@
 
 @layer base {
   * { box-sizing: border-box; }
+  /* Los inputs heredaban el color de texto claro del body (pensado para fondos oscuros).
+     Como la mayoría de formularios usan fondo blanco, esto volvía el texto casi invisible.
+     Forzamos texto oscuro y legible por defecto; las clases text-white explícitas lo sobreescriben. */
+  input, textarea, select {
+    color: #141414;
+  }
   body {
     font-family: var(--font-body);
     background-color: var(--surface-0);
