@@ -5,8 +5,9 @@ import TriageRapido from './TriageRapido';
 import ColaInspeccion from './ColaInspeccion';
 import TareasEspecialista from './TareasEspecialista';
 import InspeccionCampo from './InspeccionCampo';
+import TriajeMasivo from '@/components/admin/TriajeMasivo';
 
-export default function CentroTriage({ perfil, es, vistaInicial = 'triage' }) {
+export default function CentroTriage({ perfil, es, vistaInicial = 'triage', isAdmin = false }) {
   const [reportes, setReportes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [vista, setVista] = useState(vistaInicial);
@@ -40,6 +41,7 @@ export default function CentroTriage({ perfil, es, vistaInicial = 'triage' }) {
     { key: 'triage', es: `🔍 Triaje rápido (${porTriar})`, en: `🔍 Quick triage (${porTriar})` },
     { key: 'cola',   es: `📋 Inspección presencial (${enCola})`, en: `📋 On-site inspection (${enCola})` },
     { key: 'eval',   es: '🏛️ Evaluación detallada', en: '🏛️ Detailed assessment' },
+    ...(isAdmin ? [{ key: 'masivo', es: '🃏 Triaje masivo', en: '🃏 Bulk triage' }] : []),
   ];
 
   return (
@@ -67,6 +69,7 @@ export default function CentroTriage({ perfil, es, vistaInicial = 'triage' }) {
           {vista === 'triage' && <TriageRapido perfil={perfil} es={es} reportes={reportes} onTriaged={onTriaged} />}
           {vista === 'cola' && <ColaInspeccion perfil={perfil} es={es} reportes={reportes} onActualizado={onActualizado} />}
           {vista === 'eval' && <TareasEspecialista perfil={perfil} es={es} />}
+          {vista === 'masivo' && isAdmin && <TriajeMasivo />}
         </>
       )}
     </div>
