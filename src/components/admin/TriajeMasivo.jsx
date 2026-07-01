@@ -243,6 +243,7 @@ export default function TriajeMasivo() {
   const [procesando, setProcesando] = useState(false);
   const [procesados, setProcesados] = useState([]);
   const [stats, setStats]           = useState({ colapsado: 0, riesgo_colapso: 0, danos_visibles: 0, sin_danos: 0, sin_informacion: 0 });
+  const [contadoresGlobales, setContadoresGlobales] = useState({ colapsado: 0, riesgo_colapso: 0, danos_visibles: 0, sin_danos: 0, sin_informacion: 0, pendiente: 0, total: 0 });
   const [filtroFuente, setFiltroFuente] = useState('');
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [overlayColapsado, setOverlayColapsado] = useState(false);
@@ -264,6 +265,21 @@ export default function TriajeMasivo() {
         ? lista.filter(e => e.fuente === filtroFuente || (!e.fuente && filtroFuente === 'importacion_masiva'))
         : lista;
       setCola(filtrados);
+
+      // Calcular contadores globales de toda la lista filtrada
+      const cg = { colapsado: 0, riesgo_colapso: 0, danos_visibles: 0, sin_danos: 0, sin_informacion: 0, pendiente: 0, total: filtrados.length };
+      for (const e of filtrados) {
+        if (e.triage_estado === 'sin_informacion') cg.sin_informacion++;
+        else if (e.triage_estado === 'clasificado') {
+          if (e.triage_riesgo === 'riesgo_colapso' && e.nivel_dano === 'colapsado') cg.colapsado++;
+          else if (e.triage_riesgo === 'riesgo_colapso') cg.riesgo_colapso++;
+          else if (e.triage_riesgo === 'riesgo_moderado') cg.danos_visibles++;
+          else if (e.triage_riesgo === 'solo_estetico') cg.sin_danos++;
+        } else {
+          cg.pendiente++;
+        }
+      }
+      setContadoresGlobales(cg);
     } catch (e) {
       console.error('Error cargando cola:', e);
     }
@@ -411,21 +427,59 @@ export default function TriajeMasivo() {
         </button>
       </div>
 
-      {/* Stats — 5 categorías */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 5, marginBottom: 16 }}>
-        {[
-          { key: 'colapsado',       icon: '💥', label: 'Colapsado',    color: '#991b1b', bg: '#fee2e2' },
-          { key: 'riesgo_colapso',  icon: '⚠️', label: 'Riesgo col.', color: '#92400e', bg: '#fef3c7' },
-          { key: 'danos_visibles',  icon: '🔴', label: 'Con daños',    color: '#c2410c', bg: '#ffedd5' },
-          { key: 'sin_danos',       icon: '✅', label: 'Sin daños',    color: '#166534', bg: '#dcfce7' },
-          { key: 'sin_informacion', icon: '❓', label: 'Sin info',     color: '#5b21b6', bg: '#f5f3ff' },
-        ].map(s => (
-          <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '7px 4px', textAlign: 'center' }}>
-            <p style={{ fontSize: 16, fontWeight: 800, color: s.color, margin: 0 }}>{stats[s.key]}</p>
-            <p style={{ fontSize: 8, color: s.color, margin: 0, fontWeight: 600 }}>{s.icon} {s.label}</p>
+      {/* Contadores globales en BD */}
+      {!cargando && (
+        <div style={{ marginBottom: 16, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: '12px 14px' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 9px', display: 'flex', alignItems: 'center', gap: 5 }}>
+            📊 Estado en BD <span style={{ fontWeight: 400, color: '#94a3b8' }}>({contadoresGlobales.total} edificios cargados)</span>
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, marginBottom: 5 }}>
+            {[
+              { key: 'colapsado',      icon: '💥', label: 'Colapsados',  color: '#991b1b', bg: '#fee2e2' },
+              { key: 'riesgo_colapso', icon: '⚠️', label: 'Riesgo col.', color: '#92400e', bg: '#fef3c7' },
+              { key: 'danos_visibles', icon: '🔴', label: 'Con daños',   color: '#c2410c', bg: '#ffedd5' },
+            ].map(s => (
+              <div key={s.key} style={{ background: s.bg, borderRadius: 9, padding: '7px 4px', textAlign: 'center' }}>
+                <p style={{ fontSize: 18, fontWeight: 800, color: s.color, margin: 0 }}>{contadoresGlobales[s.key]}</p>
+                <p style={{ fontSize: 8, color: s.color, margin: 0, fontWeight: 600 }}>{s.icon} {s.label}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
+            {[
+              { key: 'sin_danos',       icon: '✅', label: 'Sin daños',  color: '#166534', bg: '#dcfce7' },
+              { key: 'sin_informacion', icon: '❓', label: 'Sin info',   color: '#5b21b6', bg: '#f5f3ff' },
+              { key: 'pendiente',       icon: '⏳', label: 'Pendientes', color: '#374151', bg: '#f1f5f9' },
+            ].map(s => (
+              <div key={s.key} style={{ background: s.bg, borderRadius: 9, padding: '7px 4px', textAlign: 'center' }}>
+                <p style={{ fontSize: 18, fontWeight: 800, color: s.color, margin: 0 }}>{contadoresGlobales[s.key]}</p>
+                <p style={{ fontSize: 8, color: s.color, margin: 0, fontWeight: 600 }}>{s.icon} {s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Stats sesión actual */}
+      {procesados.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 7px' }}>🕐 Esta sesión</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 5 }}>
+            {[
+              { key: 'colapsado',       icon: '💥', label: 'Colapsado',   color: '#991b1b', bg: '#fee2e2' },
+              { key: 'riesgo_colapso',  icon: '⚠️', label: 'Riesgo',      color: '#92400e', bg: '#fef3c7' },
+              { key: 'danos_visibles',  icon: '🔴', label: 'Con daños',   color: '#c2410c', bg: '#ffedd5' },
+              { key: 'sin_danos',       icon: '✅', label: 'Sin daños',   color: '#166534', bg: '#dcfce7' },
+              { key: 'sin_informacion', icon: '❓', label: 'Sin info',    color: '#5b21b6', bg: '#f5f3ff' },
+            ].map(s => (
+              <div key={s.key} style={{ background: s.bg, borderRadius: 9, padding: '6px 3px', textAlign: 'center' }}>
+                <p style={{ fontSize: 15, fontWeight: 800, color: s.color, margin: 0 }}>{stats[s.key]}</p>
+                <p style={{ fontSize: 7, color: s.color, margin: 0, fontWeight: 600 }}>{s.icon} {s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Estados */}
       {cargando ? (
