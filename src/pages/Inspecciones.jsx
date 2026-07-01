@@ -12,7 +12,8 @@ import CentroTriage from '@/components/portal/CentroTriage';
 export default function Inspecciones() {
   const { lang } = useLang();
   const es = lang === 'es';
-  const t = (a, b) => (es ? a : b);
+  const pt = lang === 'pt';
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
   const [user, setUser] = useState(null);
   const [perfil, setPerfil] = useState(null);

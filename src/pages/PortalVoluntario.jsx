@@ -138,6 +138,7 @@ function FichaPersonaBuscada({ persona, es, onUpdateEstado }) {
 export default function PortalVoluntario() {
   const { lang } = useLang();
   const es = lang === 'es';
+  const pt = lang === 'pt';
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
@@ -150,7 +151,7 @@ export default function PortalVoluntario() {
   const [solicitudes, setSolicitudes] = useState([]);
   const [cargandoDatos, setCargandoDatos] = useState(false);
 
-  const t = (a, b) => es ? a : b;
+  const t = (esStr, enStr, ptStr) => pt ? (ptStr || esStr) : es ? esStr : enStr;
 
   useEffect(() => {
     base44.auth.me()
@@ -237,18 +238,18 @@ export default function PortalVoluntario() {
               {esEspecialista ? (perfil.tipo_perfil === 'arquitecto' ? '📐' : '⚙️') : '🤝'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-white truncate">{user?.full_name || (es ? 'Voluntario' : 'Volunteer')}</p>
+              <p className="font-bold text-white truncate">{user?.full_name || t('Voluntario', 'Volunteer', 'Voluntário')}</p>
               <p className="text-xs text-gray-400 truncate">{user?.email}</p>
               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                   style={{ background: esEspecialista ? '#1D4ED8' : '#0F766E', color: '#fff' }}>
-                  {isAdmin ? t('Admin', 'Admin') : perfil ? t(perfil.tipo_perfil, perfil.tipo_perfil) : t('Voluntario', 'Volunteer')}
+                  {isAdmin ? 'Admin' : perfil ? t(perfil.tipo_perfil, perfil.tipo_perfil, perfil.tipo_perfil) : t('Voluntario', 'Volunteer', 'Voluntário')}
                 </span>
                 {esEspecialista && perfil.estado_aprobacion === 'pendiente' && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-500 text-white">⏳ {t('Pendiente aprobación', 'Pending approval')}</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-500 text-white">⏳ {t('Pendiente aprobación', 'Pending approval', 'Aprovação pendente')}</span>
                 )}
                 {esEspecialista && perfil.estado_aprobacion === 'aprobado' && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-600 text-white">✅ {t('Aprobado', 'Approved')}</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-600 text-white">✅ {t('Aprobado', 'Approved', 'Aprovado')}</span>
                 )}
               </div>
             </div>
@@ -260,8 +261,8 @@ export default function PortalVoluntario() {
               <div className="flex items-center gap-2">
                 <span className="text-lg">📋</span>
                 <div>
-                  <p className="text-sm font-bold text-white">{t('Dashboard de inspecciones', 'Inspections dashboard')}</p>
-                  <p className="text-[10px] text-blue-100">{t('Triaje y procesamiento técnico', 'Triage & technical processing')}</p>
+                  <p className="text-sm font-bold text-white">{t('Dashboard de inspecciones', 'Inspections dashboard', 'Painel de inspeções')}</p>
+                  <p className="text-[10px] text-blue-100">{t('Triaje y procesamiento técnico', 'Triage & technical processing', 'Triagem e processamento técnico')}</p>
                 </div>
               </div>
               <span className="text-white text-lg">→</span>
@@ -273,7 +274,8 @@ export default function PortalVoluntario() {
             <div className="mt-3 bg-yellow-900/40 border border-yellow-500/30 rounded-xl p-3">
               <p className="text-xs text-yellow-300 leading-relaxed">
                 ⏳ {t('Tu perfil de especialista está pendiente de revisión. Puedes acceder al portal, pero las evaluaciones estructurales se activarán cuando el administrador apruebe tu perfil.',
-                       'Your specialist profile is pending review. You can access the portal, but structural assessments will be activated when the admin approves your profile.')}
+                       'Your specialist profile is pending review. You can access the portal, but structural assessments will be activated when the admin approves your profile.',
+                       'Seu perfil de especialista está pendente de revisão. Você pode acessar o portal, mas as avaliações estruturais serão ativadas quando o administrador aprovar seu perfil.')}
               </p>
             </div>
           )}
@@ -283,15 +285,15 @@ export default function PortalVoluntario() {
         <div className="grid grid-cols-3 gap-2 mb-4">
           <div className="bg-white rounded-xl border border-gray-200 px-3 py-3 text-center">
             <p className="text-2xl font-black text-teal-700">{personasRegistradas.length}</p>
-            <p className="text-[10px] text-gray-500 font-medium">{t('Fichas', 'Records')}</p>
+            <p className="text-[10px] text-gray-500 font-medium">{t('Fichas', 'Records', 'Fichas')}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 px-3 py-3 text-center">
             <p className="text-2xl font-black text-amber-600">{personasBuscadas.length}</p>
-            <p className="text-[10px] text-gray-500 font-medium">{t('Búsquedas', 'Searches')}</p>
+            <p className="text-[10px] text-gray-500 font-medium">{t('Búsquedas', 'Searches', 'Buscas')}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 px-3 py-3 text-center cursor-pointer" onClick={() => setTab('edificios')}>
             <p className="text-2xl font-black text-blue-700">🏗️</p>
-            <p className="text-[10px] text-gray-500 font-medium">{t('Edificios', 'Buildings')}</p>
+            <p className="text-[10px] text-gray-500 font-medium">{t('Edificios', 'Buildings', 'Edifícios')}</p>
           </div>
         </div>
 
@@ -300,7 +302,7 @@ export default function PortalVoluntario() {
           {tabs.map(tb => (
             <button key={tb.key} onClick={() => setTab(tb.key)}
               className={`px-4 py-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${tab === tb.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
-              <span>{tb.icon}</span> {es ? tb.es : tb.en}
+              <span>{tb.icon}</span> {t(tb.es, tb.en, tb.es)}
             </button>
           ))}
         </div>
@@ -308,46 +310,46 @@ export default function PortalVoluntario() {
         {/* ── TAB: INICIO ── */}
         {tab === 'inicio' && (
           <div className="space-y-3">
-            <p className="text-sm font-bold text-gray-700 mb-2">{t('Acciones rápidas', 'Quick actions')}</p>
+            <p className="text-sm font-bold text-gray-700 mb-2">{t('Acciones rápidas', 'Quick actions', 'Ações rápidas')}</p>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => { setTriageVistaInicial('campo'); setTab('tareas'); }} className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-3 py-3 cursor-pointer hover:bg-red-100 text-left col-span-2">
                 <span className="text-xl">📸</span>
                 <div>
-                  <p className="text-xs font-bold text-red-800">{t('Pedir inspección / Tomar fotos de daños', 'Request inspection / Take damage photos')}</p>
-                  <p className="text-[10px] text-red-600 mt-0.5">{t('Funciona sin señal — se sube después', 'Works offline — uploads later')}</p>
+                  <p className="text-xs font-bold text-red-800">{t('Pedir inspección / Tomar fotos de daños', 'Request inspection / Take damage photos', 'Solicitar inspeção / Tirar fotos de danos')}</p>
+                  <p className="text-[10px] text-red-600 mt-0.5">{t('Funciona sin señal — se sube después', 'Works offline — uploads later', 'Funciona sem sinal — envia depois')}</p>
                 </div>
               </button>
               <Link to="/edificios?tab=reportar" className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-3 py-3 no-underline hover:bg-red-100">
                 <span className="text-xl">🚨</span>
-                <div><p className="text-xs font-bold text-red-800">{t('Reportar daño', 'Report damage')}</p></div>
+                <div><p className="text-xs font-bold text-red-800">{t('Reportar daño', 'Report damage', 'Reportar dano')}</p></div>
               </Link>
               <button onClick={() => setTab('edificios')} className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-3 py-3 cursor-pointer hover:bg-blue-100 text-left">
                 <span className="text-xl">🏗️</span>
-                <div><p className="text-xs font-bold text-blue-800">{t('Gestionar edificios', 'Manage buildings')}</p></div>
+                <div><p className="text-xs font-bold text-blue-800">{t('Gestionar edificios', 'Manage buildings', 'Gerenciar edifícios')}</p></div>
               </button>
               <Link to="/buscar-persona" className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-3 py-3 no-underline hover:bg-amber-100">
                 <span className="text-xl">🔎</span>
-                <div><p className="text-xs font-bold text-amber-800">{t('Buscar persona', 'Search person')}</p></div>
+                <div><p className="text-xs font-bold text-amber-800">{t('Buscar persona', 'Search person', 'Procurar pessoa')}</p></div>
               </Link>
               <Link to="/reportar-encontrado" className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-3 py-3 no-underline hover:bg-green-100">
                 <span className="text-xl">🙋</span>
-                <div><p className="text-xs font-bold text-green-800">{t('Encontré alguien', 'I found someone')}</p></div>
+                <div><p className="text-xs font-bold text-green-800">{t('Encontré alguien', 'I found someone', 'Encontrei alguém')}</p></div>
               </Link>
               <Link to="/centros-apoyo" className="flex items-center gap-3 bg-teal-50 border border-teal-200 rounded-xl px-3 py-3 no-underline hover:bg-teal-100">
                 <span className="text-xl">🏥</span>
-                <div><p className="text-xs font-bold text-teal-800">{t('Centros de apoyo', 'Help centers')}</p></div>
+                <div><p className="text-xs font-bold text-teal-800">{t('Centros de apoyo', 'Help centers', 'Centros de apoio')}</p></div>
               </Link>
               {(esEspecialista || isAdmin) && (
                 <button onClick={() => setTab('tareas')} className="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-xl px-3 py-3 cursor-pointer hover:bg-purple-100 text-left">
                   <span className="text-xl">⚙️</span>
-                  <div><p className="text-xs font-bold text-purple-800">{t('Evaluar estructuras', 'Assess structures')}</p></div>
+                  <div><p className="text-xs font-bold text-purple-800">{t('Evaluar estructuras', 'Assess structures', 'Avaliar estruturas')}</p></div>
                 </button>
               )}
               {(especialistaAprobado || isAdmin) && (
                 <Link to="/inspecciones" className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-3 py-3 no-underline hover:bg-blue-100 col-span-2">
                   <span className="text-xl">📋</span>
-                  <div><p className="text-xs font-bold text-blue-800">{t('Dashboard de inspecciones', 'Inspections dashboard')}</p>
-                  <p className="text-[10px] text-blue-600 mt-0.5">{t('Solo ingenieros y arquitectos', 'Engineers & architects only')}</p></div>
+                  <div><p className="text-xs font-bold text-blue-800">{t('Dashboard de inspecciones', 'Inspections dashboard', 'Painel de inspeções')}</p>
+                  <p className="text-[10px] text-blue-600 mt-0.5">{t('Solo ingenieros y arquitectos', 'Engineers & architects only', 'Somente engenheiros e arquitetos')}</p></div>
                 </Link>
               )}
             </div>
@@ -367,11 +369,11 @@ export default function PortalVoluntario() {
               ].map(st => (
                 <button key={st.key} onClick={() => setSolicitudes(st.key)}
                   className="px-3 py-2 text-xs font-semibold border rounded-xl whitespace-nowrap cursor-pointer bg-white border-gray-200 text-gray-600 hover:border-gray-400">
-                  {es ? st.es : st.en}
+                  {t(st.es, st.en, st.es)}
                 </button>
               ))}
               <button onClick={cargarDatos} disabled={cargandoDatos} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 px-2">
-                <RefreshCw size={11} className={cargandoDatos ? 'animate-spin' : ''} /> {t('Refrescar', 'Refresh')}
+              <RefreshCw size={11} className={cargandoDatos ? 'animate-spin' : ''} /> {t('Refrescar', 'Refresh', 'Atualizar')}
               </button>
             </div>
             {cargandoDatos ? (
@@ -387,7 +389,7 @@ export default function PortalVoluntario() {
                 {personasRegistradas.length === 0 && personasBuscadas.length === 0 && (
                   <div className="text-center py-10">
                     <p className="text-3xl mb-3">👤</p>
-                    <p className="text-sm text-gray-500">{t('No has registrado personas todavía.', 'No people registered yet.')}</p>
+                    <p className="text-sm text-gray-500">{t('No has registrado personas todavía.', 'No people registered yet.', 'Nenhuma pessoa registrada ainda.')}</p>
                   </div>
                 )}
               </div>
@@ -401,10 +403,11 @@ export default function PortalVoluntario() {
             {(esEspecialista && perfil.estado_aprobacion === 'pendiente') ? (
               <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 text-center">
                 <p className="text-3xl mb-3">⏳</p>
-                <p className="text-sm font-bold text-yellow-800">{t('Evaluaciones en espera de aprobación', 'Assessments pending approval')}</p>
+                <p className="text-sm font-bold text-yellow-800">{t('Evaluaciones en espera de aprobación', 'Assessments pending approval', 'Avaliações aguardando aprovação')}</p>
                 <p className="text-xs text-yellow-700 mt-2 leading-relaxed">
                   {t('El administrador debe aprobar tu perfil de especialista antes de que puedas registrar evaluaciones estructurales.',
-                     'The admin must approve your specialist profile before you can register structural assessments.')}
+                     'The admin must approve your specialist profile before you can register structural assessments.',
+                     'O administrador deve aprovar seu perfil de especialista antes de você registrar avaliações estruturais.')}
                 </p>
               </div>
             ) : (
