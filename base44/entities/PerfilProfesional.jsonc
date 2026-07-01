@@ -119,6 +119,26 @@
       "type": "boolean",
       "default": false,
       "description": "Si el token ya fue usado para subir la foto"
+    },
+    "tipo_credencial_solicitada": {
+      "type": "string",
+      "enum": [
+        "titulo",
+        "carnet",
+        "certificacion",
+        "identificacion",
+        "otro"
+      ],
+      "description": "Tipo de documento/credencial adicional solicitado por el admin"
+    },
+    "token_credencial_adicional": {
+      "type": "string",
+      "description": "Token privado individual para subir una credencial adicional solicitada por el admin, sin necesidad de iniciar sesi\u00f3n"
+    },
+    "token_credencial_usado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el token de credencial adicional ya fue usado"
     }
   },
   "required": [

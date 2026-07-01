@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2, CheckCircle, XCircle, Copy, Check, Trash2, Plus, Link as LinkIcon, Camera } from 'lucide-react';
+import CredencialAdicionalPanel from './CredencialAdicionalPanel';
 
 const ESTADO_BADGE = {
   pendiente: 'bg-amber-100 text-amber-800 border-amber-200',
@@ -288,6 +289,7 @@ export default function GestionVoluntarios({ es }) {
         {[
           { key: 'solicitudes', label: es ? `Solicitudes (${pendientesCount} pend.)` : `Requests (${pendientesCount} pend.)` },
           { key: 'tokens', label: es ? `Links Institucionales (${invitaciones.filter(i => i.activo).length})` : `Institutional Links (${invitaciones.filter(i => i.activo).length})` },
+          { key: 'credenciales', label: es ? 'Credenciales' : 'Credentials' },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`px-4 py-2 text-sm font-semibold rounded-lg border transition-colors ${tab === t.key ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}>
@@ -431,6 +433,9 @@ export default function GestionVoluntarios({ es }) {
           )}
         </div>
       )}
+
+      {/* Credenciales adicionales */}
+      {tab === 'credenciales' && <CredencialAdicionalPanel es={es} />}
     </div>
   );
 }

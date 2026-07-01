@@ -57,6 +57,7 @@ import ComoFunciona from './pages/ComoFunciona.jsx';
 import RecursosTecnicos from './pages/RecursosTecnicos.jsx';
 import InformacionEducacion from './pages/InformacionEducacion.jsx';
 import SubirFotoPerfil from './pages/SubirFotoPerfil.jsx';
+import SubirCredencial from './pages/SubirCredencial.jsx';
 
 // Public app — no authentication gate needed for emergency access
 const PublicApp = () => (
@@ -108,6 +109,7 @@ const PublicApp = () => (
     <Route path="/recursos-tecnicos" element={<RecursosTecnicos />} />
     <Route path="/informacion" element={<InformacionEducacion />} />
     <Route path="/subir-foto-perfil" element={<SubirFotoPerfil />} />
+    <Route path="/subir-credencial" element={<SubirCredencial />} />
     <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
