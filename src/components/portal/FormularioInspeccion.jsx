@@ -44,6 +44,14 @@ const SEVERIDAD_A_NIVEL = { leve: 'leve', moderado: 'moderado', grave: 'grave', 
 
 const MAX_FOTOS = 12;
 
+const DERIVACION_OPTS = [
+  { val: '', es: 'Ninguna / no aplica', en: 'None / not applicable' },
+  { val: 'proteccion_civil', es: 'Protección Civil', en: 'Civil Protection' },
+  { val: 'bomberos', es: 'Bomberos', en: 'Firefighters' },
+  { val: 'ingenieria_estructural', es: 'Ingeniería estructural', en: 'Structural engineering' },
+  { val: 'alcaldia', es: 'Alcaldía / autoridad local', en: 'Mayor\'s office / local authority' },
+];
+
 export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, onActualizado }) {
   const [severidad, setSeveridad] = useState(reporte.inspeccion_severidad && reporte.inspeccion_severidad !== 'sin_definir' ? reporte.inspeccion_severidad : '');
   const [tipoDano, setTipoDano] = useState(reporte.inspeccion_tipo_dano && reporte.inspeccion_tipo_dano !== 'sin_definir' ? reporte.inspeccion_tipo_dano : '');
@@ -55,7 +63,14 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
   const [progreso, setProgreso] = useState('');
   const [error, setError] = useState('');
 
-  const puedeConfirmar = !!severidad && !!tipoDano;
+  // Checklist de cierre (Período 12 — reporte final)
+  const [areasDocumentadas, setAreasDocumentadas] = useState(null); // true/false
+  const [riesgoColapso, setRiesgoColapso] = useState(null); // true/false
+  const [derivacion, setDerivacion] = useState('');
+  const [confirmaFinal, setConfirmaFinal] = useState(false);
+
+  const checklistCompleto = areasDocumentadas !== null && riesgoColapso !== null && confirmaFinal;
+  const puedeConfirmar = !!severidad && !!tipoDano && checklistCompleto;
 
   const agregarFotos = async (files) => {
     const espacio = MAX_FOTOS - fotos.length;
@@ -115,8 +130,16 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
         inspeccion_motivo_pendiente: '',
         nivel_verificacion: 'institucional',
         estado_verificacion: 'verificado',
+        derivacion_recomendada: derivacion,
+        tipo_evaluacion: 'evaluacion_presencial',
+        comentarios_tecnicos: [
+          ...(reporte.comentarios_tecnicos || []),
+          { texto: notas.trim() || (es ? 'Inspección presencial completada.' : 'On-site inspection completed.'), autor: inspector, fecha: ahora },
+        ],
       };
       if (SEVERIDAD_A_NIVEL[severidad]) dataUpdate.nivel_dano = SEVERIDAD_A_NIVEL[severidad];
+      // Riesgo inminente de colapso confirmado en el checklist de cierre → prioridad crítica automática
+      if (riesgoColapso) dataUpdate.prioridad = 'critica';
       if (detalle.length) {
         dataUpdate.inspeccion_detalle_fotos = detalle;
         dataUpdate.inspeccion_fotos = urls;
@@ -269,6 +292,49 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
         </div>
       </div>
 
+      {/* Checklist de cierre — Reporte final */}
+      <div className="bg-white border border-gray-300 rounded-xl p-3 space-y-3">
+        <p className="text-xs font-bold text-gray-800">✅ {es ? 'Checklist de cierre (antes de terminar)' : 'Closing checklist (before finishing)'}</p>
+
+        <div>
+          <p className="text-[11px] font-semibold text-gray-600 mb-1.5">{es ? '¿Se documentaron todas las áreas críticas?' : 'Were all critical areas documented?'} <span className="text-red-500">*</span></p>
+          <div className="grid grid-cols-2 gap-1.5">
+            <button type="button" onClick={() => setAreasDocumentadas(true)}
+              className={`py-2 rounded-lg text-xs font-semibold border cursor-pointer ${areasDocumentadas === true ? 'bg-green-700 text-white border-green-700' : 'bg-white text-gray-700 border-gray-300'}`}>{es ? 'Sí' : 'Yes'}</button>
+            <button type="button" onClick={() => setAreasDocumentadas(false)}
+              className={`py-2 rounded-lg text-xs font-semibold border cursor-pointer ${areasDocumentadas === false ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-700 border-gray-300'}`}>{es ? 'No' : 'No'}</button>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold text-gray-600 mb-1.5">{es ? '¿Existe riesgo inminente de colapso?' : 'Is there an imminent risk of collapse?'} <span className="text-red-500">*</span></p>
+          <div className="grid grid-cols-2 gap-1.5">
+            <button type="button" onClick={() => setRiesgoColapso(true)}
+              className={`py-2 rounded-lg text-xs font-semibold border cursor-pointer ${riesgoColapso === true ? 'bg-red-700 text-white border-red-700' : 'bg-white text-gray-700 border-gray-300'}`}>{es ? 'Sí' : 'Yes'}</button>
+            <button type="button" onClick={() => setRiesgoColapso(false)}
+              className={`py-2 rounded-lg text-xs font-semibold border cursor-pointer ${riesgoColapso === false ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-700 border-gray-300'}`}>{es ? 'No' : 'No'}</button>
+          </div>
+          {riesgoColapso === true && (
+            <p className="text-[10px] text-red-700 font-semibold mt-1">⚠️ {es ? 'La prioridad del reporte pasará a Crítica automáticamente.' : 'The report priority will automatically become Critical.'}</p>
+          )}
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold text-gray-600 mb-1.5">{es ? '¿Se recomienda derivar a alguna autoridad?' : 'Should this be referred to an authority?'}</p>
+          <select value={derivacion} onChange={e => setDerivacion(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-green-500 cursor-pointer">
+            {DERIVACION_OPTS.map(o => <option key={o.val} value={o.val}>{es ? o.es : o.en}</option>)}
+          </select>
+        </div>
+
+        <label className="flex items-start gap-2 cursor-pointer select-none">
+          <input type="checkbox" checked={confirmaFinal} onChange={e => setConfirmaFinal(e.target.checked)} className="mt-0.5 rounded" />
+          <span className="text-[11px] text-gray-700 leading-relaxed">
+            {es ? 'Confirmo que este informe refleja fielmente la situación observada en sitio.' : 'I confirm this report faithfully reflects the situation observed on site.'}
+          </span>
+        </label>
+      </div>
+
       {error && <p className="text-xs text-red-600 text-center">{error}</p>}
       {enviando && progreso && (
         <p className="text-[11px] text-green-700 text-center flex items-center justify-center gap-1.5">
@@ -282,7 +348,7 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
         {es ? 'Confirmar y generar informe PDF' : 'Confirm and generate PDF report'}
       </button>
       {!puedeConfirmar && (
-        <p className="text-[10px] text-gray-400 text-center -mt-1">{es ? 'Elige severidad y tipo de daño para confirmar.' : 'Choose severity and damage type to confirm.'}</p>
+        <p className="text-[10px] text-gray-400 text-center -mt-1">{es ? 'Elige severidad, tipo de daño y completa el checklist de cierre para confirmar.' : 'Choose severity, damage type, and complete the closing checklist to confirm.'}</p>
       )}
       <button type="button" onClick={onCancelar} disabled={enviando}
         className="w-full text-xs text-gray-400 underline cursor-pointer disabled:opacity-40">{es ? 'Cancelar' : 'Cancel'}</button>

@@ -62,6 +62,9 @@ Deno.serve(async (req) => {
     const rep = await base44.asServiceRole.entities.ReportesDano.get(reporteId).catch(() => null);
     if (!rep) return Response.json({ error: 'Reporte no encontrado' }, { status: 404 });
 
+    const historial = await base44.asServiceRole.entities.ActualizacionesSitios.filter({ sitio_id: reporteId }, '-created_date', 30).catch(() => []);
+    const comentarios = Array.isArray(rep.comentarios_tecnicos) ? rep.comentarios_tecnicos : [];
+
     const detalle = Array.isArray(rep.inspeccion_detalle_fotos) ? rep.inspeccion_detalle_fotos : [];
     const sev = rep.inspeccion_severidad && rep.inspeccion_severidad !== 'sin_definir' ? rep.inspeccion_severidad : null;
     const selloKey = sev ? SEVERIDAD_A_SELLO[sev] : null;
@@ -121,7 +124,138 @@ Deno.serve(async (req) => {
     }
     y = Math.max(y, 180);
 
+    // ── Ficha resumen del caso ──
+    doc.setDrawColor(229, 231, 235);
+    doc.line(margin, y, pageW - margin, y);
+    y += 20;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(17, 24, 39);
+    doc.text('Ficha resumen del caso', margin, y);
+    y += 18;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(55, 65, 81);
+    const TIPO_ESTRUCTURA_LBL: Record<string, string> = {
+      edificio_residencial: 'Edificio residencial', hospital: 'Hospital', escuela: 'Escuela', iglesia: 'Iglesia',
+      comercio: 'Comercio', calle_via: 'Calle / Vía', puente: 'Puente', servicio_publico: 'Servicio público',
+      refugio: 'Refugio', otro: 'Otro',
+    };
+    const ESTADO_LBL: Record<string, string> = {
+      recibido: 'Recibido', verificado: 'Verificado', duplicado: 'Duplicado', falso: 'Falso', resuelto: 'Resuelto',
+    };
+    const fichaFilas: [string, string][] = [
+      ['Código de reporte', rep.codigo_reporte || '—'],
+      ['Estado actual', ESTADO_LBL[rep.estado_verificacion] || rep.estado_verificacion || '—'],
+      ['Ubicación aproximada', [rep.ciudad, rep.estado_region].filter(Boolean).join(', ') || '—'],
+      ['Tipo de edificación', TIPO_ESTRUCTURA_LBL[rep.tipo_estructura] || (rep.tipo_estructura || '—').replace(/_/g, ' ')],
+      ['Pisos totales', rep.pisos_totales || '—'],
+      ['Piso desde donde se reportó', rep.piso_reporta || '—'],
+      ['Piso(s) afectado(s)', rep.pisos_afectados || '—'],
+      ['Descripción del daño', rep.descripcion || '—'],
+      ['Fotos cargadas', String((rep.foto_urls || []).length + detalle.length)],
+      ['Prioridad', (rep.prioridad || 'normal').toUpperCase()],
+      ['Tipo de evaluación', (rep.tipo_evaluacion || 'pendiente_asignacion').replace(/_/g, ' ')],
+      ['Profesional / voluntario asignado', rep.voluntario_asignado_nombre || rep.inspeccion_por || '—'],
+      ['Derivación recomendada', rep.derivacion_recomendada ? rep.derivacion_recomendada.replace(/_/g, ' ') : '—'],
+      ['Fecha de creación', rep.created_date ? new Date(rep.created_date).toLocaleString('es-VE') : '—'],
+      ['Última actualización', rep.updated_date ? new Date(rep.updated_date).toLocaleString('es-VE') : '—'],
+      ['Fecha de cierre', rep.triage_estado === 'inspeccionado' && rep.inspeccion_fecha ? new Date(rep.inspeccion_fecha).toLocaleString('es-VE') : '—'],
+    ];
+    fichaFilas.forEach(([k, v]) => {
+      ensureSpace(15);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${k}:`, margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(doc.splitTextToSize(String(v), pageW - margin * 2 - 160), margin + 160, y);
+      y += 15;
+    });
+
+    // Comentarios técnicos
+    if (comentarios.length > 0) {
+      y += 6;
+      ensureSpace(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(17, 24, 39);
+      doc.text('Comentarios técnicos', margin, y);
+      y += 16;
+      doc.setFontSize(9);
+      comentarios.forEach((c: any) => {
+        ensureSpace(24);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(55, 65, 81);
+        doc.text(`${c.autor || '—'} — ${c.fecha ? new Date(c.fecha).toLocaleString('es-VE') : ''}`, margin, y);
+        y += 12;
+        doc.setFont('helvetica', 'normal');
+        const lines = doc.splitTextToSize(c.texto || '', pageW - margin * 2);
+        lines.forEach((ln: string) => { ensureSpace(12); doc.text(ln, margin, y); y += 12; });
+        y += 4;
+      });
+    }
+
+    // Historial de cambios (línea de tiempo)
+    if (historial.length > 0) {
+      y += 6;
+      ensureSpace(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(17, 24, 39);
+      doc.text('Historial de cambios', margin, y);
+      y += 16;
+      doc.setFontSize(9);
+      historial.forEach((h: any) => {
+        ensureSpace(24);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(55, 65, 81);
+        doc.text(`${h.created_date ? new Date(h.created_date).toLocaleString('es-VE') : ''} — ${(h.tipo_accion || '').replace(/_/g, ' ')}`, margin, y);
+        y += 12;
+        if (h.descripcion) {
+          doc.setFont('helvetica', 'normal');
+          const lines = doc.splitTextToSize(h.descripcion, pageW - margin * 2);
+          lines.forEach((ln: string) => { ensureSpace(12); doc.text(ln, margin, y); y += 12; });
+        }
+        y += 4;
+      });
+    }
+
+    // Recomendaciones preliminares y advertencia legal
+    y += 6;
+    ensureSpace(50);
+    doc.setFillColor(239, 246, 255);
+    doc.setDrawColor(59, 130, 246);
+    const recTxt = rep.derivacion_recomendada
+      ? `Se recomienda derivar este caso a: ${rep.derivacion_recomendada.replace(/_/g, ' ')}.`
+      : 'Sin recomendación de derivación registrada.';
+    const recLines = doc.splitTextToSize(recTxt, pageW - margin * 2 - 20);
+    const recH = 20 + recLines.length * 11;
+    doc.roundedRect(margin, y, pageW - margin * 2, recH, 6, 6, 'FD');
+    doc.setTextColor(30, 64, 175);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('Recomendaciones preliminares', margin + 10, y + 13);
+    doc.setFont('helvetica', 'normal');
+    let ry = y + 25;
+    recLines.forEach((ln: string) => { doc.text(ln, margin + 10, ry); ry += 11; });
+    y += recH + 10;
+
+    ensureSpace(50);
+    doc.setFillColor(254, 242, 242);
+    doc.setDrawColor(220, 38, 38);
+    const disclaimerLines = doc.splitTextToSize(
+      'Esta ficha es un resumen informativo generado por voluntarios/profesionales de Status Vzla y NO sustituye una evaluación de ingeniería estructural profesional. Los resultados están sujetos a verificación en sitio por autoridades competentes.',
+      pageW - margin * 2 - 20
+    );
+    const discH = 16 + disclaimerLines.length * 11;
+    doc.roundedRect(margin, y, pageW - margin * 2, discH, 6, 6, 'FD');
+    doc.setTextColor(153, 27, 27);
+    doc.setFontSize(8.5);
+    let dy = y + 14;
+    disclaimerLines.forEach((ln: string) => { doc.text(ln, margin + 10, dy); dy += 11; });
+    y += discH + 10;
+
     // Resumen del resultado
+    ensureSpace(20);
     doc.setDrawColor(229, 231, 235);
     doc.line(margin, y, pageW - margin, y);
     y += 20;
