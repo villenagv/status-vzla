@@ -198,7 +198,7 @@ export default function PersonaDetalle() {
               <h1 className="text-lg font-black text-white leading-tight">{persona.nombre_completo}</h1>
               {persona.apodo && <p className="text-xs text-white/50 mt-0.5">"{persona.apodo}"</p>}
               <div className="flex flex-wrap gap-1 mt-1.5">
-                {persona.edad_aprox && <span className="text-[10px] bg-white/10 text-white/70 px-1.5 py-0.5 rounded-full">{persona.edad_aprox} {es ? 'años' : 'yrs'}</span>}
+                {persona.edad_aprox && <span className="text-[10px] bg-white/10 text-white/70 px-1.5 py-0.5 rounded-full">{persona.edad_aprox} {t('años', 'yrs', 'anos')}</span>}
                 {persona.sexo && <span className="text-[10px] bg-white/10 text-white/70 px-1.5 py-0.5 rounded-full capitalize">{persona.sexo}</span>}
                 {persona.nivel_verificacion && persona.nivel_verificacion !== 'sin_verificar' && (
                   <span className="text-[10px] bg-purple-500/30 text-purple-200 px-1.5 py-0.5 rounded-full">
@@ -211,19 +211,19 @@ export default function PersonaDetalle() {
           {/* Código CRIS */}
           <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-white/30 uppercase tracking-widest">{es ? 'ID de rastreo' : 'Tracking ID'}</p>
+              <p className="text-[10px] text-white/30 uppercase tracking-widest">{t('ID de rastreo', 'Tracking ID', 'ID de rastreamento')}</p>
               <p className="text-sm font-mono font-bold text-white/70">{id.slice(0, 12).toUpperCase()}</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-white/30">{es ? 'Reportado' : 'Reported'}</p>
+              <p className="text-[10px] text-white/30">{t('Reportado', 'Reported', 'Reportado')}</p>
               <p className="text-xs text-white/60">{tiempoRelativo(persona.created_date, es)}</p>
             </div>
           </div>
           {/* Progreso del historial */}
           <div className="mt-3 pt-3 border-t border-white/10">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-[10px] text-white/30">{es ? 'Actividad del caso' : 'Case activity'}</p>
-              <p className="text-[10px] text-white/50">{timelineUnificado.length} {es ? 'eventos' : 'events'}</p>
+              <p className="text-[10px] text-white/30">{t('Actividad del caso', 'Case activity', 'Atividade do caso')}</p>
+              <p className="text-[10px] text-white/50">{timelineUnificado.length} {t('eventos', 'events', 'eventos')}</p>
             </div>
             <div className="flex gap-1">
               {timelineUnificado.slice(0, 10).map((e, i) => {
@@ -249,13 +249,13 @@ export default function PersonaDetalle() {
         {/* ── TABS ── */}
         <div className="flex gap-1.5 mb-4">
           {[
-            { val: 'info',     es: '📋 Información', en: '📋 Info' },
-            { val: 'historial',es: `🕐 Historial (${timelineUnificado.length})`, en: `🕐 Timeline (${timelineUnificado.length})` },
-            { val: 'contactos',es: '📞 Contactar',   en: '📞 Contact' },
-          ].map(t => (
-            <button key={t.val} onClick={() => setTabActiva(t.val)}
-              className={`flex-1 text-xs font-bold py-2.5 rounded-xl border-2 transition-colors cursor-pointer ${tabActiva === t.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-gray-200 text-gray-600'}`}>
-              {es ? t.es : t.en}
+            { val: 'info',     es: '📋 Información', en: '📋 Info',       pt: '📋 Informação' },
+            { val: 'historial',es: `🕐 Historial (${timelineUnificado.length})`, en: `🕐 Timeline (${timelineUnificado.length})`, pt: `🕐 Histórico (${timelineUnificado.length})` },
+            { val: 'contactos',es: '📞 Contactar',   en: '📞 Contact',    pt: '📞 Contato' },
+          ].map(tab => (
+            <button key={tab.val} onClick={() => setTabActiva(tab.val)}
+              className={`flex-1 text-xs font-bold py-2.5 rounded-xl border-2 transition-colors cursor-pointer ${tabActiva === tab.val ? 'bg-[#1A1F2E] text-white border-[#1A1F2E]' : 'bg-white border-gray-200 text-gray-600'}`}>
+              {t(tab.es, tab.en, tab.pt)}
             </button>
           ))}
         </div>
@@ -264,25 +264,25 @@ export default function PersonaDetalle() {
         {tabActiva === 'info' && (
           <div className="space-y-4">
             <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
-              <h2 className="text-sm font-bold text-gray-700">{es ? 'Información disponible' : 'Available information'}</h2>
+              <h2 className="text-sm font-bold text-gray-700">{t('Información disponible', 'Available information', 'Informações disponíveis')}</h2>
               {(persona.ultima_ubicacion_conocida || persona.ciudad) && (
                 <div className="flex items-start gap-2">
                   <MapPin size={13} className="text-gray-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] text-gray-400">{es ? 'Última ubicación conocida' : 'Last known location'}</p>
+                    <p className="text-[10px] text-gray-400">{t('Última ubicación conocida', 'Last known location', 'Última localização conhecida')}</p>
                     <p className="text-sm text-gray-800">{[persona.ultima_ubicacion_conocida, persona.ciudad, persona.estado_region].filter(Boolean).join(' · ')}</p>
                   </div>
                 </div>
               )}
               {persona.descripcion_fisica && (
                 <div>
-                  <p className="text-[10px] text-gray-400 mb-0.5">{es ? 'Descripción física' : 'Physical description'}</p>
+                  <p className="text-[10px] text-gray-400 mb-0.5">{t('Descripción física', 'Physical description', 'Descrição física')}</p>
                   <p className="text-sm text-gray-800">{persona.descripcion_fisica}</p>
                 </div>
               )}
               {persona.notas_publicas && (
                 <div>
-                  <p className="text-[10px] text-gray-400 mb-0.5">{es ? 'Información adicional' : 'Additional info'}</p>
+                  <p className="text-[10px] text-gray-400 mb-0.5">{t('Información adicional', 'Additional info', 'Informação adicional')}</p>
                   <p className="text-sm text-gray-800 whitespace-pre-line">{persona.notas_publicas}</p>
                 </div>
               )}
@@ -290,7 +290,7 @@ export default function PersonaDetalle() {
                 <div className="flex items-start gap-2">
                   <Clock size={13} className="text-gray-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] text-gray-400">{es ? 'Vista por última vez' : 'Last seen'}</p>
+                    <p className="text-[10px] text-gray-400">{t('Vista por última vez', 'Last seen', 'Visto pela última vez')}</p>
                     <p className="text-sm text-gray-800">{persona.fecha_ultima_vez}</p>
                   </div>
                 </div>
@@ -306,21 +306,21 @@ export default function PersonaDetalle() {
             {/* Acciones rápidas */}
             {esBuscando && (
               <div className="space-y-2">
-                <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">{es ? 'Acciones rápidas' : 'Quick actions'}</h2>
+                <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">{t('Acciones rápidas', 'Quick actions', 'Ações rápidas')}</h2>
                 <Link to={`/reportar-encontrado?persona=${id}`}
                   className="flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3.5 px-4 rounded-2xl text-sm no-underline">
-                  ✋ {es ? 'La encontré — reportar hallazgo' : 'I found them — report finding'}
+                  ✋ {t('La encontré — reportar hallazgo', 'I found them — report finding', 'Encontrei — reportar achado')}
                 </Link>
                 <Link to={`/pista?persona=${id}`}
                   className="flex items-center justify-center gap-2 bg-blue-600 text-white font-bold py-3.5 px-4 rounded-2xl text-sm no-underline">
-                  💡 {es ? 'Tengo una pista' : 'I have a lead'}
+                  💡 {t('Tengo una pista', 'I have a lead', 'Tenho uma pista')}
                 </Link>
               </div>
             )}
 
             {/* Compartir */}
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
-              <h2 className="text-sm font-medium text-gray-700 mb-3">{es ? 'Compartir esta ficha' : 'Share this record'}</h2>
+              <h2 className="text-sm font-medium text-gray-700 mb-3">{t('Compartir esta ficha', 'Share this record', 'Compartilhar esta ficha')}</h2>
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={compartir}
                   className="flex items-center justify-center gap-2 bg-green-600 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer">
@@ -329,7 +329,7 @@ export default function PersonaDetalle() {
                 <button onClick={copiarEnlace}
                   className="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer">
                   {copiado ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
-                  {copiado ? (es ? 'Copiado' : 'Copied') : (es ? 'Copiar enlace' : 'Copy link')}
+                  {copiado ? t('Copiado', 'Copied', 'Copiado') : t('Copiar enlace', 'Copy link', 'Copiar link')}
                 </button>
                 <FichaPersonaDescargable persona={persona} es={es} />
               </div>
@@ -346,7 +346,7 @@ export default function PersonaDetalle() {
             <div className="flex items-center gap-2 mb-4">
               <Shield size={14} className="text-purple-600" />
               <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                {es ? 'Pasaporte de rastreo — historial completo' : 'Tracking passport — full history'}
+                {t('Pasaporte de rastreo — historial completo', 'Tracking passport — full history', 'Passaporte de rastreamento — histórico completo')}
               </p>
             </div>
 
@@ -388,9 +388,11 @@ export default function PersonaDetalle() {
 
             <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5">
               <p className="text-xs text-blue-800 font-medium">
-                🔒 {es
-                  ? 'El historial nunca se borra. Cada actualización queda registrada para garantizar la trazabilidad.'
-                  : 'History is never deleted. Every update is recorded to guarantee traceability.'}
+                🔒 {t(
+                  'El historial nunca se borra. Cada actualización queda registrada para garantizar la trazabilidad.',
+                  'History is never deleted. Every update is recorded to guarantee traceability.',
+                  'O histórico nunca é apagado. Cada atualização fica registrada para garantir a rastreabilidade.'
+                )}
               </p>
             </div>
           </div>
@@ -412,7 +414,7 @@ export default function PersonaDetalle() {
             {/* Contacto del familiar que busca */}
             {(persona.contacto_nombre || persona.contacto_telefono || persona.contacto_email || persona.contacto_whatsapp) && (
               <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
-                <h2 className="text-sm font-bold text-gray-700">{es ? 'Familiar que la busca' : 'Family searching for them'}</h2>
+                <h2 className="text-sm font-bold text-gray-700">{t('Familiar que la busca', 'Family searching for them', 'Familiar que busca')}</h2>
                 <div className="bg-green-50 border border-green-100 rounded-xl p-3 space-y-2">
                   {persona.contacto_nombre && <p className="text-sm font-bold text-green-900">{persona.contacto_nombre}</p>}
                   {persona.contacto_telefono && (
@@ -439,7 +441,7 @@ export default function PersonaDetalle() {
             {contactosEncontrado.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
                 <h2 className="text-sm font-bold text-gray-700">
-                  {es ? 'Reportes "la encontré" — contactos disponibles' : '"I found them" reports — available contacts'}
+                  {t('Reportes "la encontré" — contactos disponibles', '"I found them" reports — available contacts', 'Relatórios "encontrei" — contatos disponíveis')}
                 </h2>
                 <div className="space-y-2">
                   {contactosEncontrado.map((c, i) => (
@@ -467,10 +469,10 @@ export default function PersonaDetalle() {
             {!persona.contacto_telefono && !persona.contacto_email && contactosEncontrado.length === 0 && (
               <div className="text-center py-8 text-gray-400 text-sm space-y-3">
                 <p className="text-3xl">📞</p>
-                <p>{es ? 'No hay datos de contacto disponibles aún.' : 'No contact data available yet.'}</p>
+                <p>{t('No hay datos de contacto disponibles aún.', 'No contact data available yet.', 'Nenhum dado de contato disponível ainda.')}</p>
                 <Link to={`/reportar-encontrado?persona=${id}`}
                   className="inline-block text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-4 py-2 rounded-xl no-underline">
-                  {es ? '→ Reportar que la encontré' : '→ Report that I found them'}
+                  {t('→ Reportar que la encontré', '→ Report that I found them', '→ Reportar que encontrei')}
                 </Link>
               </div>
             )}
