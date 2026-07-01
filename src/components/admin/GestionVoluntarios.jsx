@@ -267,7 +267,7 @@ export default function GestionVoluntarios({ es }) {
         <div>
           <p className="text-sm font-bold text-blue-900">📷 {es ? 'Foto de perfil del equipo' : 'Team profile photo'}</p>
           <p className="text-xs text-blue-700 mt-0.5">
-            {es ? 'Envía un correo con enlace individual a cada voluntario/inspector/arquitecto sin foto para que la suban.' : 'Send an email with an individual link to each volunteer/inspector/architect without a photo so they can upload it.'}
+            {es ? 'Envía un correo con enlace individual a cada voluntario, postulado, inspector o arquitecto sin foto para que la suban.' : 'Send an email with an individual link to each volunteer, applicant, inspector, or architect without a photo so they can upload it.'}
           </p>
           {resultadoFotos && !resultadoFotos.error && (
             <p className="text-xs text-green-700 font-semibold mt-1.5">

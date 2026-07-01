@@ -40,21 +40,26 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { accion } = body;
 
-    // ── ADMIN: generar tokens y enviar correo a todos los perfiles sin foto ──
+    // ── ADMIN: generar tokens y enviar correo a todos los perfiles y postulados sin foto ──
     if (accion === 'enviar_solicitudes') {
       const user = await base44.auth.me();
       if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
       if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
       const perfiles = await base44.asServiceRole.entities.PerfilProfesional.list('-created_date', 500);
-      const sinFoto = (perfiles || []).filter(p => !p.foto_perfil_url && p.user_email);
+      const solicitudes = await base44.asServiceRole.entities.SolicitudVoluntario.list('-created_date', 500);
+
+      const sinFoto = (perfiles || []).filter(p => !p.foto_perfil_url && p.user_email).map(p => ({ ...p, __tipo: 'perfil' }));
+      const postuladosSinFoto = (solicitudes || []).filter(s => !s.foto_perfil_url && s.user_email).map(s => ({ ...s, __tipo: 'solicitud' }));
+      const pendientes = [...sinFoto, ...postuladosSinFoto];
 
       let enviados = 0;
       const fallidos = [];
-      for (const p of sinFoto) {
+      for (const p of pendientes) {
         try {
           const token = crypto.randomUUID().replace(/-/g, '');
-          await base44.asServiceRole.entities.PerfilProfesional.update(p.id, {
+          const entidad = p.__tipo === 'perfil' ? base44.asServiceRole.entities.PerfilProfesional : base44.asServiceRole.entities.SolicitudVoluntario;
+          await entidad.update(p.id, {
             token_foto_perfil: token,
             token_foto_perfil_usado: false,
           });
@@ -71,33 +76,51 @@ Deno.serve(async (req) => {
         }
       }
 
-      return Response.json({ ok: true, total: sinFoto.length, enviados, fallidos });
+      return Response.json({ ok: true, total: pendientes.length, enviados, fallidos });
     }
 
-    // ── VALIDAR token (público, sin login) ──
+    // ── VALIDAR token (público, sin login) — busca en perfiles y en postulados ──
     if (accion === 'validar_token') {
       const { token } = body;
       if (!token) return Response.json({ valido: false });
 
-      const lista = await base44.asServiceRole.entities.PerfilProfesional.filter({ token_foto_perfil: token });
-      const perfil = lista?.[0];
-      if (!perfil) return Response.json({ valido: false, error: 'Token inválido' });
-      if (perfil.token_foto_perfil_usado) return Response.json({ valido: false, error: 'Este enlace ya fue usado' });
+      const perfiles = await base44.asServiceRole.entities.PerfilProfesional.filter({ token_foto_perfil: token });
+      const perfil = perfiles?.[0];
+      if (perfil) {
+        if (perfil.token_foto_perfil_usado) return Response.json({ valido: false, error: 'Este enlace ya fue usado' });
+        return Response.json({ valido: true, nombre: perfil.user_nombre || perfil.user_email, tipo_perfil: perfil.tipo_perfil });
+      }
 
-      return Response.json({ valido: true, nombre: perfil.user_nombre || perfil.user_email, tipo_perfil: perfil.tipo_perfil });
+      const solicitudes = await base44.asServiceRole.entities.SolicitudVoluntario.filter({ token_foto_perfil: token });
+      const solicitud = solicitudes?.[0];
+      if (!solicitud) return Response.json({ valido: false, error: 'Token inválido' });
+      if (solicitud.token_foto_perfil_usado) return Response.json({ valido: false, error: 'Este enlace ya fue usado' });
+
+      return Response.json({ valido: true, nombre: solicitud.user_nombre || solicitud.user_email, tipo_perfil: solicitud.rol_solicitado });
     }
 
-    // ── SUBIR foto vía token (público, sin login) ──
+    // ── SUBIR foto vía token (público, sin login) — busca en perfiles y en postulados ──
     if (accion === 'subir_foto') {
       const { token, foto_url } = body;
       if (!token || !foto_url) return Response.json({ error: 'Faltan datos' }, { status: 400 });
 
-      const lista = await base44.asServiceRole.entities.PerfilProfesional.filter({ token_foto_perfil: token });
-      const perfil = lista?.[0];
-      if (!perfil) return Response.json({ error: 'Token inválido' }, { status: 404 });
-      if (perfil.token_foto_perfil_usado) return Response.json({ error: 'Este enlace ya fue usado' }, { status: 400 });
+      const perfiles = await base44.asServiceRole.entities.PerfilProfesional.filter({ token_foto_perfil: token });
+      const perfil = perfiles?.[0];
+      if (perfil) {
+        if (perfil.token_foto_perfil_usado) return Response.json({ error: 'Este enlace ya fue usado' }, { status: 400 });
+        await base44.asServiceRole.entities.PerfilProfesional.update(perfil.id, {
+          foto_perfil_url: foto_url,
+          token_foto_perfil_usado: true,
+        });
+        return Response.json({ ok: true });
+      }
 
-      await base44.asServiceRole.entities.PerfilProfesional.update(perfil.id, {
+      const solicitudes = await base44.asServiceRole.entities.SolicitudVoluntario.filter({ token_foto_perfil: token });
+      const solicitud = solicitudes?.[0];
+      if (!solicitud) return Response.json({ error: 'Token inválido' }, { status: 404 });
+      if (solicitud.token_foto_perfil_usado) return Response.json({ error: 'Este enlace ya fue usado' }, { status: 400 });
+
+      await base44.asServiceRole.entities.SolicitudVoluntario.update(solicitud.id, {
         foto_perfil_url: foto_url,
         token_foto_perfil_usado: true,
       });

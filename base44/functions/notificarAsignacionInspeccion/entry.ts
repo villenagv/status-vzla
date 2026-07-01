@@ -141,11 +141,14 @@ function emailRequiriente(rep, inspector, contactosUrl, fichaUrl) {
     <h1 style="font-size:22px;font-weight:900;color:#111827;margin:0 0 6px;">Hola, ${nombreRequiriente} 👋</h1>
     <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 20px;">Tenemos buenas noticias. Se ha asignado un especialista para la inspección de <strong>${lugar}</strong>.</p>
 
-    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px 18px;margin:0 0 20px;">
-      <p style="font-size:12px;font-weight:700;color:#15803d;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.05em;">✅ Inspector Asignado</p>
-      <p style="font-size:17px;font-weight:800;color:#111827;margin:0 0 4px;">${nombreInspector}</p>
-      ${inspector.telefono ? `<p style="font-size:13px;color:#374151;margin:0;">📞 <a href="tel:${esc(inspector.telefono)}" style="color:#2563eb;">${esc(inspector.telefono)}</a></p>` : ''}
-      ${inspector.especialidad ? `<p style="font-size:12px;color:#6b7280;margin:4px 0 0;">🏛️ ${esc(inspector.especialidad)}</p>` : ''}
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px 18px;margin:0 0 20px;display:flex;align-items:center;gap:14px;">
+      ${inspector.foto_perfil_url ? `<img src="${esc(inspector.foto_perfil_url)}" alt="${nombreInspector}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #15803d;flex-shrink:0;" />` : ''}
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#15803d;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.05em;">✅ Inspector Asignado</p>
+        <p style="font-size:17px;font-weight:800;color:#111827;margin:0 0 4px;">${nombreInspector}</p>
+        ${inspector.telefono ? `<p style="font-size:13px;color:#374151;margin:0;">📞 <a href="tel:${esc(inspector.telefono)}" style="color:#2563eb;">${esc(inspector.telefono)}</a></p>` : ''}
+        ${inspector.especialidad ? `<p style="font-size:12px;color:#6b7280;margin:4px 0 0;">🏛️ ${esc(inspector.especialidad)}</p>` : ''}
+      </div>
     </div>
 
     <p style="font-size:14px;color:#374151;line-height:1.6;margin:0 0 16px;">El inspector se pondrá en contacto contigo próximamente para coordinar la visita. Para que la inspección pueda realizarse de la mejor manera posible, te pedimos un favor importante:</p>
@@ -214,11 +217,19 @@ Deno.serve(async (req) => {
     const contactosUrl = `${APP_URL}/contactos-acceso?edificio=${reporte_id}&token=${token}`;
     const formularioUrl = `${APP_URL}/inspecciones`; // va al portal del especialista
 
+    // Buscar la foto de perfil del inspector para identificarlo ante el solicitante
+    let fotoInspector = '';
+    try {
+      const perfiles = await base44.asServiceRole.entities.PerfilProfesional.filter({ user_id: inspector_id || user.id });
+      fotoInspector = perfiles?.[0]?.foto_perfil_url || '';
+    } catch {}
+
     const inspector = {
       nombre: inspector_nombre || user.full_name || user.email,
       email: inspector_email || user.email,
       telefono: inspector_telefono || '',
       especialidad: inspector_especialidad || '',
+      foto_perfil_url: fotoInspector,
     };
 
     let emailsEnviados = 0;

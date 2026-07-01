@@ -37,6 +37,19 @@
     "foto_id_url": {
       "type": "string"
     },
+    "foto_perfil_url": {
+      "type": "string",
+      "description": "Foto de perfil del postulado, para identificaci\u00f3n visual del equipo"
+    },
+    "token_foto_perfil": {
+      "type": "string",
+      "description": "Token privado individual para subir la foto de perfil sin necesidad de iniciar sesi\u00f3n"
+    },
+    "token_foto_perfil_usado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el token ya fue usado para subir la foto"
+    },
     "token_invitacion": {
       "type": "string"
     },
