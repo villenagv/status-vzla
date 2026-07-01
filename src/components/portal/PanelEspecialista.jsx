@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import TarjetaPanelEspecialista from './TarjetaPanelEspecialista';
+import BuscadorLista from './BuscadorLista';
 import { EVAL_CONFIG, DANO_TIPO_OPTS } from './evaluacionConfig';
 
 // Panel de Voluntarios y Profesionales (Período 6): permite filtrar reportes
@@ -10,6 +11,7 @@ export default function PanelEspecialista({ perfil, es, reportes, onActualizado 
   const [fCiudad, setFCiudad] = useState('todas');
   const [fDano, setFDano] = useState('todos');
   const [fEstatus, setFEstatus] = useState('todos');
+  const [busqueda, setBusqueda] = useState('');
   const [pagina, setPagina] = useState(10);
 
   const ciudades = useMemo(() => [...new Set(reportes.map(r => r.ciudad).filter(Boolean))].sort(), [reportes]);
@@ -19,8 +21,14 @@ export default function PanelEspecialista({ perfil, es, reportes, onActualizado 
     if (fCiudad !== 'todas' && r.ciudad !== fCiudad) return false;
     if (fDano !== 'todos' && (r.nivel_dano || 'no_evaluado') !== fDano) return false;
     if (fEstatus !== 'todos' && (r.tipo_evaluacion || 'pendiente_asignacion') !== fEstatus) return false;
+    if (busqueda.trim()) {
+      const q = busqueda.trim().toLowerCase();
+      const match = [r.nombre_lugar, r.direccion, r.ciudad, r.codigo_reporte, r.tipo_estructura]
+        .some(v => (v || '').toLowerCase().includes(q));
+      if (!match) return false;
+    }
     return true;
-  }), [reportes, fPrioridad, fCiudad, fDano, fEstatus]);
+  }), [reportes, fPrioridad, fCiudad, fDano, fEstatus, busqueda]);
 
   const selectCls = "border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-blue-400 bg-white";
 
@@ -33,6 +41,8 @@ export default function PanelEspecialista({ perfil, es, reportes, onActualizado 
                : 'Filter, review and classify reports. Distinguish between digital and on-site evaluation.'}
         </p>
       </div>
+
+      <BuscadorLista value={busqueda} onChange={v => { setBusqueda(v); setPagina(10); }} es={es} />
 
       {/* Filtros */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">

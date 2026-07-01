@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Loader2, Camera, AlertTriangle, CheckCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AccionesEspecialista from './AccionesEspecialista';
+import BuscadorLista from './BuscadorLista';
 
 // Opciones de triaje rápido — clasificación inicial online
 export const TRIAGE_OPTS = [
@@ -214,10 +215,16 @@ function TarjetaTriage({ reporte, es, perfil, onTriaged }) {
 
 export default function TriageRapido({ perfil, es, reportes, onTriaged }) {
   const [pagina, setPagina] = useState(10);
+  const [busqueda, setBusqueda] = useState('');
 
   // Solo reportes pendientes de triaje — los críticos/atrapados primero
   const pendientes = reportes
     .filter(r => (r.triage_riesgo || 'sin_clasificar') === 'sin_clasificar')
+    .filter(r => {
+      if (!busqueda.trim()) return true;
+      const q = busqueda.trim().toLowerCase();
+      return [r.nombre_lugar, r.direccion, r.ciudad, r.codigo_reporte].some(v => (v || '').toLowerCase().includes(q));
+    })
     .sort((a, b) => {
       const urg = x => (['si', 'voces'].includes(x.personas_atrapadas) ? 0 : ['critico', 'colapsado'].includes(x.nivel_dano) ? 1 : ['grave'].includes(x.nivel_dano) ? 2 : 3);
       return urg(a) - urg(b);
@@ -233,10 +240,12 @@ export default function TriageRapido({ perfil, es, reportes, onTriaged }) {
         </p>
       </div>
 
+      <BuscadorLista value={busqueda} onChange={v => { setBusqueda(v); setPagina(10); }} es={es} />
+
       {pendientes.length === 0 ? (
         <div className="text-center py-10 bg-white border border-gray-200 rounded-2xl">
           <CheckCircle size={28} className="text-green-500 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">{es ? '¡Todo clasificado! No hay edificios por triar.' : 'All classified! No buildings to triage.'}</p>
+          <p className="text-sm text-gray-500">{es ? '¡Todo clasificado! No hay edificios por triar.' : busqueda ? (es ? 'Sin resultados para tu búsqueda.' : 'No results for your search.') : 'All classified! No buildings to triage.'}</p>
         </div>
       ) : (
         <>

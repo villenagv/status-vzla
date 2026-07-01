@@ -6,6 +6,7 @@ import AccionesEspecialista from './AccionesEspecialista';
 import FormularioInspeccion from './FormularioInspeccion';
 import FichaAuditoriaInspeccion from './FichaAuditoriaInspeccion';
 import { MOTIVO_LABEL } from './MotivoPendiente';
+import BuscadorLista from './BuscadorLista';
 
 const RIESGO_CFG = {
   riesgo_colapso:  { icon: '💥', color: '#7F1D1D', bg: '#FEF2F2', border: '#FECACA', es: 'Riesgo de colapso', en: 'Collapse risk',   orden: 0 },
@@ -241,6 +242,7 @@ export default function ColaInspeccion({ perfil, es, reportes, onActualizado }) 
   const [fRiesgo, setFRiesgo] = useState('todos');
   const [fZona, setFZona] = useState('todas');
   const [soloMios, setSoloMios] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
   const [pagina, setPagina] = useState(10);
 
   // Pendientes: en cola y no inspeccionadas. Completadas: inspeccionadas.
@@ -258,6 +260,11 @@ export default function ColaInspeccion({ perfil, es, reportes, onActualizado }) 
     .filter(r => fRiesgo === 'todos' || r.triage_riesgo === fRiesgo)
     .filter(r => fZona === 'todas' || r.ciudad === fZona)
     .filter(r => !soloMios || r.voluntario_asignado_id === perfil.user_id)
+    .filter(r => {
+      if (!busqueda.trim()) return true;
+      const q = busqueda.trim().toLowerCase();
+      return [r.nombre_lugar, r.direccion, r.ciudad, r.codigo_reporte].some(v => (v || '').toLowerCase().includes(q));
+    })
     .sort((a, b) => {
       const oa = (RIESGO_CFG[a.triage_riesgo] || RIESGO_CFG.sin_clasificar).orden;
       const ob = (RIESGO_CFG[b.triage_riesgo] || RIESGO_CFG.sin_clasificar).orden;
@@ -267,7 +274,7 @@ export default function ColaInspeccion({ perfil, es, reportes, onActualizado }) 
   const cColapso = pendientes.filter(r => r.triage_riesgo === 'riesgo_colapso').length;
   const cSinContacto = pendientes.filter(r => r.inspeccion_estado_pendiente === 'sin_contacto').length;
 
-  const cambiarTab = (t) => { setTab(t); setPagina(10); setFRiesgo('todos'); setFZona('todas'); setSoloMios(false); };
+  const cambiarTab = (t) => { setTab(t); setPagina(10); setFRiesgo('todos'); setFZona('todas'); setSoloMios(false); setBusqueda(''); };
 
   return (
     <div>
@@ -304,6 +311,8 @@ export default function ColaInspeccion({ perfil, es, reportes, onActualizado }) 
           </div>
         </div>
       )}
+
+      <BuscadorLista value={busqueda} onChange={v => { setBusqueda(v); setPagina(10); }} es={es} />
 
       {/* Filtros */}
       <div className="space-y-2 mb-4">
