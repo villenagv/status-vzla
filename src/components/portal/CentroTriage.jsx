@@ -5,6 +5,7 @@ import TriageRapido from './TriageRapido';
 import ColaInspeccion from './ColaInspeccion';
 import TareasEspecialista from './TareasEspecialista';
 import InspeccionCampo from './InspeccionCampo';
+import CargaFotosInspector from './CargaFotosInspector';
 import TriajeMasivo from '@/components/admin/TriajeMasivo';
 
 export default function CentroTriage({ perfil, es, vistaInicial = 'triage', isAdmin = false }) {
@@ -40,6 +41,7 @@ export default function CentroTriage({ perfil, es, vistaInicial = 'triage', isAd
     { key: 'campo',  es: '📵 Inspección de campo', en: '📵 Field inspection' },
     { key: 'triage', es: `🔍 Triaje rápido (${porTriar})`, en: `🔍 Quick triage (${porTriar})` },
     { key: 'cola',   es: `📋 Inspección presencial (${enCola})`, en: `📋 On-site inspection (${enCola})` },
+    { key: 'fotos',  es: '📷 Cargar fotos', en: '📷 Upload photos' },
     { key: 'eval',   es: '🏛️ Evaluación detallada', en: '🏛️ Detailed assessment' },
     ...(isAdmin ? [{ key: 'masivo', es: '🃏 Triaje masivo', en: '🃏 Bulk triage' }] : []),
   ];
@@ -68,6 +70,7 @@ export default function CentroTriage({ perfil, es, vistaInicial = 'triage', isAd
           {vista === 'campo' && <InspeccionCampo perfil={perfil} es={es} />}
           {vista === 'triage' && <TriageRapido perfil={perfil} es={es} reportes={reportes} onTriaged={onTriaged} />}
           {vista === 'cola' && <ColaInspeccion perfil={perfil} es={es} reportes={reportes} onActualizado={onActualizado} />}
+          {vista === 'fotos' && <CargaFotosInspector perfil={perfil} es={es} />}
           {vista === 'eval' && <TareasEspecialista perfil={perfil} es={es} />}
           {vista === 'masivo' && isAdmin && <TriajeMasivo />}
         </>

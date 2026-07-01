@@ -120,7 +120,8 @@ export default function FormularioInspeccion({ reporte, perfil, es, onCancelar, 
       if (detalle.length) {
         dataUpdate.inspeccion_detalle_fotos = detalle;
         dataUpdate.inspeccion_fotos = urls;
-        dataUpdate.foto_urls = [...(reporte.foto_urls || []), ...urls].slice(0, 5);
+        const urlsPublicas = detalle.filter(d => !d.privada).map(d => d.url);
+        dataUpdate.foto_urls = [...(reporte.foto_urls || []), ...urlsPublicas].slice(0, 5);
       }
 
       await base44.entities.ReportesDano.update(reporte.id, dataUpdate);
