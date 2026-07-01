@@ -24,8 +24,63 @@
       ],
       "default": "voluntario"
     },
+    "profesion": {
+      "type": "string",
+      "description": "Profesi\u00f3n u ocupaci\u00f3n del voluntario/profesional"
+    },
     "especialidad": {
       "type": "string"
+    },
+    "zona_apoyo": {
+      "type": "string",
+      "description": "Estado o zona donde puede apoyar"
+    },
+    "disponibilidad": {
+      "type": "string",
+      "enum": [
+        "tiempo_completo",
+        "medio_tiempo",
+        "fines_semana",
+        "bajo_demanda"
+      ],
+      "description": "Disponibilidad de tiempo del voluntario"
+    },
+    "tipo_apoyo": {
+      "type": "array",
+      "description": "Tipos de apoyo que puede ofrecer",
+      "items": {
+        "type": "string",
+        "enum": [
+          "revision_digital",
+          "inspeccion_presencial",
+          "coordinacion",
+          "carga_informacion",
+          "apoyo_comunitario",
+          "apoyo_administrativo"
+        ]
+      }
+    },
+    "documentos_validacion": {
+      "type": "array",
+      "description": "Documentos opcionales para validar credenciales",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "titulo",
+              "carnet",
+              "certificacion",
+              "identificacion",
+              "otro"
+            ]
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      }
     },
     "institucion": {
       "type": "string"

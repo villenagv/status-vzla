@@ -4,6 +4,15 @@ import { Loader2, HardHat, Heart, CheckCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LangContext';
 import TopBar from '@/components/svzla/TopBar';
+import TipoApoyoSelector from '@/components/voluntario/TipoApoyoSelector';
+import DocumentosValidacion from '@/components/voluntario/DocumentosValidacion';
+
+const DISPONIBILIDAD_OPTS = [
+  { val: 'tiempo_completo', es: 'Tiempo completo', en: 'Full time' },
+  { val: 'medio_tiempo',    es: 'Medio tiempo',     en: 'Part time' },
+  { val: 'fines_semana',    es: 'Fines de semana',  en: 'Weekends' },
+  { val: 'bajo_demanda',    es: 'Bajo demanda',     en: 'On demand' },
+];
 
 const PERFILES = [
   {
@@ -43,9 +52,15 @@ export default function IdentificacionProfesional() {
   const [user, setUser] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [tipoPerfil, setTipoPerfil] = useState('');
+  const [profesion, setProfesion] = useState('');
   const [especialidad, setEspecialidad] = useState('');
   const [institucion, setInstitucion] = useState('');
   const [numeroColegio, setNumeroColegio] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [zonaApoyo, setZonaApoyo] = useState('');
+  const [disponibilidad, setDisponibilidad] = useState('');
+  const [tipoApoyo, setTipoApoyo] = useState([]);
+  const [documentos, setDocumentos] = useState([]);
   const [guardando, setGuardando] = useState(false);
   const [listo, setListo] = useState(false);
 
@@ -79,9 +94,15 @@ export default function IdentificacionProfesional() {
         user_email: user.email,
         user_nombre: user.full_name || '',
         tipo_perfil: tipoPerfil,
+        profesion,
         especialidad,
         institucion,
         numero_colegio: numeroColegio,
+        telefono_contacto: telefono,
+        zona_apoyo: zonaApoyo,
+        disponibilidad,
+        tipo_apoyo: tipoApoyo,
+        documentos_validacion: documentos,
         estado_aprobacion: ['ingeniero', 'arquitecto'].includes(tipoPerfil) ? 'pendiente' : 'aprobado',
         completado: true,
       };
@@ -196,15 +217,64 @@ export default function IdentificacionProfesional() {
           </div>
         )}
 
-        {/* Institución opcional para todos */}
+        {/* Datos generales para todos los perfiles */}
         {tipoPerfil && (
-          <div className="mb-6">
+          <div className="space-y-3 mb-6">
+            <input
+              value={profesion}
+              onChange={e => setProfesion(e.target.value)}
+              placeholder={t('Profesión u ocupación (opcional)', 'Profession or occupation (optional)')}
+              style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 13px', fontSize: 13, color: '#fff', outline: 'none' }}
+            />
             <input
               value={institucion}
               onChange={e => setInstitucion(e.target.value)}
               placeholder={t('Organización o institución (opcional)', 'Organization or institution (optional)')}
               style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 13px', fontSize: 13, color: '#fff', outline: 'none' }}
             />
+            <input
+              type="tel"
+              value={telefono}
+              onChange={e => setTelefono(e.target.value)}
+              placeholder={t('Teléfono / WhatsApp (opcional)', 'Phone / WhatsApp (optional)')}
+              style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 13px', fontSize: 13, color: '#fff', outline: 'none' }}
+            />
+            <input
+              value={zonaApoyo}
+              onChange={e => setZonaApoyo(e.target.value)}
+              placeholder={t('Estado o zona donde puedes apoyar (opcional)', 'State or area where you can help (optional)')}
+              style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 13px', fontSize: 13, color: '#fff', outline: 'none' }}
+            />
+
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                {t('Disponibilidad (opcional)', 'Availability (optional)')}
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {DISPONIBILIDAD_OPTS.map(op => {
+                  const activo = disponibilidad === op.val;
+                  return (
+                    <button key={op.val} type="button" onClick={() => setDisponibilidad(activo ? '' : op.val)}
+                      style={{
+                        padding: '9px 10px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                        border: `1.5px solid ${activo ? '#4A9EDB' : 'rgba(255,255,255,0.12)'}`,
+                        background: activo ? 'rgba(74,158,219,0.14)' : 'rgba(255,255,255,0.06)',
+                        color: activo ? '#93C5FD' : '#fff', fontSize: 12, fontWeight: 600,
+                      }}>
+                      {es ? op.es : op.en}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <TipoApoyoSelector value={tipoApoyo} onChange={setTipoApoyo} es={es} />
+            </div>
+
+            <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <DocumentosValidacion value={documentos} onChange={setDocumentos} es={es} />
+            </div>
           </div>
         )}
 
