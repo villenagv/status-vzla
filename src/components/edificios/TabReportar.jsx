@@ -130,7 +130,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
   }, [ciudad, valDireccion, estado, etapa, geocodificarDireccion]);
 
   const verificarEdificio = async () => {
-    if (!valDireccion.trim()) return;
+    if (!valDireccion.trim() && !valNombre.trim()) return;
     setBuscandoDup(true);
     const dups = todos.filter(r => {
       // Si ya sabemos la ciudad, descartamos coincidencias de otras ciudades
@@ -234,9 +234,10 @@ export default function TabReportar({ todos, setTab, lang, t }) {
                 placeholder={t('Ej: Hospital Central, Edificio Las Torres...', 'E.g: Central Hospital, Las Torres building...', 'Ex: Hospital Central...')} className={inputCls} />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Dirección o zona', 'Address or area', 'Endereço ou área')} <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Dirección o zona', 'Address or area', 'Endereço ou área')}</label>
               <input value={valDireccion} onChange={e => setValDireccion(e.target.value)} onKeyDown={e => e.key === 'Enter' && verificarEdificio()}
                 placeholder={t('Ej: Av. Soublette, frente al mercado, La Guaira', 'E.g: Soublette Ave, next to market, La Guaira', 'Ex: Av. Soublette, em frente ao mercado')} className={inputCls} />
+              <p className="text-[11px] text-gray-400 mt-1">{t('Completa al menos el nombre o la dirección para buscar.', 'Fill in at least the name or the address to search.', 'Preencha ao menos o nome ou o endereço para buscar.')}</p>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">{t('Ciudad (opcional, mejora la búsqueda)', 'City (optional, improves search)', 'Cidade (opcional)')}</label>
@@ -244,7 +245,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
                 placeholder={t('Ej: La Guaira', 'E.g: La Guaira', 'Ex: La Guaira')} className={inputCls} />
               <datalist id="ciudades-lista-rep-val">{ciudadesDisponibles.map(c => <option key={c} value={c} />)}</datalist>
             </div>
-            <button onClick={verificarEdificio} disabled={buscandoDup || !valDireccion.trim()}
+            <button onClick={verificarEdificio} disabled={buscandoDup || (!valDireccion.trim() && !valNombre.trim())}
               className="w-full py-3.5 rounded-xl text-sm font-bold bg-blue-700 hover:bg-blue-800 text-white disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer">
               {buscandoDup ? <Loader2 size={16} className="animate-spin" /> : '🔍'}
               {buscandoDup ? t('Verificando...', 'Checking...', 'Verificando...') : t('Verificar lugar', 'Check place', 'Verificar local')}
