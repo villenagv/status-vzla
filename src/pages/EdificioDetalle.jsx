@@ -23,6 +23,7 @@ import PersonasReportadasSitio from '@/components/edificio/PersonasReportadasSit
 import FormularioActualizacionEdificio from '@/components/edificio/FormularioActualizacionEdificio';
 import SuscripcionEdificio from '@/components/edificio/SuscripcionEdificio';
 import VecinosBuscandoInfo from '@/components/edificio/VecinosBuscandoInfo';
+import BotonSuscripcionEdificios from '@/components/svzla/BotonSuscripcionEdificios';
 
 export default function EdificioDetalle() {
   const [params] = useSearchParams();
@@ -547,6 +548,7 @@ export default function EdificioDetalle() {
         </p>
 
       </div>
+      <BotonSuscripcionEdificios edificioId={id} edificioNombre={edificio.nombre_lugar || edificio.direccion || edificio.ciudad} />
       <Footer />
     </div>
   );

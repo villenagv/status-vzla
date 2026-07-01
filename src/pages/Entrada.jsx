@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import TopBar from '@/components/svzla/TopBar';
 import Footer from '@/components/svzla/Footer';
 import ContadoresEntrada from '@/components/svzla/ContadoresEntrada';
+import BotonSuscripcionEdificios from '@/components/svzla/BotonSuscripcionEdificios';
 import JsonLd, { buildSiteJsonLd } from '@/components/seo/JsonLd';
 import SeoMeta from '@/components/seo/SeoMeta';
 
@@ -289,6 +290,7 @@ export default function Entrada() {
 
       </main>
 
+      <BotonSuscripcionEdificios />
       <Footer />
     </div>
   );

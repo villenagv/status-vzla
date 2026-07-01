@@ -10,6 +10,7 @@ import PersonaListItem from '@/components/directorio/PersonaListItem';
 import PersonaGridCard from '@/components/directorio/PersonaGridCard';
 import EdificioCard from '@/components/directorio/EdificioCard';
 import { CATEGORIAS_PERSONAS, CATEGORIAS_EDIFICIOS, PRIORIDAD_SORT } from '@/components/directorio/directorioConfig';
+import BotonSuscripcionEdificios from '@/components/svzla/BotonSuscripcionEdificios';
 
 const PAGE_SIZE = 12;
 
@@ -361,6 +362,7 @@ export default function Directorio() {
           </Link>
         </div>
       </div>
+      <BotonSuscripcionEdificios />
       <Footer />
 
       {/* Modal de acciones */}
