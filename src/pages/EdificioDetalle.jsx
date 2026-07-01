@@ -24,6 +24,7 @@ import FormularioActualizacionEdificio from '@/components/edificio/FormularioAct
 import SuscripcionEdificio from '@/components/edificio/SuscripcionEdificio';
 import VecinosBuscandoInfo from '@/components/edificio/VecinosBuscandoInfo';
 import BotonSuscripcionEdificios from '@/components/svzla/BotonSuscripcionEdificios';
+import ModalRecuperacionCuerpos from '@/components/edificio/ModalRecuperacionCuerpos';
 
 export default function EdificioDetalle() {
   const [params] = useSearchParams();
@@ -58,6 +59,7 @@ export default function EdificioDetalle() {
   const [accionPendiente, setAccionPendiente] = useState(null);
   const [respuestaPrioritaria, setRespuestaPrioritaria] = useState(null);
   const [totalSuscriptores, setTotalSuscriptores] = useState(null);
+  const [modalCuerpos, setModalCuerpos] = useState(false);
 
   useEffect(() => {
     if (!id) { setCargando(false); setErrorId(true); return; }
@@ -470,7 +472,25 @@ export default function EdificioDetalle() {
               <Info size={13} /> {t('Info incorrecta', 'Wrong info', 'Info incorreta')}
             </button>
           </div>
+          <button onClick={() => setModalCuerpos(true)}
+            className="flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white font-semibold py-3 rounded-2xl cursor-pointer text-xs transition-colors">
+            ⚫ {t('Recuperamos cuerpos', 'We recovered bodies', 'Recuperamos corpos')}
+          </button>
         </div>
+
+        {modalCuerpos && (
+          <ModalRecuperacionCuerpos
+            edificioId={id}
+            edificio={edificio}
+            es={es}
+            t={t}
+            lang={lang}
+            onClose={() => setModalCuerpos(false)}
+            onCompletado={(descripcion) => {
+              setActualizaciones(prev => [{ id: Date.now(), tipo_accion: 'persona_fallecida_recuperada', descripcion, created_date: new Date().toISOString() }, ...prev]);
+            }}
+          />
+        )}
 
         {/* ── FORMULARIO ACTUALIZACIÓN ── */}
         {editando && (

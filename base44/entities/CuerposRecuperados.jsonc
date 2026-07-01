@@ -1,0 +1,40 @@
+{
+  "name": "CuerposRecuperados",
+  "type": "object",
+  "properties": {
+    "edificio_id": {
+      "type": "string",
+      "description": "ID del reporte de edificio (ReportesDano) donde se recuper\u00f3 el cuerpo"
+    },
+    "edad_aparente": {
+      "type": "string",
+      "description": "Edad aparente estimada, texto libre (ej: '30-40 a\u00f1os', 'ni\u00f1o', 'no s\u00e9')"
+    },
+    "sexo": {
+      "type": "string",
+      "enum": [
+        "masculino",
+        "femenino",
+        "no_se_sabe"
+      ],
+      "default": "no_se_sabe"
+    },
+    "identidad": {
+      "type": "string",
+      "description": "Nombre si se conoce la identidad, vac\u00edo si no ha sido identificado"
+    },
+    "destino_traslado": {
+      "type": "string",
+      "description": "Lugar a donde ser\u00e1 trasladado el cuerpo (morgue, hospital, etc.)"
+    },
+    "reportante_nombre": {
+      "type": "string"
+    },
+    "reportante_contacto": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "edificio_id"
+  ]
+}
