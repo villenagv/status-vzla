@@ -5,6 +5,27 @@ import { base44 } from '@/api/base44Client';
 import { useDraft } from '@/lib/useDraft';
 import { generarCodigo } from '@/lib/codigos';
 import { similitudTexto, esMismaCiudad } from '@/lib/similitud';
+import { useOffline } from '@/lib/useOffline';
+import OfflineBanner from '@/components/svzla/OfflineBanner';
+
+const comprimirImagen = (file, maxLado = 1280) => new Promise((resolve) => {
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    let { width, height } = img;
+    if (width > height && width > maxLado) { height = Math.round(height * (maxLado / width)); width = maxLado; }
+    else if (height > maxLado) { width = Math.round(width * (maxLado / height)); height = maxLado; }
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+    canvas.toBlob((blob) => {
+      URL.revokeObjectURL(url);
+      resolve(blob ? new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }) : file);
+    }, 'image/jpeg', 0.75);
+  };
+  img.onerror = () => resolve(file);
+  img.src = url;
+});
 
 const TIPO_OPTS = [
   { val: 'edificio_residencial', es: '🏠 Edificio residencial', en: '🏠 Residential building' },
@@ -50,6 +71,7 @@ const cfg = (d) => DANO_CONFIG[d] || DANO_CONFIG.no_evaluado;
 export default function TabReportar({ todos, setTab, lang, t }) {
   const es = lang === 'es';
   const pt = lang === 'pt';
+  const { offline, retry } = useOffline();
   const DRAFT_INIT = { valNombre: '', valDireccion: '', tipo: '', nivel: '', atrapados: '', ciudad: '', estado: '', descripcion: '', repNombre: '', repTelefono: '', repEmail: '', accesoCalle: '', accesoVehiculos: '', notasAcceso: '', electricidad: '', agua: '', gas: '', riesgoGas: false, riesgoElec: false, riesgoIncendio: false, racionamientoAgua: false, racionamientoElec: false, horarioAgua: '', horarioElec: '', pisosTotales: '', pisoReporta: '', pisosAfectados: '' };
   const [draft, setDraft, clearDraft, hasDraft] = useDraft('edificios-reporte', DRAFT_INIT);
 
@@ -155,10 +177,11 @@ export default function TabReportar({ todos, setTab, lang, t }) {
   const subirFoto = async (file, setFn, maxCheck) => {
     if (maxCheck && maxCheck()) return;
     const id = Date.now() + Math.random();
-    const entry = { id, url: null, uploading: true, error: false, preview: URL.createObjectURL(file) };
+    const comprimida = await comprimirImagen(file);
+    const entry = { id, url: null, uploading: true, error: false, preview: URL.createObjectURL(comprimida) };
     setFn(prev => Array.isArray(prev) ? [...prev, entry] : entry);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: comprimida });
       setFn(prev => Array.isArray(prev) ? prev.map(f => f.id === id ? { ...f, url: file_url, uploading: false } : f) : (prev?.id === id ? { ...prev, url: file_url, uploading: false } : prev));
     } catch {
       setFn(prev => Array.isArray(prev) ? prev.map(f => f.id === id ? { ...f, uploading: false, error: true } : f) : (prev?.id === id ? { ...prev, uploading: false, error: true } : prev));
@@ -219,6 +242,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
 
   return (
     <div className="max-w-2xl">
+      <OfflineBanner offline={offline} />
       {/* Borrador */}
       {hasDraft && etapa === 'validacion' && (valNombre || valDireccion || tipo || nivel) && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 flex items-center justify-between gap-2">
@@ -550,7 +574,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
                     <p className="text-sm font-bold text-amber-800">{t('Subir foto de fachada', 'Upload front photo', 'Enviar foto da fachada')}</p>
                     <p className="text-xs text-amber-600">{t('1 foto · Desde la calle', '1 photo · From the street', '1 foto · Da rua')}</p>
                   </div>
-                  <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) subirFoto(f, setFotoFachada, null); e.target.value = ''; }} />
+                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) subirFoto(f, setFotoFachada, null); e.target.value = ''; }} />
                 </label>
               ) : (
                 <div className="relative w-full rounded-xl overflow-hidden bg-gray-100 border-2 border-amber-300" style={{ height: 160 }}>
@@ -578,7 +602,7 @@ export default function TabReportar({ todos, setTab, lang, t }) {
                   <label className="aspect-square rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors gap-1">
                     <Camera size={16} className="text-gray-400" />
                     <span className="text-[10px] text-gray-400">{t('Agregar', 'Add', 'Adicionar')}</span>
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={e => { Array.from(e.target.files || []).slice(0, MAX_DANO - fotosDano.length).forEach(f => subirFoto(f, setFotosDano, () => fotosDano.length >= MAX_DANO)); e.target.value = ''; }} />
+                    <input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={e => { Array.from(e.target.files || []).slice(0, MAX_DANO - fotosDano.length).forEach(f => subirFoto(f, setFotosDano, () => fotosDano.length >= MAX_DANO)); e.target.value = ''; }} />
                   </label>
                 )}
               </div>
@@ -634,8 +658,13 @@ export default function TabReportar({ todos, setTab, lang, t }) {
             </div>
           )}
 
+          {offline && (
+            <p className="text-center text-xs font-semibold text-red-600">
+              📵 {t('Sin conexión. Tu progreso está guardado; podrás enviar cuando recuperes señal.', 'Offline. Your progress is saved; you can submit once you have signal.', 'Sem conexão. Seu progresso está salvo; envie quando tiver sinal.')}
+            </p>
+          )}
           <button onClick={handleSubmit}
-            disabled={enviando || !tipo || !nivel || !atrapados || !ciudad || !estado || fotoFachada?.uploading || fotosDano.some(f => f.uploading)}
+            disabled={enviando || offline || !tipo || !nivel || !atrapados || !ciudad || !estado || fotoFachada?.uploading || fotosDano.some(f => f.uploading)}
             className={`w-full py-4 rounded-xl text-base font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 transition-colors ${esCritico ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-700 hover:bg-blue-800 text-white'}`}>
             {enviando ? <Loader2 size={18} className="animate-spin" /> : (esCritico ? '🚨' : '📋')}
             {(fotoFachada?.uploading || fotosDano.some(f => f.uploading)) ? t('Subiendo fotos...', 'Uploading photos...', 'Enviando fotos...')

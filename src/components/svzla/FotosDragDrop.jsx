@@ -134,6 +134,7 @@ export default function FotosDragDrop({ category = 'emergencias', caseId, caseLa
             ref={inputRef}
             type="file"
             accept="image/*"
+            capture="environment"
             multiple
             className="hidden"
             onChange={async e => await addFiles(e.target.files)}
